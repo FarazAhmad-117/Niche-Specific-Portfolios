@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/funnels/Layout.astro';
+import ContactForm from '../../components/shared/ContactForm.astro';
+import { getNiche } from '../../niches';
+import hero from '../../assets/funnels/hero.svg';
+
+const { name } = getNiche('funnels');
+---
+
+<Layout
+  title={`${name} | Faraz Ahmad`}
+  description={`Placeholder page for the ${name} portfolio. Real design coming soon.`}
+>
+  <section class="hero">
+    <div class="hero__copy">
+      <h1>{name}</h1>
+      <p>Placeholder hero. The real design for this niche comes later.</p>
+      <a class="hero__cta" href="#contact">Get in touch</a>
+    </div>
+    <div class="hero__media">
+      <Image src={hero} alt="" width={640} height={360} />
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <h2>Contact</h2>
+    <ContactForm niche="funnels" />
+  </section>
+</Layout>
+
+<style>
+  .hero,
+  .contact {
+    padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 4vw, 3rem);
+  }
+  .hero {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+  h1 {
+    font-size: clamp(2rem, 6vw, 4rem);
+    margin: 0 0 1rem;
+  }
+  .hero__cta {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: var(--accent);
+    color: var(--bg);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .hero__media :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .contact {
+    max-width: 40rem;
+    /* Styling hooks exposed by the shared ContactForm. */
+    --cf-gap: 1rem;
+    --cf-border: var(--muted);
+    --cf-radius: 4px;
+    --cf-focus: var(--accent);
+    --cf-btn-bg: var(--accent);
+    --cf-btn-color: var(--bg);
+    --cf-error: hsl(0 85% 70%);
+    --cf-success: hsl(140 60% 60%);
+  }
+  .contact :global(.cf__label) {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+</style>

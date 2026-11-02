@@ -1,0 +1,64 @@
+---
+// The one shared 404 for every niche subdomain (builds to /404.html, which
+// Vercel serves for any unknown path). Deliberately neutral: it can't know
+// which niche it is rendered for. Not the same as a root index page.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Page not found</title>
+  </head>
+  <body>
+    <main class="nf">
+      <p class="code">404</p>
+      <h1>Page not found</h1>
+      <p>The page you are looking for does not exist or has moved.</p>
+      <a href="/">Go to the home page</a>
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    background: #fff;
+    color: #111;
+  }
+  .nf {
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+  .code {
+    margin: 0;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    color: #666;
+  }
+  h1 {
+    margin: 0.25rem 0 0.5rem;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+  a {
+    color: inherit;
+    font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background: #111;
+      color: #eee;
+    }
+    .code {
+      color: #999;
+    }
+  }
+</style>

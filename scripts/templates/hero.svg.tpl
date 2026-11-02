@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
+  <rect width="640" height="360" fill="hsl({{hue}} 40% 16%)"/>
+  <circle cx="320" cy="180" r="90" fill="none" stroke="hsl({{hue}} 85% 62%)" stroke-width="6"/>
+  <text x="320" y="190" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" fill="hsl({{hue}} 20% 94%)">{{slug}}</text>
+</svg>

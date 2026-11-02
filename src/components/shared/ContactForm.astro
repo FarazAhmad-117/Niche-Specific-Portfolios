@@ -1,0 +1,285 @@
+---
+/**
+ * Shared contact form. Posts FormData to PUBLIC_CONTACT_ENDPOINT.
+ *
+ * Styling is entirely up to each niche. Hooks:
+ *   classes : .cf  .cf__row  .cf__label  .cf__control  .cf__input  .cf__textarea
+ *             .cf__submit  .cf__status  .cf__fallback  .cf__hp (honeypot, keep hidden)
+ *   state   : .cf[data-state="idle|sending|success|error|network"]
+ *   vars    : --cf-gap --cf-color --cf-bg --cf-border --cf-radius --cf-pad
+ *             --cf-font --cf-focus --cf-btn-bg --cf-btn-color --cf-error --cf-success
+ * Defaults use zero-specificity :where() so any niche selector wins. From a
+ * scoped niche style use e.g. `.contact :global(.cf__input) { ... }`.
+ */
+import type { NicheSlug } from '../../niches';
+
+interface Props {
+  niche: NicheSlug;
+  /** Field labels. */
+  labels?: { name?: string; email?: string; message?: string };
+  /** Submit button text. */
+  cta?: string;
+  /** Status / error copy. */
+  messages?: {
+    sending?: string;
+    success?: string;
+    error?: string;
+    rateLimited?: string;
+    network?: string;
+    mailtoLead?: string;
+    mailtoLink?: string;
+  };
+  class?: string;
+}
+
+const { niche, labels = {}, cta = 'Send message', messages = {}, class: className } = Astro.props;
+
+const l = {
+  name: 'Name',
+  email: 'Email',
+  message: 'Message',
+  ...labels,
+};
+const config = {
+  sending: 'Sending…',
+  success: 'Thanks! Your message was sent. I will reply soon.',
+  error: 'Something went wrong. Please try again.',
+  rateLimited: 'Too many messages, try later.',
+  network: 'Could not reach the server.',
+  mailtoLead: 'You can email me directly instead:',
+  mailtoLink: 'Send by email',
+  cta,
+  ...messages,
+};
+// Unique ids so several forms on one page keep labels correctly associated.
+const uid = `cf-${niche}-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<form
+  class:list={['cf', className]}
+  data-cf
+  data-state="idle"
+  data-config={JSON.stringify(config)}
+  method="post"
+>
+  <input type="hidden" name="niche" value={niche} />
+
+  <div class="cf__row cf__row--name">
+    <label class="cf__label" for={`${uid}-name`}>{l.name}</label>
+    <input
+      class="cf__control cf__input"
+      id={`${uid}-name`}
+      name="name"
+      type="text"
+      required
+      minlength="2"
+      autocomplete="name"
+    />
+  </div>
+
+  <div class="cf__row cf__row--email">
+    <label class="cf__label" for={`${uid}-email`}>{l.email}</label>
+    <input
+      class="cf__control cf__input"
+      id={`${uid}-email`}
+      name="email"
+      type="email"
+      required
+      autocomplete="email"
+    />
+  </div>
+
+  <div class="cf__row cf__row--message">
+    <label class="cf__label" for={`${uid}-message`}>{l.message}</label>
+    <textarea
+      class="cf__control cf__textarea"
+      id={`${uid}-message`}
+      name="message"
+      rows="5"
+      required
+      minlength="10"></textarea>
+  </div>
+
+  <!-- Honeypot: humans never see or reach this; bots fill it. -->
+  <div class="cf__hp" aria-hidden="true">
+    <label for={`${uid}-company`}>Company</label>
+    <input
+      id={`${uid}-company`}
+      name="company"
+      type="text"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+    />
+  </div>
+
+  <button class="cf__submit" type="submit">{cta}</button>
+
+  <p class="cf__status" role="status" aria-live="polite"></p>
+</form>
+
+<style is:global>
+  /* Functional only: keeps the honeypot out of sight, never override. */
+  .cf__hp {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* Structural defaults, zero specificity, driven by custom properties. */
+  :where(.cf) {
+    display: grid;
+    gap: var(--cf-gap, 1rem);
+    font-family: var(--cf-font, inherit);
+    color: var(--cf-color, inherit);
+  }
+  :where(.cf__row) {
+    display: grid;
+    gap: 0.35rem;
+  }
+  :where(.cf__control) {
+    font: inherit;
+    color: inherit;
+    background: var(--cf-bg, transparent);
+    border: 1px solid var(--cf-border, currentColor);
+    border-radius: var(--cf-radius, 0);
+    padding: var(--cf-pad, 0.6rem 0.75rem);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  :where(.cf__control:focus-visible, .cf__submit:focus-visible) {
+    outline: 2px solid var(--cf-focus, currentColor);
+    outline-offset: 2px;
+  }
+  :where(.cf__submit) {
+    font: inherit;
+    cursor: pointer;
+    justify-self: start;
+    color: var(--cf-btn-color, inherit);
+    background: var(--cf-btn-bg, transparent);
+    border: 1px solid var(--cf-border, currentColor);
+    border-radius: var(--cf-radius, 0);
+    padding: var(--cf-pad, 0.6rem 0.75rem);
+  }
+  :where(.cf__submit:disabled) {
+    cursor: progress;
+    opacity: 0.6;
+  }
+  :where(.cf__status) {
+    margin: 0;
+    min-height: 1.5em;
+  }
+  :where(.cf[data-state='success'] .cf__status) {
+    color: var(--cf-success, inherit);
+  }
+  :where(.cf[data-state='error'] .cf__status, .cf[data-state='network'] .cf__status) {
+    color: var(--cf-error, inherit);
+  }
+</style>
+
+<script>
+  import { captureAttribution, readAttribution } from '../../lib/attribution';
+
+  const ENDPOINT =
+    import.meta.env.PUBLIC_CONTACT_ENDPOINT || 'https://www.farazahmad.dev/api/contact';
+  const EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || 'hello@farazahmad.dev';
+
+  interface Config {
+    sending: string;
+    success: string;
+    error: string;
+    rateLimited: string;
+    network: string;
+    mailtoLead: string;
+    mailtoLink: string;
+    cta: string;
+  }
+
+  // Safety net: no-op if <SEO /> already stored first-touch data this session.
+  captureAttribution();
+  let loadedAt = Date.now();
+
+  function init(form: HTMLFormElement) {
+    const cfg = JSON.parse(form.dataset.config ?? '{}') as Config;
+    const button = form.querySelector<HTMLButtonElement>('.cf__submit')!;
+    const status = form.querySelector<HTMLElement>('.cf__status')!;
+    let sending = false;
+
+    const setState = (state: string, text = '') => {
+      form.dataset.state = state;
+      status.textContent = text; // also clears any previous fallback link
+    };
+
+    const mailtoFallback = (data: FormData) => {
+      const subject = `Contact from ${String(data.get('niche') ?? '')} site`;
+      const body = `${String(data.get('message') ?? '')}\n\n— ${String(data.get('name') ?? '')}`;
+      const a = document.createElement('a');
+      a.className = 'cf__fallback';
+      a.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      a.textContent = cfg.mailtoLink;
+      status.append(' ', cfg.mailtoLead, ' ', a);
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (sending) return;
+      // Native validation (required / type=email / minlength) runs before submit fires.
+
+      const data = new FormData(form);
+      const ft = readAttribution();
+      data.set('elapsed', String(Date.now() - loadedAt));
+      data.set('ft_page', location.pathname);
+      data.set('ft_landing', ft.landing);
+      data.set('ft_referrer', ft.referrer);
+      data.set('ft_utm_source', ft.utm_source);
+      data.set('ft_utm_medium', ft.utm_medium);
+      data.set('ft_utm_campaign', ft.utm_campaign);
+
+      sending = true;
+      button.disabled = true;
+      form.setAttribute('aria-busy', 'true');
+      setState('sending', cfg.sending);
+
+      try {
+        let res: Response;
+        try {
+          res = await fetch(ENDPOINT, { method: 'POST', body: data });
+        } catch {
+          setState('network', cfg.network);
+          mailtoFallback(data);
+          return;
+        }
+
+        if (res.status === 429) {
+          setState('error', cfg.rateLimited);
+          return;
+        }
+
+        let json: { ok?: boolean; error?: string } | null = null;
+        try {
+          json = await res.json();
+        } catch {
+          /* non-JSON body (e.g. a 5xx page) */
+        }
+
+        if (json?.ok === true) {
+          form.reset(); // success: clear the fields
+          loadedAt = Date.now(); // next message gets a fresh elapsed baseline
+          setState('success', cfg.success);
+        } else {
+          // Failure: keep everything the visitor typed.
+          setState('error', (json?.ok === false && json.error) || cfg.error);
+        }
+      } finally {
+        sending = false;
+        button.disabled = false;
+        form.removeAttribute('aria-busy');
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLFormElement>('form[data-cf]').forEach(init);
+</script>

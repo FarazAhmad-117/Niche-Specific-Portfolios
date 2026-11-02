@@ -1,0 +1,52 @@
+---
+/**
+ * Shared <head> metadata: title, description, canonical, Open Graph, Twitter.
+ * Canonical is always https://<slug>.farazahmad.dev/<path>, in dev too.
+ * Also records first-touch attribution for the contact form (see Attribution).
+ */
+import { getNiche, nicheOrigin, type NicheSlug } from '../../niches';
+import Attribution from './Attribution.astro';
+
+interface Props {
+  niche: NicheSlug;
+  title: string;
+  description: string;
+  /** Path on the subdomain ('/about/'). Defaults to the current page. */
+  path?: string;
+  /** Absolute URL or imported image; used for og:image when given. */
+  image?: string | ImageMetadata;
+  /** Force noindex on this page. The niche-wide switch lives in src/niches.ts. */
+  noindex?: boolean;
+}
+
+const { niche, title, description, path, image, noindex: pageNoindex = false } = Astro.props;
+const { name: siteName, noindex: nicheNoindex } = getNiche(niche);
+const noindex = nicheNoindex || pageNoindex;
+
+// The build serves a niche from /<slug>/..., the subdomain from /...
+const pagePath = path ?? Astro.url.pathname.replace(new RegExp(`^/${niche}(?=/|$)`), '');
+const origin = nicheOrigin(niche);
+const canonical = `${origin}/${pagePath.replace(/^\/+/, '')}`;
+const imageUrl = image
+  ? new URL(typeof image === 'string' ? image : image.src, origin).toString()
+  : undefined;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex" />}
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+{imageUrl && <meta property="og:image" content={imageUrl} />}
+
+<meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+<Attribution />

@@ -1,0 +1,9 @@
+---
+// Renders nothing. Captures landing path / referrer / UTM on the visitor's
+// first page view of the session so ContactForm can send it later.
+---
+
+<script>
+  import { captureAttribution } from '../../lib/attribution';
+  captureAttribution();
+</script>

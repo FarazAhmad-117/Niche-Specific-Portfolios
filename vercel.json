@@ -1,0 +1,36 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "ai.farazahmad.dev"
+        }
+      ],
+      "destination": "/ai/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "funnels.farazahmad.dev"
+        }
+      ],
+      "destination": "/funnels/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "seo.farazahmad.dev"
+        }
+      ],
+      "destination": "/seo/:path"
+    }
+  ]
+}
