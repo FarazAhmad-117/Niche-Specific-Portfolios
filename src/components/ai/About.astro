@@ -1,0 +1,187 @@
+---
+/**
+ * About: the real portrait and the facts a buyer checks (all from src/data/ai/profile.ts).
+ * The portrait is black and white on solid black, so it sits in an ink frame in both themes,
+ * with a mono caption plate under it like the label on an instrument.
+ */
+import { Image } from 'astro:assets';
+import Section from './Section.astro';
+import { MAIN_SITE_URL, PERSON_NAME } from '../../data/ai/site';
+import { PROFILE } from '../../data/ai/profile';
+
+const mainHost = new URL(MAIN_SITE_URL).host;
+const facts = [
+  { k: 'Building since', v: String(PROFILE.sinceYear) },
+  { k: 'Based in', v: PROFILE.location },
+  { k: 'Time zone', v: PROFILE.timeZone },
+  { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
+];
+---
+
+<Section id="about">
+  <div class="about">
+    <figure class="about__photo theme-ink" data-reveal>
+      <Image
+        src={PROFILE.portrait.src}
+        alt={PROFILE.portrait.alt}
+        width={560}
+        height={700}
+        widths={[360, 560, 840]}
+        sizes="(min-width: 1024px) 28vw, (min-width: 768px) 36vw, 80vw"
+        loading="lazy"
+        decoding="async"
+        class="about__img"
+      />
+      <figcaption class="about__plate mono">
+        <span>{PERSON_NAME}</span>
+        <span class="about__plate-dim">{PROFILE.city} · {PROFILE.timeZone.split(' ')[0]}</span>
+      </figcaption>
+    </figure>
+
+    <div class="about__copy">
+      <h2 id="about-title">You talk to the person building it.</h2>
+      <div class="prose about__text">
+        <p class="about__lead">
+          {`I'm ${PERSON_NAME}. I've been building AI and automation systems since ${PROFILE.sinceYear}, and I founded ${PROFILE.company}, the company behind Lead Drift and Yard Terminal.`}
+        </p>
+        <p>
+          I work in n8n, Make, Zapier and GoHighLevel, and in custom code with Python, Next.js and MongoDB when no-code
+          hits its limits. Lead Drift, {PROFILE.company}'s own growth engine, is mine, and it runs in production.
+        </p>
+        <p>From the first call to handover, you deal with me, not an account manager.</p>
+      </div>
+      <dl class="about__facts">
+        {
+          facts.map((f) => (
+            <div class="about__fact">
+              <dt>{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+        <div class="about__fact">
+          <dt>Main site</dt>
+          <dd>
+            <a class="link ext" href={MAIN_SITE_URL} target="_blank" rel="noopener">
+              {mainHost}<span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</Section>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--space-7);
+  }
+  /* Ink frame in both themes: the photo's black background bleeds into it. */
+  .about__photo {
+    margin: 0;
+    inline-size: min(100%, 22rem);
+    padding: 10px 10px 0;
+    border: 1px solid var(--line-strong);
+  }
+  .about__photo :global(.about__img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: #000;
+  }
+  .about__plate {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 12px 2px 12px;
+    font-size: var(--fs-mono-label);
+    color: var(--text);
+  }
+  .about__plate-dim {
+    color: var(--text-3);
+  }
+
+  .about__copy {
+    display: grid;
+    gap: var(--space-6);
+    align-content: start;
+  }
+  .about__copy > h2 {
+    margin: 0;
+  }
+  .about__text > p {
+    margin: 0 0 var(--space-4);
+    color: var(--text-2);
+  }
+  .about__text > .about__lead {
+    font-size: var(--fs-lede);
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .about__text > p:last-child {
+    margin-block-end: 0;
+  }
+  .about__facts {
+    display: grid;
+    margin: 0;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .about__fact {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 11rem) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: baseline;
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--line);
+  }
+  .about__fact dt,
+  .about__fact dd {
+    margin: 0;
+  }
+  .about__fact dt {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .about__fact dd {
+    font-weight: 500;
+  }
+  .about__fact a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap);
+    margin-block: -12px;
+  }
+
+  @media (min-width: 768px) {
+    .about {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+    .about__photo {
+      grid-column: 1 / span 3;
+      inline-size: auto;
+    }
+    .about__copy {
+      grid-column: 4 / -1;
+    }
+  }
+  @media (min-width: 1024px) {
+    .about {
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+    }
+    .about__photo {
+      grid-column: 1 / span 4;
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-5));
+    }
+    .about__copy {
+      grid-column: 6 / -1;
+    }
+  }
+</style>

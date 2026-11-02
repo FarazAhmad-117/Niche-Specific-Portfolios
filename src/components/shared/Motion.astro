@@ -1,10 +1,73 @@
 ---
-// Opt-in smooth scroll (Lenis) + ScrollTrigger (GSAP). Render <Motion /> in a
-// niche layout to enable it. No-op under prefers-reduced-motion.
-// See src/lib/motion.ts for the instance (getMotion()) and details.
+/**
+ * Opt-in smooth scroll (Lenis) + ScrollTrigger (GSAP), loaded lazily.
+ * Render <Motion /> once in a niche layout.
+ *
+ * Props:
+ *   gate?: 'desktop' | 'any'   (default 'desktop')
+ *     desktop: only (min-width:1024px) and (hover:hover) and (pointer:fine), motion allowed (spec ai §7.1)
+ *     any:     every device, motion allowed (the previous behaviour)
+ *
+ * The ~52 KB chunk is imported after idle (requestIdleCallback, 2.5s timeout)
+ * or on the first wheel/pointerdown/keydown, and only while the gate matches.
+ * If the gate starts matching later (resize, reduced motion turned off) it loads then.
+ * Sections register animations with onMotion() from src/lib/motion-registry.ts.
+ */
+interface Props {
+  gate?: 'desktop' | 'any';
+}
+const { gate = 'desktop' } = Astro.props;
+const QUERIES = {
+  desktop:
+    '(min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
+  any: '(prefers-reduced-motion: no-preference)',
+} as const;
 ---
 
+<template data-motion-gate={QUERIES[gate]}></template>
+
 <script>
-  import { initMotion } from '../../lib/motion';
-  initMotion();
+  type MotionModule = typeof import('../../lib/motion');
+
+  const gateEl = document.querySelector<HTMLTemplateElement>('template[data-motion-gate]');
+  const query = gateEl?.dataset.motionGate ?? '(prefers-reduced-motion: no-preference)';
+  let mql: MediaQueryList | null = null;
+  try {
+    mql = window.matchMedia(query);
+  } catch {
+    mql = null;
+  }
+
+  let loading: Promise<MotionModule> | null = null;
+  let scheduled = false;
+  const EVENTS = ['wheel', 'pointerdown', 'keydown'] as const;
+
+  const load = () => {
+    loading ??= import('../../lib/motion');
+    loading
+      .then((m) => m.initMotion(query)) // initMotion keeps watching the gate itself
+      .catch((err) => console.error('[motion] failed to load', err));
+  };
+
+  function schedule() {
+    if (scheduled || loading) return;
+    scheduled = true;
+    let idleId: number | undefined;
+    const go = () => {
+      EVENTS.forEach((t) => window.removeEventListener(t, go));
+      if (idleId !== undefined && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleId);
+      if (!mql || mql.matches) load();
+      else scheduled = false;
+    };
+    EVENTS.forEach((t) => window.addEventListener(t, go, { once: true, passive: true }));
+    if (typeof window.requestIdleCallback === 'function') idleId = window.requestIdleCallback(go, { timeout: 2500 });
+    else setTimeout(go, 1200);
+  }
+
+  if (mql) {
+    if (mql.matches) schedule();
+    mql.addEventListener('change', (e) => {
+      if (e.matches && !loading) schedule();
+    });
+  }
 </script>

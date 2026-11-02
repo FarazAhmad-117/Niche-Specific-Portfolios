@@ -1,0 +1,85 @@
+---
+/**
+ * Section shell for case-study pages: the same rail and rhythm as the home sections, with a
+ * free-form id. On desktop the rail label is sticky, so while you read a chapter the margin
+ * keeps telling you which one it is ("The problem", "How it works"). Never numbered.
+ *
+ * Props
+ *   id: string        anchor; the h2 in the slot MUST have id={`${id}-title`}
+ *   label: string     plain rail label ("The problem")
+ *   tone?: 'paper' | 'sunk'   sunk = one surface step down, to separate a chapter
+ *   class?: string
+ */
+interface Props {
+  id: string;
+  label: string;
+  tone?: 'paper' | 'sunk';
+  class?: string;
+}
+
+const { id, label, tone = 'paper', class: className } = Astro.props;
+---
+
+<section id={id} class:list={['csec', tone === 'sunk' && 'csec--sunk', className]} aria-labelledby={`${id}-title`}>
+  <div class="csec__inner container grid">
+    <p class="csec__rail mono-label" aria-hidden="true">
+      <span class="csec__mark"></span>{label}
+    </p>
+    <div class="csec__body">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .csec {
+    --sec-pad-top: var(--space-section);
+    --sec-pad-bottom: var(--space-section);
+    padding-block: var(--sec-pad-top) var(--sec-pad-bottom);
+    border-top: 1px solid var(--line);
+    /* Same rule as the home Section: cancel the top padding, so a jump lands the first line
+       (not the hairline) the global scroll padding under the nav. */
+    scroll-margin-top: calc(-1 * var(--sec-pad-top));
+  }
+  .csec--sunk {
+    background: var(--surface-1);
+  }
+  .csec__inner {
+    row-gap: var(--space-5);
+  }
+  .csec__rail {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+  }
+  .csec__mark {
+    flex: none;
+    inline-size: 6px;
+    block-size: 6px;
+    border: 1px solid currentColor;
+  }
+  .csec__body {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-6);
+    align-content: start;
+    min-inline-size: 0;
+  }
+  .csec__body > :global(*) {
+    margin: 0;
+  }
+  @media (min-width: 1024px) {
+    .csec__rail {
+      grid-column: 1 / span 2;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-6));
+      padding-top: 0.55em;
+    }
+    .csec__body {
+      grid-column: 3 / -1;
+    }
+  }
+</style>

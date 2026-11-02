@@ -1,0 +1,229 @@
+---
+/**
+ * FAQ (spec §5.11). Native <details>: works with no JS, keyboard and screen readers get the
+ * platform disclosure. The same FAQ array feeds the FAQPage JSON-LD (src/lib/ai/jsonld.ts).
+ *
+ * Motion is progressive and CSS-only: where ::details-content and interpolate-size exist the
+ * panel eases open and closed; everywhere else it opens instantly and the answer fades in
+ * (@starting-style). Reduced motion: instant.
+ */
+import Section from './Section.astro';
+import { FAQ } from '../../data/ai/content';
+import { bookingUrl } from '../../data/ai/site';
+---
+
+<Section id="faq">
+  <div class="faq">
+    <div class="faq__head" data-reveal>
+      <h2 id="faq-title">Questions buyers ask me.</h2>
+      <p class="faq__sub text-2">Not here? Ask on the call.</p>
+      <a class="faq__cta link" href={bookingUrl('faq')}>Book a scoping call<span class="faq__cta-arrow" aria-hidden="true">→</span></a>
+    </div>
+
+    <div class="faq__list" data-reveal-stagger>
+      {
+        FAQ.map((item) => (
+          <details class="qa">
+            <summary class="qa__q">
+              <h3 class="qa__title">{item.q}</h3>
+              <span class="qa__icon" aria-hidden="true" />
+            </summary>
+            <div class="qa__a">
+              <p>{item.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</Section>
+
+<style>
+  .faq {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .faq__head {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    justify-items: start;
+  }
+  .faq__head > p {
+    margin: 0;
+  }
+  .faq__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    font-weight: 500;
+  }
+  .faq__cta-arrow {
+    transition: transform 320ms var(--ease-emph);
+  }
+  .faq__cta:focus-visible .faq__cta-arrow {
+    transform: translateX(3px);
+  }
+  @media (hover: hover) {
+    .faq__cta:hover .faq__cta-arrow {
+      transform: translateX(3px);
+    }
+  }
+  .faq__list {
+    border-block-start: 1px solid var(--line-strong);
+  }
+
+  /* ---------- item ---------- */
+  .qa {
+    border-block-end: 1px solid var(--line);
+    interpolate-size: allow-keywords;
+  }
+  .qa__q {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-5);
+    min-block-size: 64px;
+    padding-block: var(--space-4);
+    cursor: pointer;
+    list-style: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__q:focus-visible {
+    outline-offset: 2px;
+    border-radius: var(--radius-m);
+  }
+  .qa__title {
+    margin: 0;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+    color: var(--text);
+  }
+
+  /* A plus in a ring. Open: the vertical bar turns flat (a minus) and the ring fills. */
+  .qa__icon {
+    position: relative;
+    flex: none;
+    inline-size: 32px;
+    block-size: 32px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    color: var(--text);
+    transition:
+      background-color 260ms var(--ease-out),
+      border-color 260ms var(--ease-out),
+      color 260ms var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .qa__icon::before,
+  .qa__icon::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 12px;
+    block-size: 1.5px;
+    margin: -0.75px 0 0 -6px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-emph);
+  }
+  .qa__icon::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__icon {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .qa[open] .qa__icon::after {
+    transform: rotate(180deg);
+  }
+  .qa[open] .qa__icon::before {
+    transform: rotate(180deg);
+  }
+  @media (hover: hover) {
+    .qa__q:hover .qa__icon {
+      border-color: var(--text);
+    }
+  }
+  .qa__q:focus-visible .qa__icon {
+    border-color: var(--text);
+  }
+  .qa__q:active .qa__icon {
+    transform: scale(0.92);
+  }
+
+  /* ---------- answer ---------- */
+  .qa__a {
+    padding-block-end: var(--space-5);
+    padding-inline-end: calc(32px + var(--space-5));
+  }
+  .qa__a p {
+    margin: 0;
+    max-inline-size: 62ch;
+    color: var(--text-2);
+    transition:
+      opacity 300ms var(--ease-out),
+      transform 420ms var(--ease-emph);
+  }
+  .qa:not([open]) .qa__a p {
+    opacity: 0;
+    transform: translateY(-6px);
+    transition-duration: 160ms;
+  }
+  @starting-style {
+    .qa[open] .qa__a p {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  /* Height: progressive. Unsupported browsers drop this whole rule and open instantly. */
+  .qa::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 420ms var(--ease-emph),
+      content-visibility 420ms allow-discrete;
+  }
+  .qa[open]::details-content {
+    block-size: auto;
+  }
+
+  @media (max-width: 479px) {
+    .qa__a {
+      padding-inline-end: 0;
+    }
+  }
+  @media (min-width: 1024px) {
+    .faq {
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      column-gap: var(--gutter);
+    }
+    .faq__head {
+      grid-column: 1 / span 4;
+      position: sticky;
+      inset-block-start: calc(var(--nav-h) + var(--anchor-gap));
+      align-self: start;
+    }
+    .faq__list {
+      grid-column: 5 / -1;
+    }
+  }
+  @media (forced-colors: active) {
+    .qa__icon {
+      border-color: ButtonText;
+    }
+    .qa[open] .qa__icon {
+      background: ButtonText;
+      color: ButtonFace;
+    }
+  }
+</style>

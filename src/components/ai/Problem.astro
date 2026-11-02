@@ -1,0 +1,147 @@
+---
+/**
+ * The problem: empathy first. The argument sits on paper; what goes wrong is set as a small
+ * incident log on ink (a console, because a log is something a system writes). Copy lives in
+ * src/data/ai/content.ts.
+ */
+import Section from './Section.astro';
+import { PROBLEM } from '../../data/ai/content';
+---
+
+<Section id="problem">
+  <div class="problem">
+    <div class="problem__head" data-reveal>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede problem__body">{PROBLEM.body}</p>
+      <p class="problem__fix">{PROBLEM.resolution}</p>
+    </div>
+
+    <div class="log theme-ink">
+      <p class="log__head mono">
+        <span>{PROBLEM.logTitle}</span>
+      </p>
+      <ul class="log__list plain-list" data-reveal-stagger>
+        {
+          PROBLEM.incidents.map((item) => (
+            <li class="log__item">
+              <span class:list={['log__tag', 'mono', item.tag === 'fail' && 'log__tag--fail']}>
+                {item.tag === 'fail' ? 'fail' : 'warn'}
+              </span>
+              <div class="log__body">
+                <h3 class="log__title">{item.title}</h3>
+                <p class="log__text">{item.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</Section>
+
+<style>
+  .problem {
+    display: grid;
+    gap: var(--space-7);
+  }
+  .problem__head {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+  .problem__head > * {
+    margin: 0;
+  }
+  .problem__head h2 {
+    max-inline-size: 16ch;
+  }
+  /* The turn of the argument: plain, heavier, one line. */
+  .problem__fix {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-lede);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .problem__fix::before {
+    content: "";
+    inline-size: 28px;
+    block-size: 1px;
+    background: var(--accent-text);
+  }
+
+  .log {
+    border: 1px solid var(--line-strong);
+    padding: var(--space-4) var(--space-4) var(--space-2);
+  }
+  .log__head {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--line);
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .log__item {
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: var(--space-5);
+  }
+  .log__item + .log__item {
+    border-block-start: 1px solid var(--line);
+  }
+  /* The tag keeps its word: state never relies on colour alone. */
+  .log__tag {
+    align-self: start;
+    justify-self: start;
+    padding: 1px 7px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    font-size: var(--fs-mono-label);
+    color: var(--text-2);
+  }
+  .log__tag::before {
+    content: "[" / "";
+    color: var(--text-3);
+  }
+  .log__tag::after {
+    content: "]" / "";
+    color: var(--text-3);
+  }
+  .log__tag--fail {
+    color: var(--error);
+    border-color: color-mix(in srgb, var(--error) 55%, transparent);
+  }
+  .log__body > * {
+    margin: 0;
+  }
+  .log__title {
+    font-size: var(--fs-body);
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+  .log__text {
+    margin-block-start: var(--space-1);
+    font-size: var(--fs-small);
+    color: var(--text-2);
+  }
+
+  @media (min-width: 768px) {
+    .log {
+      padding: var(--space-5) var(--space-6) var(--space-3);
+    }
+  }
+  @media (min-width: 1024px) {
+    .problem {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 5fr);
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+    .log {
+      margin-block-start: var(--space-2);
+    }
+  }
+</style>

@@ -1,0 +1,353 @@
+/* ai niche base: reset, typography, layout utilities, focus, reveals (spec §3, §4.1, §7.3, §7.9). */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Anchors land --anchor-gap under the sticky nav. Sections cancel their own top padding
+     with a negative scroll-margin (Section.astro), so the heading, not the hairline, lands there. */
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip; /* safety net; nothing should rely on it */
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+p,
+li,
+dd,
+h1,
+h2,
+h3,
+h4,
+figcaption,
+blockquote {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-wrap: balance;
+}
+h1,
+.h1 {
+  font-size: var(--fs-display-xl);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-display-l);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+  max-width: var(--measure-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--tr-h3);
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.prose {
+  max-width: var(--measure);
+}
+.small {
+  font-size: var(--fs-small);
+}
+.mono,
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-log);
+  line-height: var(--lh-mono);
+  font-variant-ligatures: none;
+}
+/* Mono label: UPPERCASE only for labels of 3 words or fewer (§1). */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: var(--tr-mono-label);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.num,
+.metric {
+  font-variant-numeric: tabular-nums;
+}
+.metric {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-metric);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-metric);
+}
+
+/* Inline links (§4.6) */
+a {
+  color: inherit;
+}
+.link,
+.prose a {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out);
+}
+.link:focus-visible,
+.prose a:focus-visible {
+  text-decoration-color: var(--accent-text);
+  text-decoration-thickness: 2px;
+}
+@media (hover: hover) {
+  .link:hover,
+  .prose a:hover {
+    text-decoration-color: var(--accent-text);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus (§3.5) ---------- */
+/* No border-radius here: the ring follows each control's own corners instead of reshaping it. */
+:focus-visible {
+  outline: var(--bw-focus) solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--text);
+  color: var(--bg);
+}
+.theme-ink :focus-visible {
+  outline-color: var(--accent);
+}
+/* Programmatic focus targets (sections, main) are not controls. */
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus,
+section[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+.full-bleed {
+  width: 100%;
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active),
+.sr-only:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Skip link (§4.1) */
+.skip-link {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  background: var(--ink-950);
+  color: var(--bone-100);
+  font-weight: 500;
+  border-radius: var(--radius-m);
+  text-decoration: none;
+  transform: translateY(calc(-100% - 16px));
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+  outline-color: var(--lime-400);
+}
+
+/* ---------- section reveals (§7.3) ----------
+ * Opt in with data-reveal (block) or data-reveal-stagger (direct children, 60ms steps, capped at 6).
+ * JS arms only elements below the fold at init, so no-JS / above-the-fold content is never hidden. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      transform var(--dur-enter) var(--ease-out);
+    transition-delay: calc(min(var(--i, 0), 6) * 60ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ---------- cross-document view transitions (§7.9) ----------
+ * Home <-> case pages: the outgoing page dims and lifts away quickly, the incoming one
+ * settles up from 12px on a long, soft curve. The nav is its own group and does not move,
+ * so the page changes underneath a steady header. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-out 200ms var(--ease-in) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 520ms var(--ease-emph) 60ms both;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 480ms;
+    animation-timing-function: var(--ease-emph);
+  }
+  ::view-transition-group(site-nav) {
+    animation: none;
+  }
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+/* Theme toggle wipe (§7.8): JS animates the new snapshot; the old one stays put. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- forced colors (basic) ---------- */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+  .theme-ink {
+    border: 1px solid CanvasText;
+  }
+}

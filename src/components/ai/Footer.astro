@@ -1,0 +1,314 @@
+---
+/**
+ * Signature footer (spec §4.9). Follows the theme (not a console); no lime.
+ * The Clash Display "Faraz Ahmad" signature is sized in container units so it always spans
+ * the content width exactly, at every breakpoint, without clipping. Rendered once by the
+ * Layout. No props.
+ */
+import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/ai/site';
+import { CALL_PROMISE } from '../../data/ai/content';
+import { createLink } from '../../lib/link';
+import { nicheHost } from '../../niches';
+
+const link = createLink('ai');
+const homePath = link('/');
+const isHome = Astro.url.pathname.replace(/\/?$/, '/') === homePath;
+const href = (id: string) => (isHome ? `#${id}` : `${homePath}#${id}`);
+const year = new Date().getFullYear();
+const mainHost = new URL(MAIN_SITE_URL).host;
+const bookingHost = new URL(BOOKING_URL).host;
+---
+
+<footer class="foot">
+  <div class="foot__inner container">
+    <div class="foot__top">
+      <div class="foot__intro">
+        <p class="foot__lead">Free 30-minute scoping call.</p>
+        <p class="foot__promise text-2">{CALL_PROMISE}.</p>
+        <a class="foot__book" href={bookingUrl('footer')}>
+          <span>Book a scoping call</span>
+          <span class="foot__book-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <nav class="foot__col" aria-label="Footer">
+        <p class="foot__label mono-label">Site</p>
+        <ul role="list">
+          {
+            NAV_LINKS.map((l) => (
+              <li>
+                <a class="foot__link" href={href(l.id)}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="foot__col foot__col--contact">
+        <p class="foot__label mono-label">Contact</p>
+        <ul role="list">
+          <li>
+            <a class="foot__link" href={bookingUrl('footer-contact')}>{bookingHost}</a>
+          </li>
+          <li>
+            <a class="foot__link foot__email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="foot__col">
+        <p class="foot__label mono-label">Elsewhere</p>
+        <ul role="list">
+          <li>
+            <a class="foot__link" href={MAIN_SITE_URL} target="_blank" rel="noopener">
+              {mainHost}
+              <span class="foot__ext" aria-hidden="true">↗</span>
+              <span class="visually-hidden">(opens in a new tab)</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot__sig-wrap" data-reveal>
+      <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+    </div>
+
+    <div class="foot__legal">
+      <p class="mono">© <span class="num">{year}</span> {PERSON_NAME} · {nicheHost('ai')}</p>
+      <a class="foot__link foot__totop" href="#top">
+        Back to top <span class="foot__totop-arrow" aria-hidden="true">↑</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    position: relative;
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-8);
+    padding-bottom: calc(var(--space-4) + var(--sticky-cta-h) + 24px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .foot {
+      padding-top: var(--space-9);
+      padding-bottom: var(--space-4);
+    }
+  }
+
+  /* ---------- columns ---------- */
+  .foot__top {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: var(--space-7);
+  }
+  .foot__intro {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    justify-items: start;
+  }
+  .foot__intro > p {
+    margin: 0;
+  }
+  .foot__lead {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    line-height: 1.15;
+    letter-spacing: var(--tr-h3);
+  }
+  .foot__promise {
+    max-width: 36ch;
+  }
+  .foot__book {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    margin-top: var(--space-3);
+    padding-inline: 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--text);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .foot__book-arrow {
+    transition: transform 320ms var(--ease-emph);
+  }
+  .foot__book:focus-visible {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .foot__book:focus-visible .foot__book-arrow {
+    transform: translateX(3px);
+  }
+  @media (hover: hover) {
+    .foot__book:hover {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--bg);
+    }
+    .foot__book:hover .foot__book-arrow {
+      transform: translateX(3px);
+    }
+  }
+  .foot__book:active {
+    transform: scale(0.98);
+  }
+  .foot__col {
+    grid-column: span 2;
+    min-width: 0;
+  }
+  .foot__label {
+    margin-bottom: var(--space-2);
+  }
+  .foot ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .foot__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--tap);
+    max-width: 100%;
+    text-decoration: none;
+    color: var(--text);
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  /* Underline that draws in from the left. */
+  .foot__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 360ms var(--ease-emph);
+  }
+  .foot__link:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  @media (hover: hover) {
+    .foot__link:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+  .foot__email {
+    overflow-wrap: anywhere;
+  }
+  .foot__ext,
+  .foot__totop-arrow {
+    color: var(--text-3);
+    transition:
+      transform 320ms var(--ease-emph),
+      color var(--dur-hover) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .foot__link:hover .foot__ext {
+      transform: translate(2px, -2px);
+      color: var(--text);
+    }
+    .foot__totop:hover .foot__totop-arrow {
+      transform: translateY(-2px);
+      color: var(--text);
+    }
+  }
+
+  /* Phone: Site + Elsewhere side by side, Contact (long email) on its own row. */
+  .foot__col--contact {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  @media (min-width: 768px) {
+    .foot__col,
+    .foot__col:last-child {
+      grid-column: span 2;
+    }
+    .foot__col--contact {
+      grid-column: span 4;
+      grid-row: auto;
+    }
+  }
+  @media (min-width: 1024px) {
+    .foot__intro {
+      grid-column: 1 / span 4;
+    }
+    .foot__col,
+    .foot__col:last-child {
+      grid-column: span 2;
+    }
+    .foot__col:nth-child(2) {
+      grid-column: 6 / span 2;
+    }
+    .foot__col--contact {
+      grid-column: 8 / span 3;
+    }
+  }
+
+  /* ---------- signature ---------- */
+  .foot__sig-wrap {
+    container-type: inline-size;
+    margin-top: var(--space-9);
+  }
+  .foot__signature {
+    font-family: var(--font-display);
+    font-weight: 600;
+    /* "Faraz Ahmad" in Clash 600 at -0.035em tracking measures 6.315em (measured); with the
+       -0.035em optical pull-in on the left it spans the content width edge to edge. */
+    font-size: calc(100cqi / 6.29);
+    line-height: 0.8;
+    letter-spacing: var(--tr-display);
+    white-space: nowrap;
+    color: var(--text);
+    margin-left: -0.035em;
+    user-select: none;
+  }
+
+  /* ---------- legal ---------- */
+  .foot__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-5);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .foot__legal p {
+    margin: 0;
+    font-size: inherit;
+    overflow-wrap: anywhere;
+  }
+  .foot__totop {
+    font-size: var(--fs-small);
+    color: var(--text-2);
+  }
+  .foot__totop:hover,
+  .foot__totop:focus-visible {
+    color: var(--text);
+  }
+</style>

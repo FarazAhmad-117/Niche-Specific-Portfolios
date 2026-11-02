@@ -1,0 +1,200 @@
+---
+/**
+ * Section 12, final CTA and form (spec §5.12): the second console (always ink).
+ * The sticky mobile CTA hides while #contact is in view (StickyCta watches this id).
+ *
+ * Props
+ *   form?: boolean   include the ContactForm (default true). Case pages pass false: the
+ *                    compact block there is the button and the email only.
+ *   rail?: boolean   show the "Contact" rail label (default true).
+ */
+import { Image } from 'astro:assets';
+import Section from './Section.astro';
+import Button from './Button.astro';
+import { PROFILE } from '../../data/ai/profile';
+import ContactForm from '../shared/ContactForm.astro';
+import { CONTACT_EMAIL, bookingUrl } from '../../data/ai/site';
+import { CALL_PROMISE, PRICE_LINE } from '../../data/ai/content';
+
+interface Props {
+  form?: boolean;
+  rail?: boolean;
+}
+
+const { form = true, rail = true } = Astro.props;
+---
+
+<Section id="contact" theme="ink" rail={rail}>
+  <div class:list={['cta', form && 'cta--form']}>
+    <div class="cta__main">
+      <h2 id="contact-title">Bring me the workflow that keeps breaking.</h2>
+      <p class="lede">Book a free 30-minute scoping call. {CALL_PROMISE}.</p>
+
+      <div class="cta__who">
+        <Image
+          src={PROFILE.portrait.src}
+          alt=""
+          width={112}
+          height={112}
+          widths={[64, 112, 168]}
+          sizes="56px"
+          loading="lazy"
+          decoding="async"
+          class="cta__face"
+        />
+        <p class="cta__who-text">
+          <span class="cta__who-name">You'll talk to me, {PROFILE.name}.</span>
+          <span class="cta__who-meta mono">{PROFILE.location} · {PROFILE.timeZone}</span>
+        </p>
+      </div>
+      <div class="cta__action">
+        <Button href={bookingUrl('final-cta')}>Book a scoping call</Button>
+      </div>
+      <p class="mono cta__micro">{PRICE_LINE}.</p>
+    </div>
+
+    {
+      form && (
+        <div id="contact-form" class="cta__form">
+          <h3 class="cta__form-title">Or send the details.</h3>
+          <ContactForm niche="ai" cta="Send message" fallbackEmail={CONTACT_EMAIL} />
+          <p class="cta__email">
+            Prefer email? <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </p>
+        </div>
+      )
+    }
+  </div>
+
+  {
+    !form && (
+      <p class="cta__email cta__email--solo">
+        Prefer email? <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      </p>
+    )
+  }
+</Section>
+
+<style>
+  .cta {
+    display: grid;
+    gap: var(--space-7);
+  }
+  .cta__main {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .cta__main > * {
+    margin: 0;
+  }
+  .cta__action {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    margin-block-start: var(--space-3);
+  }
+  .cta__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-block-start: var(--space-3);
+  }
+  .cta__main :global(.cta__face) {
+    flex: none;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: 50% 30%;
+    background: #000;
+    border: 1px solid var(--line-strong);
+  }
+  .cta__who-text {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+  }
+  .cta__who-name {
+    font-weight: 500;
+  }
+  .cta__who-meta {
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .cta__micro {
+    color: var(--text-3);
+  }
+  .cta__form {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    /* Styling hooks exposed by the shared ContactForm. */
+    --cf-gap: var(--space-5);
+    --cf-border: var(--line-strong);
+    --cf-radius: var(--radius-m);
+    --cf-pad: 0.75rem 0.875rem;
+    --cf-bg: var(--surface-1);
+    --cf-focus: var(--accent);
+    --cf-btn-bg: var(--bone-100);
+    --cf-btn-color: var(--ink-950);
+    --cf-error: var(--error);
+    --cf-success: var(--success);
+  }
+  .cta__form-title {
+    margin: 0;
+  }
+  .cta__form :global(.cf__control) {
+    min-height: 48px;
+  }
+  .cta__form :global(.cf__textarea) {
+    min-height: 9rem;
+    resize: vertical;
+  }
+  .cta__form :global(.cf__label) {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-2);
+  }
+  .cta__form :global(.cf__submit) {
+    /* base.css sets `button { color: inherit }`, which beats the form's :where() default. */
+    color: var(--cf-btn-color);
+    min-height: 48px;
+    padding-inline: 20px;
+    font-weight: 500;
+    border: 1px solid var(--line-strong);
+  }
+  /* The booking button is the one lime fill in this panel; the form submits in bone. */
+  .cta__form :global(.cf__submit:hover),
+  .cta__form :global(.cf__submit:focus-visible) {
+    background: var(--stone-300);
+  }
+  .cta__form :global(.cf__status) {
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__fallback) {
+    text-decoration: underline 1px var(--line-strong);
+    text-underline-offset: 3px;
+  }
+  .cta__email {
+    margin: 0;
+    color: var(--text-2);
+    overflow-wrap: anywhere;
+  }
+  .cta__email--solo {
+    margin-block-start: var(--space-5);
+  }
+
+  @media (min-width: 1024px) {
+    .cta--form {
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      column-gap: var(--gutter);
+    }
+    .cta--form .cta__main {
+      grid-column: 1 / span 5;
+    }
+    .cta--form .cta__form {
+      grid-column: 7 / -1;
+    }
+  }
+</style>

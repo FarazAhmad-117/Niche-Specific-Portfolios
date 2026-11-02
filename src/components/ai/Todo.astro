@@ -1,0 +1,91 @@
+---
+/**
+ * The one placeholder treatment (spec §4.8). Never animated, counted or lime.
+ *
+ * Props
+ *   label: string                what is missing, e.g. "add measured number"
+ *   id?: string                  stable registry id, e.g. "case.lead-drift.result"
+ *                                (defaults to a slug of the label)
+ *   variant?: 'chip' | 'metric'  chip = inline "TODO · label";
+ *                                metric = block reserving a big number's height
+ *                                (Clash "—" in text-3) with the chip under it
+ *   size?: 'metric' | 'm'        metric slot height: --fs-metric (default) or --fs-display-m
+ *   class?: string
+ *
+ * Each id is registered in src/lib/ai/todo.ts (getTodos(); console.warn once per id at build).
+ */
+import { registerTodo, todoIdFromLabel } from '../../lib/ai/todo';
+
+interface Props {
+  label: string;
+  id?: string;
+  variant?: 'chip' | 'metric';
+  size?: 'metric' | 'm';
+  class?: string;
+}
+
+const { label, id, variant = 'chip', size = 'metric', class: className } = Astro.props;
+const todoId = id ?? todoIdFromLabel(label);
+registerTodo(todoId, label, Astro.url.pathname);
+---
+
+{
+  variant === 'metric' ? (
+    <span class:list={['todo-metric', `todo-metric--${size}`, className]} data-todo={todoId}>
+      <span class="todo-metric__dash" aria-hidden="true">
+        —
+      </span>
+      <span class="todo">{label}</span>
+    </span>
+  ) : (
+    <span class:list={['todo', className]} data-todo={todoId}>
+      {label}
+    </span>
+  )
+}
+
+<style>
+  .todo {
+    display: inline-block;
+    max-width: 100%;
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-2);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-s);
+    padding: 2px 8px;
+    background: repeating-linear-gradient(135deg, var(--todo-hatch) 0 6px, transparent 6px 12px);
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .todo::before {
+    content: "TODO · ";
+    color: var(--text-3);
+  }
+  .todo-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  .todo-metric__dash {
+    display: block;
+    min-height: calc(var(--fs-metric) * 1.02);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-metric);
+    line-height: 1.02;
+    color: var(--text-3);
+  }
+  .todo-metric--m .todo-metric__dash {
+    min-height: calc(var(--fs-display-m) * 1.02);
+    font-size: var(--fs-display-m);
+  }
+  @media (forced-colors: active) {
+    .todo {
+      border-color: CanvasText;
+    }
+  }
+</style>

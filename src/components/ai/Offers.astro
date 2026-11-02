@@ -1,0 +1,166 @@
+---
+/**
+ * Services: four ways to work together, no prices. Each card opens with a plain "pick this
+ * if" line so a first-time visitor can find theirs in a second. Every CTA goes to the booking
+ * link with the offer recorded as a UTM.
+ */
+import Section from './Section.astro';
+import Button from './Button.astro';
+import { OFFERS, CALL_PROMISE } from '../../data/ai/content';
+import { bookingUrl } from '../../data/ai/site';
+---
+
+<Section id="offers">
+  <div class="sec-head sec-head--split" data-reveal>
+    <h2 id="offers-title">Four ways to work with me.</h2>
+    <p class="lede">Pick the one that sounds like your situation. Every path starts with the same free call.</p>
+  </div>
+
+  <ul class="offers plain-list" data-reveal-stagger>
+    {
+      OFFERS.map((offer) => (
+        <li class="card card--hover offer">
+          <h3 class="offer__title">{offer.name}</h3>
+          <p class="offer__best">
+            <span class="offer__best-k">Pick this if</span>
+            {offer.bestFor}
+          </p>
+          <p class="offer__desc">{offer.description}</p>
+          <ul class="offer__gets plain-list" aria-label={`${offer.name}: what you get`}>
+            {offer.gets.map((item) => <li>{item}</li>)}
+          </ul>
+          <p class="offer__price">{offer.priceLine}</p>
+          <Button variant="ghost" href={bookingUrl(offer.id)} arrow="→" class="offer__cta">
+            {offer.cta}
+          </Button>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="call theme-ink" data-reveal>
+    <div class="call__text">
+      <h3 class="call__title">Not sure which? Start with the call.</h3>
+      <p class="call__line">Free, 30 minutes. {CALL_PROMISE}. No hourly billing.</p>
+    </div>
+    <Button href={bookingUrl('scoping-call')}>Book a scoping call</Button>
+  </div>
+</Section>
+
+<style>
+  .offers {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .offer {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+  .offer > * {
+    margin: 0;
+  }
+  .offer__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.75rem, 1.55rem + 0.6vw, 2.25rem);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--tr-heading);
+  }
+  .offer__best {
+    display: grid;
+    gap: 6px;
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface-1);
+    border-inline-start: 2px solid var(--accent-text);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    font-weight: 500;
+  }
+  .offer__best-k {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .offer__desc {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .offer__gets {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-block: 1px solid var(--line);
+    font-size: var(--fs-small);
+  }
+  .offer__gets > li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+  /* A small tick in the accent text colour: "you get this". */
+  .offer__gets > li::before {
+    content: "";
+    flex: none;
+    inline-size: 9px;
+    block-size: 5px;
+    border-inline-start: 1.5px solid var(--accent-text);
+    border-block-end: 1.5px solid var(--accent-text);
+    transform: translateY(-3px) rotate(-45deg);
+  }
+  .offer__price {
+    font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-3);
+    align-self: end;
+  }
+  .offer :global(.offer__cta) {
+    justify-self: start;
+  }
+
+  .call {
+    display: grid;
+    gap: var(--space-4);
+    align-items: center;
+    margin-block-start: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid var(--line-strong);
+  }
+  .call__title {
+    margin: 0 0 var(--space-2);
+  }
+  .call__line {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  @media (min-width: 768px) {
+    .offers {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .offer {
+      grid-template-rows: auto auto 1fr auto auto auto;
+    }
+    .call {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-6);
+      padding: var(--space-5) var(--space-6);
+    }
+  }
+  /* 4-up: share row tracks so the boxes, lists, prices and CTAs line up across cards. */
+  @media (min-width: 1280px) {
+    .offer__title {
+      font-size: clamp(1.75rem, 0.9rem + 1.05vw, 2.25rem);
+    }
+    .offers {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(6, auto);
+      row-gap: 0;
+    }
+    .offer {
+      grid-row: span 6;
+      grid-template-rows: subgrid;
+      row-gap: var(--space-4);
+    }
+  }
+</style>

@@ -1,0 +1,170 @@
+---
+/**
+ * "What I build, and who it's for": the plain-language answer to "what does this person
+ * actually do?". Four kinds of system, each with who it is for and a link to the real build
+ * that proves it. Copy: CAPABILITIES in src/data/ai/content.ts. Section id "build".
+ */
+import Section from './Section.astro';
+import { CAPABILITIES } from '../../data/ai/content';
+import { CASES } from '../../data/ai/cases';
+import { createLink } from '../../lib/link';
+
+const link = createLink('ai');
+const items = CAPABILITIES.map((c) => {
+  const study = CASES.find((s) => s.slug === c.example);
+  if (!study) throw new Error(`Capabilities: unknown case "${c.example}"`);
+  return { ...c, study };
+});
+---
+
+<Section id="build">
+  <div class="sec-head sec-head--split" data-reveal>
+    <h2 id="build-title">What I build, and who it's for.</h2>
+    <p class="lede">
+      Four kinds of system. Each one links to something I built myself, so you can see it, not take my word for it.
+    </p>
+  </div>
+
+  <ul class="caps plain-list" data-reveal-stagger>
+    {
+      items.map((c) => (
+        <li class="cap">
+          <p class="cap__for">
+            <span class="cap__for-k">For</span> {c.forWhom}
+          </p>
+          <h3 class="cap__title">{c.title}</h3>
+          <p class="cap__text">{c.text}</p>
+          <p class="cap__proof">
+            <span class="cap__link-k">Built</span>
+            <a class="cap__link" href={link(`/work/${c.study.slug}/`)}>
+              {c.study.name}
+              <span class="visually-hidden"> case study</span>
+              <span class="cap__arrow" aria-hidden="true">→</span>
+            </a>
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="caps__more">
+    Already have an automation that keeps breaking? <a class="link" href="#offers">That's a Rescue job</a>.
+  </p>
+</Section>
+
+<style>
+  .caps {
+    display: grid;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .cap {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: var(--space-3);
+    padding-block: var(--space-6);
+    border-block-end: 1px solid var(--line);
+  }
+  .cap > * {
+    margin: 0;
+  }
+  .cap__for {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-2);
+  }
+  .cap__for-k {
+    display: inline-block;
+    margin-inline-end: 6px;
+    padding: 1px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    text-transform: uppercase;
+    letter-spacing: var(--tr-mono-label);
+    color: var(--text-3);
+  }
+  .cap__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.33rem + 0.75vw, 2.25rem);
+    line-height: 1.05;
+    letter-spacing: var(--tr-heading);
+    max-inline-size: 16ch;
+  }
+  .cap__text {
+    color: var(--text-2);
+    max-inline-size: 44ch;
+  }
+  .cap__proof {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
+  }
+  .cap__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    min-block-size: var(--tap);
+    font-weight: 500;
+    text-decoration: underline 1px var(--line-strong);
+    text-underline-offset: 5px;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  .cap__link-k {
+    font: 500 var(--fs-mono-label) / 1 var(--font-mono);
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: var(--tr-mono-label);
+  }
+  .cap__arrow {
+    display: inline-block;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .cap__link:focus-visible {
+    text-decoration-color: var(--accent-text);
+    text-decoration-thickness: 2px;
+  }
+  .cap__link:focus-visible .cap__arrow {
+    transform: translateX(3px);
+  }
+  @media (hover: hover) {
+    .cap__link:hover {
+      text-decoration-color: var(--accent-text);
+      text-decoration-thickness: 2px;
+    }
+    .cap__link:hover .cap__arrow {
+      transform: translateX(3px);
+    }
+  }
+  .caps__more {
+    margin: var(--space-6) 0 0;
+    color: var(--text-2);
+  }
+
+  @media (min-width: 768px) {
+    .caps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--gutter);
+    }
+    .cap:nth-child(odd) {
+      padding-inline-end: var(--space-6);
+    }
+  }
+  @media (min-width: 1280px) {
+    .caps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-block-end: 1px solid var(--line);
+    }
+    .cap {
+      padding-inline-end: var(--space-5);
+      border-block-end: 0;
+    }
+    .cap + .cap {
+      padding-inline-start: var(--space-5);
+      border-inline-start: 1px solid var(--line);
+    }
+    .caps {
+      column-gap: 0;
+    }
+  }
+</style>

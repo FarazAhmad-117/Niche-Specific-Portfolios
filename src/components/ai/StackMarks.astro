@@ -1,0 +1,29 @@
+---
+/**
+ * Stack marks (spec §4.7): text in mono at the tool's own casing, never logos.
+ *
+ * Props
+ *   tools: readonly string[]   STACK from src/data/ai/site.ts, or a case's `stack`
+ *   label?: string             accessible name of the list (default "Stack")
+ *   size?: 'm' | 's'           s = compact marks for cards
+ *   provisional?: boolean      the case's stack is the owner's default, not yet confirmed per
+ *                              project: adds one quiet line under the marks, no apology
+ *   class?: string
+ */
+interface Props {
+  tools: readonly string[];
+  label?: string;
+  size?: 'm' | 's';
+  provisional?: boolean;
+  class?: string;
+}
+
+const { tools, label = 'Stack', size = 'm', provisional = false, class: className } = Astro.props;
+---
+
+<div class:list={['stack', className]}>
+  <ul class:list={['stack-list', size === 's' && 'stack-list--s']} aria-label={label}>
+    {tools.map((t) => <li class="stack-mark">{t}</li>)}
+  </ul>
+  {provisional && <p class="stack-note">My usual stack for this kind of build.</p>}
+</div>

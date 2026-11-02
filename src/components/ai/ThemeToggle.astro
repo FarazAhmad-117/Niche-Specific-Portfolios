@@ -1,0 +1,197 @@
+---
+/**
+ * Theme toggle (spec §4.3, §7.8). aria-label "Dark theme" + aria-pressed = dark on.
+ * Persists to localStorage('theme'); the no-flash inline script lives in the Layout <head>.
+ * The glyph is a sun that eclipses into a moon. No props (class? only).
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const maskId = `tt-mask-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<button type="button" class:list={['theme-toggle', className]} aria-label="Dark theme" aria-pressed="false" data-theme-toggle>
+  <svg class="tt" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+    <mask id={maskId}>
+      <rect width="24" height="24" fill="#fff"></rect>
+      <circle class="tt__bite" cx="24" cy="4" r="7" fill="#000"></circle>
+    </mask>
+    <circle class="tt__core" cx="12" cy="12" r="5" fill="currentColor" mask={`url(#${maskId})`}></circle>
+    <g class="tt__rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"
+      ></path>
+    </g>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text);
+    touch-action: manipulation;
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .tt {
+    overflow: visible;
+  }
+  .tt__core {
+    transform-origin: 12px 12px;
+    transition: r 480ms var(--ease-emph);
+  }
+  .tt__bite {
+    transition:
+      cx 480ms var(--ease-emph),
+      cy 480ms var(--ease-emph);
+  }
+  .tt__rays {
+    transform-origin: 12px 12px;
+    transition:
+      transform 480ms var(--ease-emph),
+      opacity 240ms var(--ease-out);
+  }
+  /* Dark on: the core grows, a shadow bites it into a crescent, the rays fold away. */
+  .theme-toggle[aria-pressed="true"] .tt__core {
+    r: 8.5px;
+  }
+  .theme-toggle[aria-pressed="true"] .tt__bite {
+    cx: 17px;
+    cy: 7px;
+  }
+  .theme-toggle[aria-pressed="true"] .tt__rays {
+    opacity: 0;
+    transform: rotate(-45deg) scale(0.5);
+  }
+  .theme-toggle:focus-visible {
+    background: var(--surface-1);
+  }
+  @media (hover: hover) {
+    .theme-toggle:hover {
+      background: var(--surface-1);
+    }
+  }
+  .theme-toggle:active {
+    transform: scale(0.94);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tt__core,
+    .tt__bite,
+    .tt__rays {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const KEY = 'theme';
+  type Theme = 'light' | 'dark';
+
+  let dark: MediaQueryList | null = null;
+  try {
+    dark = window.matchMedia('(prefers-color-scheme: dark)');
+  } catch {
+    dark = null;
+  }
+  const reduced = (): boolean => {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
+  };
+
+  const stored = (): Theme | null => {
+    try {
+      const t = localStorage.getItem(KEY);
+      return t === 'light' || t === 'dark' ? t : null;
+    } catch {
+      return null;
+    }
+  };
+  const effective = (): Theme => {
+    const t = root.dataset.theme;
+    if (t === 'light' || t === 'dark') return t;
+    return dark?.matches ? 'dark' : 'light';
+  };
+  const COLORS: Record<Theme, string> = { light: '#f2f1ec', dark: '#111110' };
+
+  function sync() {
+    const theme = effective();
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(theme === 'dark'));
+    });
+    const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    if (stored()) metas.forEach((m) => (m.content = COLORS[theme]));
+    else metas.forEach((m) => (m.content = m.media.includes('dark') ? COLORS.dark : COLORS.light));
+  }
+
+  function apply(theme: Theme) {
+    root.dataset.theme = theme;
+    try {
+      localStorage.setItem(KEY, theme);
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
+    sync();
+  }
+
+  function toggle(btn: HTMLElement) {
+    const next: Theme = effective() === 'dark' ? 'light' : 'dark';
+    if (reduced() || typeof document.startViewTransition !== 'function') {
+      apply(next);
+      return;
+    }
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    root.classList.add('theme-vt');
+    try {
+      const vt = document.startViewTransition(() => apply(next));
+      vt.ready
+        .then(() => {
+          root.animate(
+            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+            { duration: 560, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', pseudoElement: '::view-transition-new(root)' },
+          );
+        })
+        .catch(() => {});
+      vt.finished.finally(() => root.classList.remove('theme-vt'));
+    } catch {
+      root.classList.remove('theme-vt');
+      apply(next);
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => toggle(btn));
+  });
+  dark?.addEventListener('change', sync);
+  // Another tab changed the theme.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    else delete root.dataset.theme;
+    sync();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    sync();
+  });
+  sync();
+</script>

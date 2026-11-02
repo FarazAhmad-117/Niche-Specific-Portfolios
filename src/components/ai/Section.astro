@@ -1,0 +1,154 @@
+---
+/**
+ * Section shell for the home sections (spec §1 grid behaviour, §5).
+ *
+ * Props
+ *   id: SectionId                  from SECTIONS in src/data/ai/site.ts; sets <section id> and
+ *                                  aria-labelledby="{id}-title" — the h2 in the slot MUST have
+ *                                  id={`${id}-title`}
+ *   theme?: 'paper' | 'ink'        ink = console section (.theme-ink, both themes). Default paper.
+ *   grid?: boolean                 draw the visible hairline grid + crosshairs (checklist only)
+ *   rail?: boolean                 show the mono section label rail (default true). Never numbered.
+ *   label?: string                 override the rail text (default: SECTIONS label)
+ *   class?: string                 extra classes on <section>
+ *
+ * Spacing: top padding comes from --sec-pad-top (default --space-section), bottom from
+ * --sec-pad-bottom. Override those custom properties, not `padding`, so a jump to #id still
+ * lands the first line of the section exactly --anchor-gap under the nav.
+ *
+ * Layout: ≥1024 the rail sits in cols 1–2 and the default slot spans cols 3–12 as its own
+ * 10-column grid (.sec__body is `display:grid` with --cols:10, so children can use
+ * grid-column: 1 / span N). Below 1024 the rail is an eyebrow above the content and the body
+ * uses the page grid (4 / 8 cols). Use grid-column: 1 / -1 for full-width children.
+ *
+ * Slots
+ *   default   the content (h2 first)
+ *   after     rendered after the container, full-bleed (e.g. a console band)
+ */
+import { SECTIONS, type SectionId } from '../../data/ai/site';
+import GridLines from './GridLines.astro';
+
+interface Props {
+  id: SectionId;
+  theme?: 'paper' | 'ink';
+  grid?: boolean;
+  rail?: boolean;
+  label?: string;
+  class?: string;
+}
+
+const { id, theme = 'paper', grid = false, rail = true, label, class: className } = Astro.props;
+const meta = SECTIONS.find((s) => s.id === id);
+if (!meta) throw new Error(`Section: unknown id "${id}"`);
+---
+
+<section
+  id={id}
+  class:list={['sec', theme === 'ink' && 'theme-ink sec--ink', grid && 'sec--grid', className]}
+  aria-labelledby={`${id}-title`}
+  tabindex="-1"
+  data-section={id}
+>
+  {grid && <GridLines />}
+  <div class="sec__frame container" aria-hidden="true">
+    <span class="sec__junction"></span>
+  </div>
+  <div class="sec__inner container grid">
+    {
+      rail && (
+        <p class="sec__rail mono-label" aria-hidden="true">
+          <span class="sec__rail-mark" />
+          {label ?? meta.label}
+        </p>
+      )
+    }
+    <div class="sec__body">
+      <slot />
+    </div>
+  </div>
+  <slot name="after" />
+</section>
+
+<style>
+  .sec {
+    --sec-pad-top: var(--space-section);
+    --sec-pad-bottom: var(--space-section);
+    position: relative;
+    padding-block: var(--sec-pad-top) var(--sec-pad-bottom);
+    border-top: 1px solid var(--line);
+    /* Cancel the top padding so the first line, not the hairline, sits under the nav. */
+    scroll-margin-top: calc(-1 * var(--sec-pad-top));
+  }
+  .sec--ink {
+    border-top-color: var(--line-strong);
+  }
+  .sec__frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    display: none;
+  }
+  .sec__junction {
+    position: absolute;
+    top: -2px;
+    width: 5px;
+    height: 5px;
+    background: var(--line-strong);
+  }
+  .sec__inner {
+    position: relative;
+    z-index: 1;
+    row-gap: var(--space-4);
+  }
+  .sec__rail {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+  }
+  .sec__rail-mark {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border: 1px solid currentColor;
+  }
+  .sec__body {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    column-gap: var(--gutter);
+    align-content: start;
+  }
+  /* Zero specificity so child components can place themselves. */
+  :global(:where(.sec__body) > *) {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 1024px) {
+    .sec__frame {
+      display: block;
+    }
+    /* Junction where the hairline crosses the column-3 edge. */
+    .sec__junction {
+      left: calc((100% - 11 * var(--gutter)) / 12 * 2 + 2 * var(--gutter) - 2px);
+    }
+    .sec__rail {
+      grid-column: 1 / span 2;
+      align-self: start;
+      /* Optically level with the cap height of the h2 beside it. */
+      padding-top: 0.55em;
+    }
+    .sec__body {
+      --cols: 10;
+      grid-column: 3 / -1;
+    }
+  }
+  @media (forced-colors: active) {
+    .sec__junction {
+      background: CanvasText;
+    }
+  }
+</style>

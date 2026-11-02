@@ -1,0 +1,156 @@
+---
+/**
+ * Section 09, comparison (spec §5.9). A real <table> from 768px up; below that the same
+ * markup restyles to one stacked card per criterion, with explicit ARIA roles so the table
+ * semantics survive `display: block`.
+ */
+import Section from './Section.astro';
+import { COMPARISON } from '../../data/ai/content';
+
+const [me, agency, freelancer] = COMPARISON.columns;
+const short = ['Me', 'Agency', 'Freelancer'] as const;
+---
+
+<Section id="compare">
+  <div class="sec-head" data-reveal>
+    <h2 id="compare-title">Me, an agency, or a no-code freelancer.</h2>
+    <p class="mono text-3">
+      Generalisations. Good agencies and freelancers exist; this is how the options usually differ.
+    </p>
+  </div>
+
+  <div class="cmp-wrap" role="region" aria-labelledby="compare-title" tabindex="0">
+    <table class="cmp" role="table">
+      <thead role="rowgroup">
+        <tr role="row">
+          <td role="columnheader" class="cmp__corner"><span class="visually-hidden">Criterion</span></td>
+          <th role="columnheader" scope="col" class="cmp__me">{me}</th>
+          <th role="columnheader" scope="col">{agency}</th>
+          <th role="columnheader" scope="col">{freelancer}</th>
+        </tr>
+      </thead>
+      <tbody role="rowgroup">
+        {
+          COMPARISON.rows.map((row) => (
+            <tr role="row">
+              <th role="rowheader" scope="row" class="cmp__row">{row.criterion}</th>
+              {row.cells.map((cell, i) => (
+                <td role="cell" class:list={[i === 0 && 'cmp__me']} data-label={short[i]}>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</Section>
+
+<style>
+  .cmp-wrap {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .cmp {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+  .cmp th,
+  .cmp td {
+    padding: var(--space-4);
+    text-align: start;
+    vertical-align: top;
+    border-block-end: 1px solid var(--line);
+    line-height: 1.5;
+  }
+  .cmp thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono-label);
+    font-weight: 500;
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-block-end: 1px solid var(--line-strong);
+  }
+  .cmp__row {
+    font-weight: 600;
+    inline-size: 16%;
+    color: var(--text);
+  }
+  /* "Me" column: an ink column on bone, surface-2 with strong side rules on ink. */
+  .cmp__me {
+    background: var(--me-bg);
+    color: var(--me-fg);
+    border-inline: 1px solid var(--me-edge);
+    border-block-end-color: var(--me-edge);
+  }
+  .cmp thead .cmp__me {
+    color: var(--me-fg);
+  }
+
+  /* Tablet: the criterion column stays put if the table ever scrolls sideways. */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .cmp__row {
+      position: sticky;
+      inset-inline-start: 0;
+      background: var(--bg);
+      z-index: 1;
+    }
+  }
+
+  /* Mobile: stacked cards, one per criterion. */
+  @media (max-width: 767px) {
+    .cmp-wrap {
+      overflow: visible;
+    }
+    .cmp,
+    .cmp tbody,
+    .cmp tr,
+    .cmp th,
+    .cmp td {
+      display: block;
+    }
+    /* Column headers are replaced by the per-line labels; AT keeps them via the roles. */
+    .cmp thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .cmp tr {
+      margin-block-end: var(--space-4);
+      border: 1px solid var(--line-strong);
+      background: var(--surface-2);
+    }
+    .cmp th,
+    .cmp td {
+      padding: var(--space-3) var(--space-4);
+      border: 0;
+    }
+    .cmp__row {
+      inline-size: auto;
+      background: var(--surface-1);
+      font-family: var(--font-body);
+      font-size: var(--fs-h3);
+      line-height: var(--lh-h3);
+    }
+    .cmp td::before {
+      content: attr(data-label) ": ";
+      display: block;
+      font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+      letter-spacing: var(--tr-mono-label);
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    /* "Me" first, with a rule, on the normal card surface rather than the ink column. */
+    .cmp .cmp__me {
+      background: transparent;
+      color: var(--text);
+      border-inline: 0;
+      border-inline-start: 3px solid var(--accent-text);
+    }
+  }
+</style>
