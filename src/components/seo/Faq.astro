@@ -1,0 +1,142 @@
+---
+/**
+ * FAQ (brief §5) as native <details>: keyboard and no-JS friendly, find-in-page opens them.
+ * The marker on the "+" sweeps when a question opens. Same text feeds the FAQPage JSON-LD.
+ */
+import { FAQ } from '../../data/seo/content';
+---
+
+<section class="section section--sunk faq" id="faq" aria-labelledby="faq-title">
+  <div class="container faq__grid">
+    <div class="head faq__head">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title">Questions people ask first.</h2>
+    </div>
+    <div class="faq__list" data-reveal-stagger>
+      {
+        FAQ.map((f) => (
+          <details class="qa" name="faq">
+            <summary class="qa__q">
+              <span class="qa__text">{f.q}</span>
+              <span class="qa__icon" aria-hidden="true" />
+            </summary>
+            <div class="qa__a">
+              <p>{f.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 1024px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+      column-gap: var(--space-9);
+      align-items: start;
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-6));
+    }
+  }
+  .faq__head {
+    margin-bottom: 0;
+  }
+  .faq__list {
+    border-top: 1px solid var(--line-strong);
+  }
+  .qa {
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .qa__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 68px;
+    padding-block: var(--space-4);
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: clamp(1.125rem, 1.05rem + 0.4vw, 1.4rem);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__q:focus-visible {
+    outline-offset: 4px;
+    border-radius: var(--radius-xs);
+  }
+  .qa__icon {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-s);
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-size: 0% 100%;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition: background-size 420ms var(--ease-marker);
+  }
+  .qa__icon::before,
+  .qa__icon::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    margin: -1px 0 0 -6px;
+    border-radius: 1px;
+    background: var(--text);
+    transition: transform 420ms var(--ease-snap);
+  }
+  .qa__icon::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__icon {
+    background-size: 100% 100%;
+    box-shadow: none;
+  }
+  .qa[open] .qa__icon::before,
+  .qa[open] .qa__icon::after {
+    background: var(--on-accent);
+  }
+  .qa[open] .qa__icon::after {
+    transform: rotate(0deg);
+  }
+  @media (hover: hover) {
+    .qa__q:hover .qa__icon {
+      box-shadow: inset 0 0 0 1px var(--text);
+    }
+  }
+  .qa__a {
+    padding-bottom: var(--space-5);
+  }
+  .qa__a p {
+    max-width: 62ch;
+    color: var(--text-2);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .qa[open] .qa__a {
+      animation: qa-in 420ms var(--ease-out);
+    }
+  }
+  @keyframes qa-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+</style>

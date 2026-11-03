@@ -1,0 +1,1764 @@
+{
+  "_readme": "Written by the local decisions page. Edit via /__decisions/, not by hand. Human-readable version: DECISIONS.md.",
+  "version": 1,
+  "updatedAt": "2026-11-02T19:39:10.717Z",
+  "answers": {
+    "global/booking-tool": {
+      "value": "calendly"
+    },
+    "global/email": {
+      "value": "farazahmad31048@gmail.com"
+    },
+    "global/headshot": {
+      "value": "have"
+    },
+    "global/footer": {
+      "value": "clash"
+    },
+    "global/motion": {
+      "value": "brief"
+    },
+    "ai/cta": {
+      "value": "book"
+    },
+    "ai/tone": {
+      "value": "direct"
+    },
+    "ai/testimonials": {
+      "value": "none"
+    },
+    "ai/placeholders": {
+      "value": "placeholder"
+    },
+    "ai/stack": {
+      "value": "n8n, Make, Zapier, GoHighLevel, Claude, OpenAI, Python, MongoDB, Next.js"
+    },
+    "ai/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ]
+    },
+    "ai/numbers": {
+      "value": {
+        "c1": "Lead Drift is Indepth Solution's own growth engine, running in production."
+      }
+    },
+    "ghl/cta": {
+      "value": "book"
+    },
+    "ghl/tone": {
+      "value": "direct"
+    },
+    "ghl/testimonials": {
+      "value": "none"
+    },
+    "ghl/placeholders": {
+      "value": "placeholder"
+    },
+    "ghl/audience": {
+      "value": "both"
+    },
+    "ghl/cases": {
+      "value": [
+        "c1"
+      ]
+    },
+    "ghl/numbers": {
+      "value": {
+        "c1": "Saved to MongoDB first, then sent to GoHighLevel through its API: contact upsert by email, tags added (including niche:<slug>), a note, and an open opportunity. Failed sends can be retried from admin."
+      }
+    },
+    "apps/cta": {
+      "value": "book"
+    },
+    "apps/tone": {
+      "value": "direct"
+    },
+    "apps/testimonials": {
+      "value": "none"
+    },
+    "apps/placeholders": {
+      "value": "placeholder"
+    },
+    "apps/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ]
+    },
+    "apps/numbers": {
+      "value": {
+        "c3": "Home page, Lighthouse 13.5 (local production build, 2026-10-02): Accessibility, Best Practices, SEO and Agentic browsing 100; mobile Performance 93–95, desktop 100; CLS 0."
+      }
+    },
+    "cloud/cta": {
+      "value": "book"
+    },
+    "cloud/tone": {
+      "value": "direct"
+    },
+    "cloud/testimonials": {
+      "value": "none"
+    },
+    "cloud/placeholders": {
+      "value": "placeholder"
+    },
+    "funnels/cta": {
+      "value": "book"
+    },
+    "funnels/tone": {
+      "value": "direct"
+    },
+    "funnels/testimonials": {
+      "value": "none"
+    },
+    "funnels/placeholders": {
+      "value": "placeholder"
+    },
+    "funnels/tools": {
+      "value": "GoHighLevel, n8n, Make, Zapier"
+    },
+    "funnels/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3"
+      ]
+    },
+    "funnels/numbers": {
+      "value": {
+        "c1": "Lead Drift is Indepth Solution's own growth engine, running in production.",
+        "c2": "Landing page, referrer and UTM source/medium/campaign are captured at first touch and stored with every lead, then mapped onto GoHighLevel custom fields."
+      }
+    },
+    "ads/cta": {
+      "value": "book"
+    },
+    "ads/tone": {
+      "value": "direct"
+    },
+    "ads/testimonials": {
+      "value": "none"
+    },
+    "ads/placeholders": {
+      "value": "placeholder"
+    },
+    "shopify/cta": {
+      "value": "book"
+    },
+    "shopify/tone": {
+      "value": "direct"
+    },
+    "shopify/testimonials": {
+      "value": "none"
+    },
+    "shopify/placeholders": {
+      "value": "placeholder"
+    },
+    "shopify/cases": {
+      "value": [
+        "c1",
+        "c2"
+      ]
+    },
+    "shopify/sync-map": {
+      "value": "in"
+    },
+    "wp/cta": {
+      "value": "book"
+    },
+    "wp/tone": {
+      "value": "direct"
+    },
+    "wp/testimonials": {
+      "value": "none"
+    },
+    "wp/placeholders": {
+      "value": "placeholder"
+    },
+    "webflow/cta": {
+      "value": "book"
+    },
+    "webflow/tone": {
+      "value": "direct"
+    },
+    "webflow/testimonials": {
+      "value": "none"
+    },
+    "webflow/placeholders": {
+      "value": "placeholder"
+    },
+    "seo/cta": {
+      "value": "book"
+    },
+    "seo/tone": {
+      "value": "direct"
+    },
+    "seo/testimonials": {
+      "value": "none"
+    },
+    "seo/placeholders": {
+      "value": "placeholder"
+    },
+    "seo/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3"
+      ]
+    },
+    "seo/numbers": {
+      "value": {
+        "c2": "Lighthouse 13.5 SEO score 100 on /, /audit, /templates, /agencies and /contact (local production build, 2026-10-02). Ships llms.txt, an ai-catalog, a sitemap, canonical URLs and JSON-LD."
+      }
+    },
+    "global/booking-link": {
+      "value": "https://calendly.com/farazahmad1/30min"
+    },
+    "global/price-style": {
+      "value": "hidden"
+    },
+    "global/noindex": {
+      "value": "live"
+    },
+    "global/first": {
+      "value": [
+        "ai",
+        "funnels",
+        "seo"
+      ]
+    },
+    "global/pace": {
+      "value": "one"
+    },
+    "ai/headline": {
+      "value": "h1"
+    },
+    "ai/accent": {
+      "value": "d4ff3a"
+    },
+    "ai/theme": {
+      "value": "toggle"
+    },
+    "ai/type": {
+      "value": "brief"
+    },
+    "ai/signature": {
+      "value": "full"
+    },
+    "ai/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4"
+      ]
+    },
+    "ai/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "ai/workflow": {
+      "value": "leaddrift"
+    },
+    "ai/priority": {
+      "value": "now"
+    },
+    "ghl/headline": {
+      "value": "h1"
+    },
+    "ghl/accent": {
+      "value": "0e7c86"
+    },
+    "ghl/theme": {
+      "value": "toggle"
+    },
+    "ghl/type": {
+      "value": "brief"
+    },
+    "ghl/signature": {
+      "value": "full"
+    },
+    "ghl/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "ghl/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "ghl/priority": {
+      "value": "now"
+    },
+    "apps/headline": {
+      "value": "h1"
+    },
+    "apps/accent": {
+      "value": "0b3d91"
+    },
+    "apps/theme": {
+      "value": "toggle"
+    },
+    "apps/type": {
+      "value": "brief"
+    },
+    "apps/signature": {
+      "value": "full"
+    },
+    "apps/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "apps/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "apps/diagrams": {
+      "value": "draw"
+    },
+    "apps/dark-cases": {
+      "value": "dark"
+    },
+    "apps/priority": {
+      "value": "now"
+    },
+    "cloud/headline": {
+      "value": "h1"
+    },
+    "cloud/accent": {
+      "value": "4ff0b0"
+    },
+    "cloud/theme": {
+      "value": "toggle"
+    },
+    "cloud/type": {
+      "value": "brief"
+    },
+    "cloud/signature": {
+      "value": "full"
+    },
+    "cloud/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "cloud/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "cloud/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ]
+    },
+    "cloud/numbers": {
+      "value": {
+        "c1": "baseline",
+        "c2": "baseline",
+        "c3": "baseline",
+        "c4": "baseline"
+      }
+    },
+    "cloud/oncall": {
+      "value": "no"
+    },
+    "cloud/cost-slider": {
+      "value": "in"
+    },
+    "cloud/priority": {
+      "value": "now"
+    },
+    "cloud/oncall-hours": {
+      "value": "8AM-5PM EST"
+    },
+    "funnels/headline": {
+      "value": "h1"
+    },
+    "funnels/accent": {
+      "value": "ff3d7f"
+    },
+    "funnels/theme": {
+      "value": "toggle"
+    },
+    "funnels/type": {
+      "value": "brief"
+    },
+    "funnels/signature": {
+      "value": "full"
+    },
+    "funnels/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "funnels/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "funnels/copy": {
+      "value": "build"
+    },
+    "funnels/leak-calc": {
+      "value": "in"
+    },
+    "funnels/leaddrift-ok": {
+      "value": "no"
+    },
+    "funnels/priority": {
+      "value": "now"
+    },
+    "ads/headline": {
+      "value": "h1"
+    },
+    "ads/accent": {
+      "value": "ffb020"
+    },
+    "ads/theme": {
+      "value": "toggle"
+    },
+    "ads/type": {
+      "value": "brief"
+    },
+    "ads/signature": {
+      "value": "full"
+    },
+    "ads/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "ads/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "ads/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ]
+    },
+    "ads/platforms": {
+      "value": [
+        "meta",
+        "google",
+        "tiktok",
+        "linkedin"
+      ]
+    },
+    "ads/manage": {
+      "value": "automate"
+    },
+    "ads/partner": {
+      "value": "none"
+    },
+    "ads/priority": {
+      "value": "now"
+    },
+    "ads/min-spend": {
+      "value": "500 at least"
+    },
+    "shopify/headline": {
+      "value": "h1"
+    },
+    "shopify/accent": {
+      "value": "d9532b"
+    },
+    "shopify/theme": {
+      "value": "toggle"
+    },
+    "shopify/type": {
+      "value": "brief"
+    },
+    "shopify/signature": {
+      "value": "full"
+    },
+    "shopify/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "shopify/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "shopify/partner": {
+      "value": "no"
+    },
+    "shopify/plus": {
+      "value": "yes"
+    },
+    "shopify/priority": {
+      "value": "now"
+    },
+    "wp/headline": {
+      "value": "h1"
+    },
+    "wp/accent": {
+      "value": "3a3aff"
+    },
+    "wp/theme": {
+      "value": "toggle"
+    },
+    "wp/type": {
+      "value": "brief"
+    },
+    "wp/signature": {
+      "value": "full"
+    },
+    "wp/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "wp/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "wp/cases": {
+      "value": [
+        "c1",
+        "c2"
+      ]
+    },
+    "wp/woo": {
+      "value": "in"
+    },
+    "wp/hosting": {
+      "value": "care"
+    },
+    "wp/priority": {
+      "value": "now"
+    },
+    "seo/headline": {
+      "value": "h1"
+    },
+    "seo/accent": {
+      "value": "ffd60a"
+    },
+    "seo/theme": {
+      "value": "toggle"
+    },
+    "seo/type": {
+      "value": "brief"
+    },
+    "seo/signature": {
+      "value": "full"
+    },
+    "seo/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "seo/prices": {
+      "note": "No need to price anything at all we need to be taking the clints on the call"
+    },
+    "seo/links": {
+      "value": "no"
+    },
+    "seo/gsc": {
+      "value": "have"
+    },
+    "seo/priority": {
+      "value": "now"
+    },
+    "webflow/headline": {
+      "value": "h1"
+    },
+    "webflow/accent": {
+      "value": "6b4cff"
+    },
+    "webflow/theme": {
+      "value": "toggle"
+    },
+    "webflow/type": {
+      "value": "brief"
+    },
+    "webflow/signature": {
+      "value": "full"
+    },
+    "webflow/offers": {
+      "value": [
+        "o1",
+        "o2",
+        "o3",
+        "o4",
+        "o5"
+      ]
+    },
+    "webflow/prices": {
+      "note": "No need to pric anything at all we need to be taking the clints on the call"
+    },
+    "webflow/cases": {
+      "value": [
+        "c1",
+        "c2",
+        "c3"
+      ]
+    },
+    "webflow/design": {
+      "value": "both"
+    },
+    "webflow/cert": {
+      "value": "none"
+    },
+    "webflow/gallery": {
+      "value": "in"
+    },
+    "webflow/priority": {
+      "value": "now"
+    }
+  },
+  "tabNotes": {},
+  "resolved": {
+    "global": {
+      "booking-tool": {
+        "question": "Booking tool",
+        "decided": true,
+        "answer": "Calendly",
+        "customInstructions": null
+      },
+      "booking-link": {
+        "question": "Booking link",
+        "decided": true,
+        "answer": "https://calendly.com/farazahmad1/30min",
+        "customInstructions": null
+      },
+      "email": {
+        "question": "Fallback contact email",
+        "decided": true,
+        "answer": "farazahmad31048@gmail.com",
+        "customInstructions": null
+      },
+      "headshot": {
+        "question": "Headshot",
+        "decided": true,
+        "answer": "I will supply one (good light, plain background)",
+        "customInstructions": null
+      },
+      "footer": {
+        "question": "Brand thread",
+        "decided": true,
+        "answer": "Clash Display footer signature on every site",
+        "customInstructions": null
+      },
+      "price-style": {
+        "question": "How prices are shown",
+        "decided": true,
+        "answer": "No prices; \"scoped on a call\"",
+        "customInstructions": null
+      },
+      "motion": {
+        "question": "Motion level across sites",
+        "decided": true,
+        "answer": "As each brief describes (GSAP + Lenis)",
+        "customInstructions": null
+      },
+      "noindex": {
+        "question": "Search indexing while building",
+        "decided": true,
+        "answer": "Go live as each niche is ready",
+        "customInstructions": null
+      },
+      "first": {
+        "question": "Niches to build first",
+        "decided": true,
+        "answer": "ai — AI & Automation; funnels — Marketing Automation; seo — SEO",
+        "customInstructions": null
+      },
+      "pace": {
+        "question": "Build approach",
+        "decided": true,
+        "answer": "One niche at a time, fully finished",
+        "customInstructions": null
+      }
+    },
+    "ai": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "AI automations that survive production.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Acid lime",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Automation Audit; Build; Rescue; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Lead Drift; Yard Terminal; SolidMake; AI SEO Automator",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "Lead Drift: Lead Drift is Indepth Solution's own growth engine, running in production.",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "stack": {
+        "question": "Stack you actually use",
+        "decided": true,
+        "answer": "n8n, Make, Zapier, GoHighLevel, Claude, OpenAI, Python, MongoDB, Next.js",
+        "customInstructions": null
+      },
+      "workflow": {
+        "question": "Live workflow demo source",
+        "decided": true,
+        "answer": "Real Lead Drift steps, anonymized",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "ghl": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "GoHighLevel, built by a developer.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Deep teal",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Account audit & cleanup; System build; Snapshot (agencies); Custom integration; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "farazahmad.dev → GHL lead pipeline",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "farazahmad.dev → GHL lead pipeline: Saved to MongoDB first, then sent to GoHighLevel through its API: contact upsert by email, tags added (including niche:<slug>), a note, and an open opportunity. Failed sends can be retried from admin.",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "audience": {
+        "question": "Who do you serve?",
+        "decided": true,
+        "answer": "Agencies and businesses",
+        "customInstructions": null
+      },
+      "client-stories": {
+        "question": "GHL client stories / screenshots available",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "lead-numbers": {
+        "question": "Lead delivery numbers from farazahmad.dev",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "apps": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "Products that ship — and keep shipping.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Ink blue",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Product sprint; MVP build; Feature / API build; Code rescue; Retainer",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "SolidMake; Yard Terminal; farazahmad.dev (Next.js app); AI SEO Automator / Lead Drift (small cards)",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "farazahmad.dev (Next.js app): Home page, Lighthouse 13.5 (local production build, 2026-10-02): Accessibility, Best Practices, SEO and Agentic browsing 100; mobile Performance 93–95, desktop 100; CLS 0.",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "diagrams": {
+        "question": "Architecture diagrams",
+        "decided": true,
+        "answer": "Draw them from the repos / descriptions",
+        "customInstructions": null
+      },
+      "dark-cases": {
+        "question": "Case-study sections",
+        "decided": true,
+        "answer": "Dark sections inside the light site",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "cloud": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "Infrastructure that stays up and costs less.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Mint",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Infra & cost audit; CI/CD setup; Migration; Cost optimization; On-call / care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Yard Terminal infra; SolidMake infra; Client migration / CI setup; Infra teardown of own stack",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "Yard Terminal infra: baseline | SolidMake infra: baseline | Client migration / CI setup: baseline | Infra teardown of own stack: baseline",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "oncall": {
+        "question": "Do you offer on-call?",
+        "decided": true,
+        "answer": "No on-call; care plan is monitoring and fixes",
+        "customInstructions": null
+      },
+      "oncall-hours": {
+        "question": "On-call hours / time zone",
+        "decided": true,
+        "answer": "8AM-5PM EST",
+        "customInstructions": null
+      },
+      "tools": {
+        "question": "Clouds / tools you actually use and are certified in",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "cost-slider": {
+        "question": "Savings slider (bill to typical savings)",
+        "decided": true,
+        "answer": "Do not include (changed 2026-11-03)",
+        "customInstructions": "Owner: too big and technical for non-technical visitors, and dollar figures clash with \"no pricing anywhere\". Replaced by a plain-language \"where cloud bills leak\" section with no numbers."
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "funnels": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "Follow-up that never forgets a lead.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Rose",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Funnel audit; Nurture system; Outbound engine; Attribution setup; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Lead Drift; farazahmad.dev lead pipeline; AI SEO Automator",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "Lead Drift: Lead Drift is Indepth Solution's own growth engine, running in production. | farazahmad.dev lead pipeline: Landing page, referrer and UTM source/medium/campaign are captured at first touch and stored with every lead, then mapped onto GoHighLevel custom fields.",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "copy": {
+        "question": "Do you write the copy?",
+        "decided": true,
+        "answer": "Build only; client supplies copy",
+        "customInstructions": null
+      },
+      "tools": {
+        "question": "Tools you support",
+        "decided": true,
+        "answer": "GoHighLevel, n8n, Make, Zapier",
+        "customInstructions": null
+      },
+      "leak-calc": {
+        "question": "Leak calculator (leads x follow-up gap)",
+        "decided": true,
+        "answer": "Include, labelled as an estimate",
+        "customInstructions": null
+      },
+      "leaddrift-ok": {
+        "question": "Permission to publish Lead Drift numbers",
+        "decided": true,
+        "answer": "Not yet; use operational facts only",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "ads": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "Ads that watch their own budget.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Amber",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Account & tracking audit; Automation build; Tracking setup; Reporting dashboard; Managed automation",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Any account you automated; Tracking fix; Offline conversions (Lead Drift / farazahmad.dev); Anonymized teardown (\"6 rules every account should run\")",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "platforms": {
+        "question": "Platforms supported",
+        "decided": true,
+        "answer": "Meta; Google Ads; TikTok; LinkedIn",
+        "customInstructions": null
+      },
+      "manage": {
+        "question": "Do you run campaigns or only automate?",
+        "decided": true,
+        "answer": "Automation, tracking and reporting only",
+        "customInstructions": null
+      },
+      "partner": {
+        "question": "Google / Meta partner status",
+        "decided": true,
+        "answer": "No partner status; no badges",
+        "customInstructions": null
+      },
+      "min-spend": {
+        "question": "Minimum monthly ad spend (if any)",
+        "decided": true,
+        "answer": "500 at least",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "shopify": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "A faster Shopify store with fewer apps.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Terracotta",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Speed & app audit; Theme build / rebuild; Custom features; Integrations & sync; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Yard Terminal (marketplace sync); Any store work (speed / conversion)",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "partner": {
+        "question": "Are you a Shopify Partner?",
+        "decided": true,
+        "answer": "No; no partner language",
+        "customInstructions": null
+      },
+      "plus": {
+        "question": "Shopify Plus work",
+        "decided": true,
+        "answer": "Yes, in scope",
+        "customInstructions": null
+      },
+      "storefront": {
+        "question": "Any storefront project (theme / speed)",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "sync-map": {
+        "question": "Marketplace sync map section",
+        "decided": true,
+        "answer": "Include (Yard Terminal)",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "wp": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "WordPress that's fast, secure, and yours to edit.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Ultramarine",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Site health audit; Rescue / fix; Custom build / rebuild; Speed optimization; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Any rebuild / rescue; AI SEO Automator → WordPress publishing",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "woo": {
+        "question": "WooCommerce",
+        "decided": true,
+        "answer": "In scope",
+        "customInstructions": null
+      },
+      "hosting": {
+        "question": "Hosting and care plans",
+        "decided": true,
+        "answer": "Care plans only; recommend hosts",
+        "customInstructions": null
+      },
+      "project": {
+        "question": "WordPress project with before/after numbers",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "webflow": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "Webflow sites your team can actually run.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Violet",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Figma → Webflow build; Design + build; Migration (from WordPress); Custom integrations; Care plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to pric anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "Any Webflow build; Migration (traffic kept); These niche sites (GSAP motion demo)",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "design": {
+        "question": "Design included or build only?",
+        "decided": true,
+        "answer": "Both: Figma build and design + build",
+        "customInstructions": null
+      },
+      "cert": {
+        "question": "Webflow certification status",
+        "decided": true,
+        "answer": "Not certified; no claims",
+        "customInstructions": null
+      },
+      "gallery": {
+        "question": "Interaction gallery section",
+        "decided": true,
+        "answer": "Include 3–4 small motion demos",
+        "customInstructions": null
+      },
+      "project": {
+        "question": "Any Webflow project (even personal)",
+        "decided": false,
+        "answer": null,
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    },
+    "seo": {
+      "headline": {
+        "question": "Hero headline",
+        "decided": true,
+        "answer": "SEO built into your code, not bolted on.",
+        "customInstructions": null
+      },
+      "cta": {
+        "question": "Primary CTA label",
+        "decided": true,
+        "answer": "Book a scoping call",
+        "customInstructions": null
+      },
+      "tone": {
+        "question": "Voice",
+        "decided": true,
+        "answer": "Direct, technical but plain, first person",
+        "customInstructions": null
+      },
+      "accent": {
+        "question": "Accent colour",
+        "decided": true,
+        "answer": "Signal yellow",
+        "customInstructions": null
+      },
+      "theme": {
+        "question": "Theme",
+        "decided": true,
+        "answer": "Light and dark with toggle",
+        "customInstructions": null
+      },
+      "type": {
+        "question": "Typography",
+        "decided": true,
+        "answer": "As in the brief",
+        "customInstructions": null
+      },
+      "signature": {
+        "question": "Signature section",
+        "decided": true,
+        "answer": "Full interactive version",
+        "customInstructions": null
+      },
+      "offers": {
+        "question": "Offers to show",
+        "decided": true,
+        "answer": "Technical SEO audit; Technical fixes; Programmatic SEO build; Content engine; Monthly growth plan",
+        "customInstructions": null
+      },
+      "prices": {
+        "question": "Price for each offer",
+        "decided": true,
+        "answer": null,
+        "customInstructions": "No need to price anything at all we need to be taking the clints on the call"
+      },
+      "cases": {
+        "question": "Case studies to feature",
+        "decided": true,
+        "answer": "AI SEO Automator; farazahmad.dev (technical SEO); Any client site (Search Console before → after)",
+        "customInstructions": null
+      },
+      "numbers": {
+        "question": "Real numbers per case",
+        "decided": true,
+        "answer": "farazahmad.dev (technical SEO): Lighthouse 13.5 SEO score 100 on /, /audit, /templates, /agencies and /contact (local production build, 2026-10-02). Ships llms.txt, an ai-catalog, a sitemap, canonical URLs and JSON-LD.",
+        "customInstructions": null
+      },
+      "testimonials": {
+        "question": "Testimonials",
+        "decided": true,
+        "answer": "None yet; omit the section",
+        "customInstructions": null
+      },
+      "links": {
+        "question": "Do you build links?",
+        "decided": true,
+        "answer": "No link building; say so plainly",
+        "customInstructions": null
+      },
+      "gsc": {
+        "question": "Search Console screenshots",
+        "decided": true,
+        "answer": "I will supply anonymized screenshots",
+        "customInstructions": null
+      },
+      "priority": {
+        "question": "Build priority",
+        "decided": true,
+        "answer": "Build now",
+        "customInstructions": null
+      },
+      "placeholders": {
+        "question": "Missing inputs (prices, numbers, testimonials)",
+        "decided": true,
+        "answer": "Build with visible placeholders and a TODO list",
+        "customInstructions": null
+      }
+    }
+  }
+}

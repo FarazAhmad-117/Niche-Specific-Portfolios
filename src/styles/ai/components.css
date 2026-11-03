@@ -1,0 +1,238 @@
+/*
+ * Shared primitives for the content sections (spec §1 "texture and line language",
+ * §4.7 tags and stack marks). Tokens come from tokens.css; nothing here hardcodes a
+ * colour except the pill, which is always an ink chip (lime may only sit on ink).
+ */
+
+/* ---------- registration-corner card ---------- */
+.card {
+  --br: var(--bracket);
+  position: relative;
+  background: var(--surface-2);
+  border: var(--bw-hair) solid var(--line);
+  padding: var(--space-5);
+}
+/* Four L-shaped corners drawn as gradient strokes on one overlay, sitting on the hairline. */
+.card::before {
+  --c: linear-gradient(var(--line-strong), var(--line-strong));
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background:
+    var(--c) top left / var(--br) 1px,
+    var(--c) top left / 1px var(--br),
+    var(--c) top right / var(--br) 1px,
+    var(--c) top right / 1px var(--br),
+    var(--c) bottom left / var(--br) 1px,
+    var(--c) bottom left / 1px var(--br),
+    var(--c) bottom right / var(--br) 1px,
+    var(--c) bottom right / 1px var(--br);
+  background-repeat: no-repeat;
+  transition: background-size var(--dur-hover) var(--ease-out);
+}
+/* Hover and focus-visible are twins; touch gets a press state. */
+.card--link:has(:focus-visible) {
+  --br: 16px;
+}
+@media (hover: hover) {
+  .card--link:hover,
+  .card--hover:hover {
+    --br: 16px;
+  }
+}
+.card--link:active {
+  background: var(--surface-1);
+}
+.card--ink {
+  background: var(--ink-900);
+  color: var(--bone-100);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card::before {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .card {
+    border-color: CanvasText;
+  }
+  .card::before {
+    --c: linear-gradient(CanvasText, CanvasText);
+  }
+}
+
+/* ---------- status pill: always an ink chip, so lime is legal ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  border: var(--bw-hair) solid var(--stone-600);
+  border-radius: var(--radius-pill);
+  background: var(--ink-950);
+  color: var(--bone-100);
+  font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--lime-400);
+}
+.pill--idle::before {
+  background: var(--stone-500);
+}
+
+/* ---------- stack marks (§4.7): text, not logos ---------- */
+.stack-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stack-mark {
+  display: inline-block;
+  padding: 4px 8px;
+  border: var(--bw-hair) solid var(--line-strong);
+  border-radius: var(--radius-s);
+  font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+  color: var(--text);
+  white-space: nowrap;
+}
+.stack {
+  display: grid;
+  gap: var(--space-2);
+}
+.stack-list--s {
+  gap: 6px;
+}
+.stack-list--s .stack-mark {
+  padding: 2px 7px;
+  border-color: var(--line);
+  color: var(--text-2);
+}
+.stack-note {
+  margin: 0;
+  font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+  color: var(--text-3);
+}
+
+/* ---------- honest note beside illustrative (sample) figures ---------- */
+.sample-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  max-inline-size: 60ch;
+  font: 400 var(--fs-mono-label) / 1.5 var(--font-mono);
+  color: var(--text-3);
+}
+/* The same hatch as the TODO chip: "not final yet", said quietly. */
+.sample-note__mark {
+  flex: none;
+  inline-size: 12px;
+  block-size: 12px;
+  margin-block-start: 0.2em;
+  border: 1px dashed var(--line-strong);
+  background: repeating-linear-gradient(135deg, var(--todo-hatch) 0 3px, transparent 3px 6px);
+}
+
+/* ---------- external link glyph (pair with a visually hidden "(opens in a new tab)") ---------- */
+.ext::after {
+  content: "\2197" / "";
+  display: inline-block;
+  margin-inline-start: 0.3em;
+  font-family: var(--font-body), "Segoe UI Symbol", sans-serif;
+  transition: transform var(--dur-hover) var(--ease-out);
+}
+@media (hover: hover) {
+  .ext:hover::after {
+    transform: translate(2px, -2px);
+  }
+}
+.ext:focus-visible::after {
+  transform: translate(2px, -2px);
+}
+
+/* ---------- comparison "Me" column (spec §5.9): ink on bone, surface-2 on ink ---------- */
+:root {
+  --me-bg: var(--ink-950);
+  --me-fg: var(--bone-100);
+  --me-fg-2: var(--stone-300);
+  --me-edge: var(--ink-800);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --me-bg: var(--surface-2);
+    --me-fg: var(--text);
+    --me-fg-2: var(--text-2);
+    --me-edge: var(--line-strong);
+  }
+}
+:root[data-theme="dark"] {
+  --me-bg: var(--surface-2);
+  --me-fg: var(--text);
+  --me-fg-2: var(--text-2);
+  --me-edge: var(--line-strong);
+}
+
+/* ---------- case title morph (card h3 / next-case h2 → case h1, shared --vt) ----------
+ * The two titles differ in size, so a crossfade leaves a faint ghost of the old one. Drop the
+ * old snapshot and let the group carry the new title from the old box to the new one. */
+.case-vt {
+  view-transition-class: case-title;
+}
+::view-transition-old(*.case-title) {
+  display: none;
+}
+::view-transition-new(*.case-title) {
+  animation: none;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
+}
+::view-transition-group(*.case-title) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-out);
+}
+
+/* ---------- shared section bits ---------- */
+.sec-head {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-end: var(--space-stack);
+}
+.sec-head > p {
+  margin: 0;
+}
+.sec-head > h2 {
+  margin: 0;
+}
+/* Split head: the h2 on the left, the "why this matters" line on the right (desktop). */
+@media (min-width: 1024px) {
+  .sec-head--split {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+    column-gap: var(--gutter);
+    align-items: end;
+  }
+  .sec-head--split > .lede {
+    padding-block-end: 0.35em;
+  }
+}
+.eyebrow-line {
+  margin: 0;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

@@ -1,0 +1,577 @@
+---
+/**
+ * Case study page: /work/<slug>/.
+ *
+ * Reading order: what it is (the hero box, which the home card morphs into) → the problem →
+ * what I built, or the method for the example → how it runs (the flow, plus what's still to
+ * confirm, or the plugin list before and after for the example) → the next case (which morphs
+ * too) → contact.
+ */
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../layouts/wp/Layout.astro';
+import FinalCta from '../../../components/wp/FinalCta.astro';
+import { CASES, nextCase, type WpCase } from '../../../data/wp/cases';
+import { COUNTS, EXAMPLE_SITE, PLUGINS } from '../../../data/wp/player';
+import { assertMeta } from '../../../data/wp/seo';
+import { abs, caseLdGraph } from '../../../lib/wp/jsonld';
+import { caseHref, link } from '../../../lib/wp/paths';
+import { bookingUrl } from '../../../data/wp/site';
+
+export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: WpCase;
+}
+const { study: c } = Astro.props;
+assertMeta(`case ${c.id}`, c.seo);
+const next = nextCase(c.id);
+---
+
+<Layout
+  title={c.seo.title}
+  description={c.seo.description}
+  path={`/work/${c.id}/`}
+  image={abs(`og/${c.id}.png`)}
+  jsonLd={caseLdGraph(c)}
+  expect="next-title"
+>
+  <section class="chero" id="top" data-hero aria-labelledby="case-title">
+    <div class="container">
+      <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
+        <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
+      </a>
+      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+        <div class="chero__main">
+          <p class="chero__top kicker">
+            {c.example && <span class="stamp">Example</span>}
+            {c.kicker}
+          </p>
+          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <p class="chero__title">{c.title}</p>
+          <p class="lede chero__text">{c.text}</p>
+          <ul class="chero__todo" role="list">
+            {
+              c.pending.map((p) => (
+                <li>
+                  <span class="todo">{p}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <ul class="chero__facts" role="list">
+          {c.facts.map((f) => <li>{f}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="problem-title">
+    <div class="container cblock__grid">
+      <p class="kicker cblock__label">The problem</p>
+      <div>
+        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+        <p class="lede cblock__lede">{c.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="built-title">
+    <div class="container cblock__grid">
+      <p class="kicker cblock__label">{c.example ? 'How I’d run it' : 'What I built'}</p>
+      <div>
+        <h2 id="built-title" class="cblock__h2">{c.example ? 'The method, step by step.' : 'The product, module by module.'}</h2>
+        <ol class="built" role="list" data-reveal-stagger>
+          {
+            c.built.map((b, i) => (
+              <li class="built__item">
+                <span class="built__num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="built__title">{b.title}</h3>
+                <p class="built__text">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock cblock--tint" aria-labelledby="runs-title">
+    <div class="container cblock__grid">
+      <p class="kicker cblock__label">{c.example ? 'Before and after' : 'How it runs'}</p>
+      <div class="runs">
+        <h2 id="runs-title" class="cblock__h2">
+          {c.example ? `${COUNTS.before.plugins} plugins in, ${COUNTS.after.plugins} kept.` : 'From audit to a published post.'}
+        </h2>
+        {
+          c.example ? (
+            <div class="panel">
+              <p class="panel__label">
+                <span class="stamp">Example</span>
+                <span class="kicker">{EXAMPLE_SITE} · illustrative · plugin names invented</span>
+              </p>
+              <table class="ptable">
+                <caption class="visually-hidden">The example site’s plugins, before and after the fix</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Plugin</th>
+                    <th scope="col">Before</th>
+                    <th scope="col">After</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {PLUGINS.map((p) => (
+                    <tr>
+                      <th scope="row">
+                        <span class="ptable__name">{p.name}</span>
+                        <span class="ptable__desc">{p.desc}</span>
+                      </th>
+                      <td class:list={{ 'is-fault': Boolean(p.flag) || !p.active }}>
+                        {p.flag ?? (p.active ? (p.update ? 'Active, update waiting' : 'Active') : 'Inactive')}
+                      </td>
+                      <td class:list={{ 'is-gone': p.fix === 'remove', 'is-new': p.fix === 'replace' }}>
+                        {p.fix === 'replace' ? `Replaced by ${(p.fixNote ?? '').toLowerCase()}` : p.fixNote}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p class="panel__foot text-3">
+                Showing {PLUGINS.length} of the example’s {COUNTS.before.plugins}. Counts are part of the example, not a measured
+                result.
+              </p>
+            </div>
+          ) : (
+            <div class="runs__visual">
+              <ol class="flowlist" role="list" aria-label={`${c.name}, in order`}>
+                {c.flow.map((s, i) => (
+                  <li>
+                    <span class="flowlist__num mono" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="flowlist__text">{s}</span>
+                  </li>
+                ))}
+              </ol>
+              <div class="panel">
+                <p class="panel__label kicker">Still to confirm before launch</p>
+                <ul class="panel__todo" role="list">
+                  {c.pending.map((p) => (
+                    <li>
+                      <span class="todo">{p}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p class="panel__foot text-3">
+                  The modules above are the product as described in my own records. The WordPress connection, numbers and status are
+                  shown once they’re confirmed.
+                </p>
+              </div>
+            </div>
+          )
+        }
+        <div class="now inverse">
+          <p class="now__label mono">{c.runsNow.label}</p>
+          <p class="now__text">{c.runsNow.text}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cnext" aria-labelledby="next-title">
+    <div class="container">
+      <p class="kicker cnext__label">Next case</p>
+      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+        <span class="cnext__kicker kicker">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
+        <span id="next-title" class="cnext__name">{next.name}</span>
+        <span class="cnext__title">{next.title}</span>
+        <span class="cnext__go" aria-hidden="true">→</span>
+      </a>
+      <p class="cnext__or">
+        Want this for your site? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
+      </p>
+    </div>
+  </section>
+
+  <FinalCta />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    padding-top: calc(var(--nav-h) + clamp(2rem, 1.5rem + 3vw, 4.5rem));
+    padding-bottom: var(--space-6);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    margin-bottom: var(--space-4);
+    color: var(--text-2);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chero__back-arrow {
+    display: inline-block;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .chero__back:hover {
+      color: var(--text);
+    }
+    .chero__back:hover .chero__back-arrow {
+      transform: translateX(-4px);
+    }
+  }
+  .chero__panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(1.25rem, 0.8rem + 3vw, 3.5rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .chero__panel {
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  .chero__main {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    align-content: start;
+  }
+  .chero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .chero__name {
+    font-size: clamp(2.375rem, 1.5rem + 3.4vw, 4.5rem);
+    line-height: 1.04;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .chero__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+    line-height: 1.25;
+    max-width: 30ch;
+    color: var(--accent-text);
+  }
+  .chero__text {
+    max-width: 60ch;
+  }
+  .chero__todo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .chero__facts {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  .chero__facts li {
+    padding: var(--space-4) 0 var(--space-4) 22px;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .chero__facts li::before {
+    content: '¶';
+    position: absolute;
+    left: 0;
+    top: var(--space-4);
+    font-family: var(--font-display);
+    color: var(--accent-text);
+  }
+
+  /* ---------- content blocks ---------- */
+  .cblock__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .cblock__grid {
+      grid-template-columns: minmax(0, 0.28fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .cblock__label {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+      margin-top: 0.8rem;
+    }
+  }
+  .cblock__label {
+    padding-top: 10px;
+    border-top: 3px solid var(--text);
+  }
+  .cblock__grid > div {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cblock__h2 {
+    font-size: clamp(1.875rem, 1.4rem + 1.8vw, 3rem);
+    max-width: 20ch;
+  }
+  .cblock__lede {
+    max-width: 62ch;
+  }
+  .cblock--tint {
+    background: var(--surface-1);
+  }
+
+  /* ---------- built: numbered paragraphs, like a chaptered feature ---------- */
+  .built {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  @media (min-width: 720px) {
+    .built {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-6);
+    }
+  }
+  .built__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px var(--space-4);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .built__num {
+    grid-row: span 2;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.625rem;
+    line-height: 1;
+    color: var(--accent-text);
+  }
+  .built__title {
+    font-size: 1.125rem;
+  }
+  .built__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+
+  /* ---------- runs ---------- */
+  .runs__visual {
+    display: grid;
+    gap: var(--space-4);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .runs__visual {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .flowlist {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  .flowlist li {
+    display: flex;
+    gap: var(--space-4);
+    align-items: baseline;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .flowlist__num {
+    color: var(--accent-text);
+  }
+  .flowlist__text {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+  .panel {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .panel__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel__todo {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .panel__foot {
+    font-size: 0.8125rem;
+  }
+  .ptable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+  .ptable th,
+  .ptable td {
+    padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  .ptable thead th {
+    border-bottom: 1px solid var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .ptable tbody th {
+    font-weight: 400;
+  }
+  .ptable__name {
+    display: block;
+    font-weight: 600;
+  }
+  .ptable__desc {
+    display: block;
+    color: var(--text-3);
+    font-size: 0.8125rem;
+  }
+  .ptable .is-fault {
+    color: var(--fault);
+    font-weight: 600;
+  }
+  .ptable .is-new {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .ptable .is-gone {
+    color: var(--text-3);
+    text-decoration: line-through 1px;
+  }
+  .now {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .now__label {
+    color: var(--accent-inv);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .now__text {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+    line-height: 1.3;
+    letter-spacing: -0.012em;
+  }
+
+  /* ---------- next ---------- */
+  .cnext__label {
+    margin-bottom: var(--space-4);
+    padding-top: 10px;
+    border-top: 3px solid var(--text);
+  }
+  .cnext__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.25rem, 1rem + 2.5vw, 3rem);
+    padding-right: clamp(4.5rem, 3rem + 4vw, 8rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-soft);
+    color: var(--text);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  /* An ultramarine wash rises from the baseline on hover, slowly. */
+  .cnext__card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface-2));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 1100ms var(--ease-out-quint);
+  }
+  .cnext__name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.75rem, 1.35rem + 1.7vw, 2.875rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .cnext__title {
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    max-width: 40ch;
+  }
+  .cnext__go {
+    position: absolute;
+    right: clamp(1.25rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-top: -26px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 1.25rem;
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .cnext__card:hover {
+      box-shadow:
+        inset 0 0 0 1px var(--text),
+        var(--shadow-lift);
+    }
+    .cnext__card:hover::before {
+      transform: none;
+    }
+    .cnext__card:hover .cnext__go {
+      transform: translateX(6px);
+    }
+  }
+  .cnext__card:focus-visible::before {
+    transform: none;
+  }
+  .cnext__or {
+    margin-top: var(--space-5);
+    color: var(--text-2);
+  }
+</style>

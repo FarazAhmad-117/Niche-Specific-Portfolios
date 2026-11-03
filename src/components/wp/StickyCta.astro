@@ -1,0 +1,83 @@
+---
+/**
+ * Phone-only booking bar. Rises (spring) once the hero has scrolled away, and sinks again while
+ * the before/after player, the contact section or the footer is on screen, or the menu is
+ * open, so it never covers the controls or the form it points to. Desktop has the CTA in the
+ * nav instead.
+ */
+import { bookingUrl } from '../../data/wp/site';
+---
+
+<div class="sticky" data-sticky-cta aria-hidden="true">
+  <a class="btn sticky__btn" href={bookingUrl('sticky')} tabindex="-1">
+    <span>Book a scoping call</span>
+  </a>
+</div>
+
+<style>
+  .sticky {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: var(--z-sticky-cta);
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    transform: translateY(calc(100% + 24px));
+    transition: transform 620ms var(--ease-out-quint);
+  }
+  .sticky.is-shown {
+    transform: none;
+    transition-timing-function: var(--ease-spring);
+  }
+  .sticky.is-shown .sticky__btn {
+    pointer-events: auto;
+  }
+  .sticky__btn {
+    width: min(100%, 420px);
+    min-height: var(--sticky-cta-h);
+    box-shadow: var(--shadow-lift);
+  }
+  @media (min-width: 900px) {
+    .sticky {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-sticky-cta]');
+  const link = bar?.querySelector<HTMLAnchorElement>('a');
+  const hero = document.querySelector('[data-hero]');
+  // The player keeps its current step and controls at the bottom on phones; the bar would
+  // cover them.
+  const blockers = [...document.querySelectorAll('#contact, footer, [data-ba]')];
+
+  if (bar && link && hero && 'IntersectionObserver' in window) {
+    let pastHero = false;
+    const blocked = new Set<Element>();
+    const update = () => {
+      // Never hide it from under keyboard focus (aria-hidden on a focused element).
+      const focused = bar.contains(document.activeElement);
+      const show =
+        focused || (pastHero && blocked.size === 0 && !document.documentElement.classList.contains('menu-open'));
+      bar.classList.toggle('is-shown', show);
+      // Hidden means hidden for everyone: out of the tab order and the accessibility tree.
+      bar.setAttribute('aria-hidden', String(!show));
+      link.tabIndex = show ? 0 : -1;
+    };
+    new IntersectionObserver(([e]) => {
+      if (!e) return;
+      pastHero = !e.isIntersecting && e.boundingClientRect.top < 0;
+      update();
+    }).observe(hero);
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? blocked.add(e.target) : blocked.delete(e.target)));
+      update();
+    });
+    blockers.forEach((b) => io.observe(b));
+    link.addEventListener('blur', update);
+    new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+</script>

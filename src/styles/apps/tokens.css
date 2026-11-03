@@ -1,0 +1,424 @@
+/*
+ * apps niche design tokens. Concept "Blueprint" (docs/brief/apps.md §6, decisions › apps):
+ * technical drawings that turn into real interfaces. Paper off-white, ink line work,
+ * dimension annotations, one ink-blue accent, and dark blueprint sections inside the light
+ * site. Global: imported once by the Layout.
+ *
+ * Deliberately not the other niches: no pills or bubbles (funnels), no console grid (ai), no
+ * SERP cards (seo). Square-ish corners, hairlines, crop marks and title blocks.
+ */
+
+/* ---------- fonts ---------- */
+@font-face {
+  font-family: "Mona Sans";
+  src: url("../../assets/fonts/MonaSans-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/MonaSans-Variable-latin.woff2") format("woff2");
+  font-weight: 200 900;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../../assets/fonts/IBMPlexSans-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/IBMPlexSans-Variable-latin.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../../assets/fonts/IBMPlexMono-Regular-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../../assets/fonts/IBMPlexMono-Medium-latin.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Clash Display";
+  src: url("../../assets/fonts/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/*
+ * Metric-matched fallbacks keep the swap from shifting the hero. Measured from the font
+ * files: Mona Sans 800 averages 0.51em per character at 100% width (Arial Bold ~0.5em), and
+ * the headline runs at 112% width, so the fallback is scaled up to match; ascent 1.09 /
+ * descent 0.32. IBM Plex Sans averages 0.47em (Arial ~0.465em), ascent 1.025 / descent 0.275.
+ */
+@font-face {
+  font-family: "Mona Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Arial"), local("Helvetica Neue"), local("Roboto");
+  size-adjust: 106%;
+  ascent-override: 103%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Plex Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 101%;
+  ascent-override: 101%;
+  descent-override: 27%;
+  line-gap-override: 0%;
+}
+
+/* ---------- primitives (never used directly in components) ---------- */
+:root {
+  --paper-50: #fbfaf6;
+  --paper-100: #f3f1ea;
+  --paper-200: #eae6db;
+  --paper-300: #d8d3c4;
+  --paper-400: #b5ae9b;
+  --paper-500: #8c8676;
+  --ink-950: #141821;
+  --ink-700: #3b4252;
+  --ink-600: #575e6e;
+  --blue-100: #dde4fa;
+  --blue-700: #1e3fb8;
+  --blue-800: #172f8c;
+  --blue-300: #a7baff; /* the mark's corner on ink blue */
+  /* Dark theme: graphite. Near-black ink with only a faint cool cast (blue channel +2–4);
+     surfaces step up by value, never by hue. Ink blue is the accent only. */
+  --graphite-950: #0e0f11;
+  --graphite-900: #15171a;
+  --graphite-850: #1b1d21;
+  --graphite-800: #2a2d33;
+  --graphite-700: #3a3e46;
+  --graphite-600: #646a75;
+  --chalk-100: #ecedef;
+  --chalk-300: #b3b7be;
+  --chalk-400: #8d929b;
+  --sky-300: #9db3ff;
+  --sky-400: #7f9cff;
+  --sky-900: #1c2233;
+  /* The blueprint print: dark graphite drafting film (both themes), a faint neutral grid,
+     one value step above the dark page so it still reads as a sheet laid on the table. */
+  --print-950: #15171b;
+  --print-900: #1b1e23;
+  --print-850: #212429;
+  --print-800: #2e3238;
+  --print-700: #454a53;
+  --print-600: #6c727e;
+  --print-text: #eef0f2;
+  --print-text-2: #c0c4cb;
+  --print-text-3: #979ca6;
+  --print-blue: #8ea8ff;
+  --print-blue-2: #a7baff;
+  --print-focus: #b0c1ff;
+  --red-700: #b42318;
+  --red-300: #ff9a8c;
+  --green-700: #1f7a4a;
+  --green-300: #6fd39b;
+
+  --font-display: "Mona Sans", "Mona Fallback", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Plex Fallback", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", "Courier New", monospace;
+  --font-signature: "Clash Display", var(--font-display);
+}
+
+/* ---------- LIGHT (default): paper ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--paper-100);
+  --surface-1: var(--paper-200);
+  --surface-2: var(--paper-50);
+  --line: var(--paper-300);
+  --line-strong: var(--paper-400);
+  --line-input: var(--paper-500); /* 3.2:1 on paper: form borders */
+  --text: var(--ink-950);
+  --text-2: var(--ink-700);
+  --text-3: var(--ink-600); /* 5.7:1 on paper */
+  --accent: var(--blue-700); /* ink blue: strokes, fills and text (7.6:1 on paper) */
+  --accent-strong: var(--blue-800);
+  --accent-soft: var(--blue-100);
+  --accent-text: var(--blue-700);
+  --on-accent: #ffffff; /* 8.5:1 on ink blue */
+  --redline: var(--red-700);
+  --success: var(--green-700);
+  --error: var(--red-700);
+  --focus: var(--blue-700);
+  --focus-outer: var(--blue-700); /* rings drawn outside a .print sheet, on the page; .print never re-points it */
+  --btn-bg: var(--blue-700);
+  --btn-fg: #ffffff;
+  --btn-sweep: var(--ink-950); /* the fill that sweeps in on hover */
+  --btn-sweep-fg: var(--paper-50);
+  /* On blueprint (always-dark) sections: blue and focus that still clear 4.5:1 / 3:1. */
+  --accent-inv: var(--print-blue);
+  --focus-inv: var(--print-focus);
+  --grid-minor: rgb(30 63 184 / 0.055);
+  --grid-major: rgb(30 63 184 / 0.1);
+  --shadow-sheet: 0 1px 0 rgb(20 24 33 / 0.05), 0 22px 44px -28px rgb(20 24 33 / 0.35);
+  --shadow-lift: 0 1px 0 rgb(20 24 33 / 0.06), 0 30px 60px -30px rgb(20 24 33 / 0.45);
+  --theme-color: #f3f1ea;
+  /* Brand mark (nav). Hexes mirror lib/apps/brand-mark.ts, which serves the same mark as files. */
+  --mark-tile: var(--blue-700);
+  --mark-edge: transparent;
+  --mark-f: #ffffff;
+  --mark-tick: var(--blue-300);
+}
+
+/* ---------- DARK: written once for the explicit choice, once for the system preference ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--graphite-950);
+  --surface-1: var(--graphite-900);
+  --surface-2: var(--graphite-850);
+  --line: var(--graphite-800);
+  --line-strong: var(--graphite-700);
+  --line-input: var(--graphite-600);
+  --text: var(--chalk-100);
+  --text-2: var(--chalk-300);
+  --text-3: var(--chalk-400);
+  --accent: var(--sky-400);
+  --accent-strong: var(--sky-300);
+  --accent-soft: var(--sky-900);
+  --accent-text: var(--sky-300);
+  --on-accent: var(--graphite-950);
+  --redline: var(--red-300);
+  --success: var(--green-300);
+  --error: var(--red-300);
+  --focus: var(--sky-300);
+  --focus-outer: var(--sky-300);
+  --btn-bg: var(--sky-400);
+  --btn-fg: var(--graphite-950);
+  --btn-sweep: var(--chalk-100);
+  --btn-sweep-fg: var(--graphite-950);
+  --accent-inv: var(--print-blue);
+  --focus-inv: var(--print-focus);
+  --grid-minor: rgb(255 255 255 / 0.026);
+  --grid-major: rgb(255 255 255 / 0.048);
+  --shadow-sheet: 0 1px 0 rgb(0 0 0 / 0.3), 0 22px 44px -28px rgb(0 0 0 / 0.8);
+  --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 30px 60px -30px rgb(0 0 0 / 0.9);
+  --theme-color: #0e0f11;
+  --mark-tile: var(--graphite-850);
+  --mark-edge: var(--graphite-700);
+  --mark-f: var(--chalk-100);
+  --mark-tick: var(--accent);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--graphite-950);
+    --surface-1: var(--graphite-900);
+    --surface-2: var(--graphite-850);
+    --line: var(--graphite-800);
+    --line-strong: var(--graphite-700);
+    --line-input: var(--graphite-600);
+    --text: var(--chalk-100);
+    --text-2: var(--chalk-300);
+    --text-3: var(--chalk-400);
+    --accent: var(--sky-400);
+    --accent-strong: var(--sky-300);
+    --accent-soft: var(--sky-900);
+    --accent-text: var(--sky-300);
+    --on-accent: var(--graphite-950);
+    --redline: var(--red-300);
+    --success: var(--green-300);
+    --error: var(--red-300);
+    --focus: var(--sky-300);
+    --focus-outer: var(--sky-300);
+    --btn-bg: var(--sky-400);
+    --btn-fg: var(--graphite-950);
+    --btn-sweep: var(--chalk-100);
+    --btn-sweep-fg: var(--graphite-950);
+    --accent-inv: var(--print-blue);
+    --focus-inv: var(--print-focus);
+    --grid-minor: rgb(255 255 255 / 0.026);
+    --grid-major: rgb(255 255 255 / 0.048);
+    --shadow-sheet: 0 1px 0 rgb(0 0 0 / 0.3), 0 22px 44px -28px rgb(0 0 0 / 0.8);
+    --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 30px 60px -30px rgb(0 0 0 / 0.9);
+    --theme-color: #0e0f11;
+    --mark-tile: var(--graphite-850);
+    --mark-edge: var(--graphite-700);
+    --mark-f: var(--chalk-100);
+    --mark-tick: var(--accent);
+  }
+}
+
+/*
+ * ---------- the blueprint: dark sections inside the light site ----------
+ * Any element with .print re-points every semantic token, so components inside it need no
+ * special cases. Same in both themes: in light it is a dark print on paper; in dark it is one value
+ * step above the page, with its faint grid and a hairline edge, never a change of hue.
+ */
+.print {
+  color-scheme: dark;
+  --bg: var(--print-950);
+  --surface-1: var(--print-900);
+  --surface-2: var(--print-850);
+  --line: var(--print-800);
+  --line-strong: var(--print-700);
+  --line-input: var(--print-600);
+  --text: var(--print-text);
+  --text-2: var(--print-text-2);
+  --text-3: var(--print-text-3);
+  --accent: var(--print-blue);
+  --accent-strong: var(--print-blue-2);
+  --accent-soft: #232a3d;
+  --accent-text: var(--print-blue-2);
+  --on-accent: var(--print-950);
+  --redline: var(--red-300);
+  --success: var(--green-300);
+  --error: var(--red-300);
+  --focus: var(--focus-inv);
+  --btn-bg: var(--print-blue);
+  --btn-fg: var(--print-950);
+  --btn-sweep: var(--print-text);
+  --btn-sweep-fg: var(--print-950);
+  --grid-minor: rgb(255 255 255 / 0.032);
+  --grid-major: rgb(255 255 255 / 0.062);
+  --shadow-sheet: 0 1px 0 rgb(0 0 0 / 0.3), 0 22px 44px -28px rgb(0 0 0 / 0.8);
+  --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 30px 60px -30px rgb(0 0 0 / 0.9);
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/*
+ * Dark theme only: the print steps one value further up from the near-black page
+ * (#1c1e22 vs #0e0f11, 1.15:1) so the sheet reads as laid on the table; still graphite.
+ * AA: text 14.6, text-2 9.5 / text-3 6.1 on bg, text-3 5.2 on surface-2, accent 6.2+,
+ * input border 3.3 on surface-2.
+ */
+:root[data-theme="dark"] .print {
+  --bg: #1c1e22;
+  --surface-1: #222428;
+  --surface-2: #282b30;
+  --line: #33363d;
+  --line-strong: #484d56;
+  --line-input: #767c88;
+  --on-accent: #1c1e22;
+  --btn-fg: #1c1e22;
+  --btn-sweep-fg: #1c1e22;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .print {
+    --bg: #1c1e22;
+    --surface-1: #222428;
+    --surface-2: #282b30;
+    --line: #33363d;
+    --line-strong: #484d56;
+    --line-input: #767c88;
+    --on-accent: #1c1e22;
+    --btn-fg: #1c1e22;
+    --btn-sweep-fg: #1c1e22;
+  }
+}
+
+/* ---------- type scale ---------- */
+:root {
+  --fs-hero: clamp(2.75rem, 1.25rem + 5.7vw, 7rem);
+  --fs-h2: clamp(2.125rem, 1.45rem + 2.9vw, 4.5rem);
+  --fs-h3: clamp(1.25rem, 1.15rem + 0.5vw, 1.6875rem);
+  --fs-metric: clamp(2.75rem, 1.9rem + 3.6vw, 5.5rem);
+  --fs-lede: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);
+  --fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.125rem);
+  --fs-small: 0.9375rem;
+  --fs-mono: clamp(0.75rem, 0.73rem + 0.08vw, 0.8125rem);
+  --fs-label: 0.75rem;
+
+  --lh-display: 0.94;
+  --lh-heading: 0.98;
+  --lh-body: 1.6;
+
+  /* Mona Sans width axis: wide for title-block labels, a little wide for headings. */
+  --wd-hero: 112%;
+  --wd-heading: 106%;
+  --wd-label: 125%;
+
+  --tr-display: -0.035em;
+  --tr-heading: -0.03em;
+  --tr-mono: 0.02em;
+  --tr-label: 0.07em;
+
+  --measure: 62ch;
+  --measure-lede: 50ch;
+}
+
+/* ---------- space, shape, layering ---------- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  /* Applied top and bottom, so the gap between two sections is twice this. */
+  --space-section: clamp(3.5rem, 2.6rem + 4vw, 7rem);
+
+  /* Drafting shapes: nearly square. */
+  --radius-xs: 2px;
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 10px;
+
+  --hair: 1px;
+  --stroke: 1.5px;
+
+  --z-raised: 1;
+  --z-nav: 50;
+  --z-sticky-cta: 60;
+  --z-menu: 80;
+  --z-skip: 100;
+
+  --nav-h: 64px;
+  --tap: 44px;
+  --sticky-cta-h: 56px;
+  --anchor-gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+
+  --margin: clamp(1rem, 0.4rem + 3vw, 4.5rem);
+  --container-max: 1360px;
+  --grid-step: 24px;
+}
+
+/*
+ * ---------- motion ----------
+ * One curve per job, so the whole site moves with the same hand:
+ *  - out-quint    reveals, long glides and button fills: quick to leave, very soft landing
+ *  - out-expo     hover snaps on arrows and small shapes
+ *  - in-out-quart wipes and page transitions, where both ends are on screen
+ *  - spring       a node or a stamp arriving: a real damped spring (zeta 0.62, ~8%
+ *                 overshoot) sampled into linear(); a back-out bezier where linear() is missing
+ *  - sine         ambient loops (the plotter cursor)
+ */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-press: 140ms;
+  --dur-hover: 260ms;
+  --dur-fill: 1000ms;
+  --dur-reveal: 900ms;
+  --dur-pop: 640ms;
+  --dur-draw: 1300ms;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.046, 0.1589, 0.3069, 0.4655, 0.6176, 0.7521, 0.8634, 0.9496, 1.0115, 1.0519, 1.0744, 1.0831,
+      1.0817, 1.0737, 1.062, 1.0489, 1.0359, 1.0241, 1.0142, 1.0063, 1.0005, 0.9966, 0.9942, 0.9932, 0.9936,
+      0.9956, 0.9977, 0.9993, 1.0002, 1.0006, 1
+    );
+  }
+}

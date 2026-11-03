@@ -1,0 +1,214 @@
+---
+/**
+ * Footer with the brand thread shared by every niche: the Clash Display "Faraz Ahmad"
+ * signature, sized in container units so it spans the content width at every breakpoint.
+ * Here it sits on a soft curve, the end of the lead's path.
+ */
+import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/funnels/site';
+import { CALL_PROMISE } from '../../data/funnels/content';
+import { nicheHost } from '../../niches';
+import { sectionHref } from '../../lib/funnels/paths';
+
+const year = new Date().getFullYear();
+const host = (u: string) => new URL(u).host;
+---
+
+<footer class="foot">
+  <svg class="foot__curve" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 80C320 10 560 0 720 0s400 10 720 80Z" fill="currentColor"></path>
+  </svg>
+  <div class="foot__inner">
+    <div class="container">
+      <div class="foot__top">
+        <div class="foot__intro">
+          <p class="foot__lead">Free 30-minute scoping call.</p>
+          <p class="foot__promise">{CALL_PROMISE}.</p>
+          <a class="btn foot__book" href={bookingUrl('footer')}>
+            <span class="btn__dot" aria-hidden="true"></span>
+            <span>Book a scoping call</span>
+          </a>
+        </div>
+
+        <nav class="foot__col" aria-label="Footer">
+          <p class="foot__label">On this page</p>
+          <ul role="list">
+            {
+              NAV_LINKS.map((l) => (
+                <li>
+                  <a class="foot__link" href={sectionHref(Astro.url, l.id)}>{l.label}</a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="foot__col">
+          <p class="foot__label">Contact</p>
+          <ul role="list">
+            <li><a class="foot__link" href={bookingUrl('footer-contact')}>{host(BOOKING_URL)}</a></li>
+            <li><a class="foot__link foot__email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></li>
+          </ul>
+        </div>
+
+        <div class="foot__col">
+          <p class="foot__label">Elsewhere</p>
+          <ul role="list">
+            {
+              [MAIN_SITE_URL].map((u) => (
+                <li>
+                  <a class="foot__link" href={u} target="_blank" rel="noopener">
+                    {host(u)}
+                    <span aria-hidden="true">↗</span>
+                    <span class="visually-hidden">(opens in a new tab)</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+
+      <div class="foot__sig-wrap" data-reveal>
+        <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+      </div>
+
+      <div class="foot__legal">
+        <p class="mono">© <span class="num">{year}</span> {PERSON_NAME} · {nicheHost('funnels')}</p>
+        <a class="foot__link" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    --foot-bg: var(--surface-1);
+    position: relative;
+    margin-top: var(--space-8);
+    color: var(--text);
+  }
+  .foot__curve {
+    display: block;
+    width: 100%;
+    height: clamp(28px, 5vw, 80px);
+    color: var(--foot-bg);
+    margin-bottom: -1px;
+  }
+  .foot__inner {
+    background: var(--foot-bg);
+    padding-top: var(--space-7);
+    padding-bottom: calc(var(--space-4) + var(--sticky-cta-h) + 28px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 900px) {
+    .foot__inner {
+      padding-bottom: var(--space-5);
+    }
+  }
+  .foot__top {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .foot__intro {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .foot__intro p {
+    margin: 0;
+  }
+  .foot__lead {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .foot__promise {
+    max-width: 38ch;
+    color: var(--text-2);
+  }
+  .foot__book {
+    margin-top: var(--space-3);
+  }
+  .foot__col {
+    min-width: 0;
+  }
+  .foot__col:last-child {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 900px) {
+    .foot__top {
+      grid-template-columns: 1.6fr 1fr 1.3fr 1fr;
+    }
+    .foot__intro,
+    .foot__col:last-child {
+      grid-column: auto;
+    }
+  }
+  .foot__label {
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .foot ul {
+    margin: 0;
+  }
+  .foot__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--tap);
+    max-width: 100%;
+    color: var(--text);
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .foot__link:focus-visible {
+    text-decoration-color: var(--accent);
+  }
+  @media (hover: hover) {
+    .foot__link:hover {
+      text-decoration-color: var(--accent);
+    }
+  }
+  .foot__email {
+    overflow-wrap: anywhere;
+  }
+
+  .foot__sig-wrap {
+    container-type: inline-size;
+    margin-top: var(--space-9);
+  }
+  .foot__signature {
+    font-family: var(--font-signature);
+    font-weight: 600;
+    /* "Faraz Ahmad" in Clash 600 at -0.035em spans 6.315em (measured for the ai footer). */
+    font-size: calc(100cqi / 6.29);
+    line-height: 0.82;
+    letter-spacing: -0.035em;
+    white-space: nowrap;
+    margin-left: -0.035em;
+    user-select: none;
+  }
+  .foot__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-5);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--line);
+    color: var(--text-3);
+  }
+  .foot__legal p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+</style>

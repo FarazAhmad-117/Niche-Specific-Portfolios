@@ -1,0 +1,332 @@
+---
+/**
+ * The flow of a real build, drawn from a case's `diagram.nodes` (src/data/ai/cases.ts).
+ * HTML, not SVG: every node is a list item, so the diagram IS the accessible version and
+ * long labels simply wrap. Order is shown by the wires, never by printed numbers.
+ *
+ * Props
+ *   nodes: readonly { label: Field }[]   in flow order
+ *   fanOut?: number      how many trailing nodes run side by side (e.g. two channels published
+ *                        at once). They render as one "at the same time" group. Default 0.
+ *   live?: boolean       the system is confirmed running: the last node carries the one lime
+ *                        "running" mark. Only for cases with inProduction true.
+ *   variant?: 'full' | 'mini'
+ *                        full: an ink console panel with In/Step/Out tags and wires that draw
+ *                              in once on reveal. Horizontal ≥1024, vertical stepper below.
+ *                        mini: an inline chain of mono chips for cards (wraps, no panel).
+ *   title: string        accessible name of the list ("How Lead Drift runs")
+ *   caption?: string     mono header text in the full panel (default "how it runs")
+ *   class?: string
+ */
+import Field from './Field.astro';
+import type { Field as FieldValue } from '../../data/ai/todo';
+
+interface Props {
+  nodes: readonly { readonly label: FieldValue }[];
+  fanOut?: number;
+  live?: boolean;
+  variant?: 'full' | 'mini';
+  title: string;
+  caption?: string;
+  class?: string;
+}
+
+const { nodes, fanOut = 0, live = false, variant = 'full', title, caption = 'how it runs', class: className } =
+  Astro.props;
+
+const fan = fanOut > 1 && fanOut < nodes.length ? fanOut : 0;
+const chain = fan ? nodes.slice(0, nodes.length - fan) : nodes;
+const branch = fan ? nodes.slice(nodes.length - fan) : [];
+const role = (i: number, total: number) => (i === 0 ? 'In' : i === total - 1 ? 'Out' : 'Step');
+const total = chain.length + (fan ? 1 : 0);
+---
+
+{
+  variant === 'mini' ? (
+    <ol class:list={['flow-mini', className]} aria-label={title}>
+      {chain.map((n) => (
+        <li class="flow-mini__node">
+          <Field value={n.label} />
+        </li>
+      ))}
+      {branch.map((n, i) => (
+        <li class:list={['flow-mini__node', i > 0 && 'flow-mini__node--and']}>
+          <Field value={n.label} />
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <figure
+      class:list={['flow', 'theme-ink', fan && 'flow--fan', className]}
+      style={`--n:${total}`}
+      data-reveal
+    >
+      <figcaption class="flow__head mono">
+        <span class="flow__caption">{caption}</span>
+        {live ? (
+          <span class="flow__state flow__state--live">in production</span>
+        ) : (
+          <span class="flow__state">schematic</span>
+        )}
+      </figcaption>
+      <ol class="flow__list" aria-label={title}>
+        {chain.map((n, i) => (
+          <li
+            class:list={['flow__node', live && !fan && i === chain.length - 1 && 'is-live']}
+            style={`--i:${i}`}
+          >
+            <span class="flow__role mono-label">{role(i, total)}</span>
+            <span class="flow__label">
+              <Field value={n.label} />
+            </span>
+          </li>
+        ))}
+        {fan ? (
+          <li class="flow__node flow__node--fan" style={`--i:${chain.length}`}>
+            <span class="flow__role mono-label">Out · at the same time</span>
+            <ul class="flow__branch">
+              {branch.map((n, j) => (
+                <li class:list={['flow__leaf', live && j === branch.length - 1 && 'is-live']}>
+                  <span class="flow__label">
+                    <Field value={n.label} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ) : null}
+      </ol>
+    </figure>
+  )
+}
+
+<style>
+  /* ---------- mini: inline chain for cards ---------- */
+  .flow-mini {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+  }
+  .flow-mini__node {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-2);
+  }
+  .flow-mini__node + .flow-mini__node::before {
+    content: "→" / "";
+    padding-inline: 8px;
+    color: var(--text-3);
+  }
+  .flow-mini__node + .flow-mini__node--and::before {
+    content: "+" / "and";
+  }
+  .flow-mini__node:last-child {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ---------- full: a console panel ---------- */
+  .flow {
+    --gap: 20px;
+    --wire: var(--line-strong);
+    margin: 0;
+    padding: var(--space-5) var(--space-4) var(--space-6);
+    border: 1px solid var(--line-strong);
+    min-inline-size: 0;
+  }
+  .flow__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--line);
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .flow__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow__state::before {
+    content: "";
+    inline-size: 7px;
+    block-size: 7px;
+    border: 1px solid currentColor;
+  }
+  .flow__state--live {
+    color: var(--text);
+  }
+  .flow__state--live::before {
+    border-radius: 50%;
+  }
+
+  .flow__list {
+    display: grid;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .flow__node {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    padding: 14px 16px 16px;
+    background: var(--surface-1);
+    border: 1px solid var(--line-strong);
+  }
+  .flow__role {
+    color: var(--text-3);
+  }
+  .flow__label {
+    font: 500 var(--fs-small) / 1.35 var(--font-mono);
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  /* The one live node: lime outline + running dot, on ink. */
+  .flow__node.is-live,
+  .flow__leaf.is-live {
+    border-color: var(--lime-400);
+  }
+  .flow__node.is-live .flow__role::after,
+  .flow__leaf.is-live::after {
+    content: "● running" / "running";
+    margin-inline-start: 10px;
+    color: var(--lime-400);
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+  .flow__leaf.is-live::after {
+    display: block;
+    margin: 6px 0 0;
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+  }
+
+  /* Wires. Mobile/tablet: vertical, from the bottom of one node to the top of the next. */
+  .flow__node:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 24px;
+    inset-block-start: 100%;
+    inline-size: 1px;
+    block-size: var(--gap);
+    background: var(--wire);
+    transform-origin: top;
+  }
+  /* A small square junction where each wire lands (the site's "precision" mark). */
+  .flow__node:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 22px;
+    inset-block-start: -3px;
+    inline-size: 5px;
+    block-size: 5px;
+    background: var(--wire);
+  }
+
+  /* Fan-out group: the outputs that happen together. */
+  .flow__node--fan {
+    background: transparent;
+    border-style: dashed;
+  }
+  .flow__branch {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 10px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .flow__leaf {
+    padding: 12px 14px;
+    background: var(--surface-1);
+    border: 1px solid var(--line-strong);
+  }
+
+  @media (min-width: 768px) {
+    .flow {
+      padding: var(--space-6) var(--space-6) var(--space-7);
+    }
+  }
+
+  /* Desktop: one horizontal line of nodes, wires across the gaps. */
+  @media (min-width: 1024px) {
+    .flow {
+      --gap: 36px;
+    }
+    .flow__list {
+      grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+      align-items: center;
+    }
+    .flow--fan .flow__list {
+      grid-template-columns: repeat(calc(var(--n) - 1), minmax(0, 1fr)) minmax(0, 1.25fr);
+    }
+    .flow__node {
+      min-block-size: 6rem;
+    }
+    .flow__node:not(:last-child)::after {
+      inset-inline-start: 100%;
+      inset-block-start: 50%;
+      inline-size: var(--gap);
+      block-size: 1px;
+      transform-origin: left;
+    }
+    .flow__node:not(:first-child)::before {
+      inset-inline-start: -3px;
+      inset-block-start: calc(50% - 2px);
+    }
+    .flow__branch {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Draw-in once, when the panel is revealed (armed by the reveal utility: never without JS,
+     never under reduced motion). Wires grow in flow order, then each node settles. */
+  @media (prefers-reduced-motion: no-preference) {
+    .flow:global(.is-armed) .flow__node {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .flow:global(.is-armed) .flow__node::after {
+      transform: scaleY(0);
+    }
+    .flow:global(.is-armed.is-revealed) .flow__node {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 420ms var(--ease-out),
+        transform 420ms var(--ease-out);
+      transition-delay: calc(240ms + var(--i) * 160ms);
+    }
+    .flow:global(.is-armed.is-revealed) .flow__node::after {
+      transform: none;
+      transition: transform 320ms var(--ease-out);
+      transition-delay: calc(400ms + var(--i) * 160ms);
+    }
+    @media (min-width: 1024px) {
+      .flow:global(.is-armed) .flow__node::after {
+        transform: scaleX(0);
+      }
+    }
+  }
+
+  @media (forced-colors: active) {
+    .flow__node,
+    .flow__leaf {
+      border-color: CanvasText;
+    }
+    .flow__node::after,
+    .flow__node::before {
+      background: CanvasText;
+    }
+  }
+</style>

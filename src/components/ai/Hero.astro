@@ -1,0 +1,476 @@
+---
+/**
+ * Hero (spec §5.1, §7.2). The h1 is the LCP: static text, no JS, no entrance.
+ *
+ * Copy answers, in plain words, who this is (eyebrow), what he builds and for whom (lede).
+ * The console beside it is ONE example run of WORKFLOW_STEPS: a lead moving through
+ * trigger -> enrich -> classify -> route -> notify, one step at a time. It is real text in an
+ * ordered list (readable with no JS, CSS or motion); the "running" choreography is pure CSS,
+ * driven by one animated custom property (--run-t, 0 -> 1). With reduced motion, or where
+ * @property is unsupported, --run-t rests at 1: every step shows "done".
+ * Renders the [data-cta-sentinel] for the sticky CTA (pass heroSentinel to the Layout).
+ * No props.
+ */
+import { WORKFLOW_STEPS } from '../../data/ai/workflow';
+import { bookingUrl } from '../../data/ai/site';
+import Button from './Button.astro';
+import GridLines from './GridLines.astro';
+
+const FACTS = ['Fixed scope, agreed up front', 'Free 30-minute scoping call', 'You own the code and accounts'];
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <GridLines fade />
+  <div class="hero__inner container grid">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">
+        <span class="hero__eyebrow-mark" aria-hidden="true"></span>
+        Faraz Ahmad · AI &amp; automation engineer
+      </p>
+      <h1 id="hero-title" class="hero__title">AI automations that survive production.</h1>
+      <p class="hero__lede lede">
+        I’m a senior engineer, not an agency. I build AI and automation systems for founders and ops teams: the
+        workflows that move leads, content and data between your tools, monitored in production and owned by you.
+      </p>
+      <div class="hero__ctas">
+        <Button href={bookingUrl('hero')}>Book a scoping call</Button>
+        <Button variant="secondary" href="#work" arrow="↓">See the case studies</Button>
+      </div>
+      <ul class="hero__facts" role="list">
+        {
+          FACTS.map((f) => (
+            <li>
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {f}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <figure class="run theme-ink" aria-labelledby="run-title" data-pause-offscreen>
+      <div class="run__head">
+        <div class="run__heading">
+          <p class="run__kicker mono-label">Example run</p>
+          <p id="run-title" class="run__title">A new lead, start to finish</p>
+        </div>
+        <p class="run__status mono" aria-hidden="true">
+          <span class="run__status-dot"></span>
+          <span class="run__status-text">
+            <span class="run__status-live">Running</span>
+            <span class="run__status-done">Completed</span>
+          </span>
+        </p>
+      </div>
+
+      <ol class="run__steps" style={`--n:${WORKFLOW_STEPS.length}`}>
+        {
+          WORKFLOW_STEPS.map((s, i) => (
+            <li class="run__step" style={`--i:${i}`}>
+              <span class="run__marker" aria-hidden="true">
+                <span class="run__ring" />
+                <span class="run__fill" />
+              </span>
+              {i < WORKFLOW_STEPS.length - 1 && (
+                <span class="run__wire" aria-hidden="true">
+                  <span />
+                </span>
+              )}
+              <span class="run__body">
+                <span class="run__label">{s.label}</span>
+                <span class="run__summary">{s.summary}</span>
+              </span>
+              <span class="run__state mono" aria-hidden="true">
+                <span class="run__q">queued</span>
+                <span class="run__r">running</span>
+                <span class="run__d">done</span>
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+
+      <figcaption class="run__foot mono">Every run is logged. If a step fails, a person is alerted.</figcaption>
+    </figure>
+  </div>
+  <div class="hero__sentinel" data-cta-sentinel aria-hidden="true"></div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--space-6) var(--space-8);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    row-gap: var(--space-7);
+    align-items: center;
+  }
+  .hero__copy {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: relative;
+    z-index: 2;
+  }
+  .hero__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--text-2);
+  }
+  .hero__eyebrow-mark {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    background: var(--text);
+  }
+  .hero__title {
+    max-width: 13ch;
+  }
+  .hero__lede {
+    margin-top: var(--space-5);
+  }
+  .hero__ctas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+  .hero__facts {
+    display: grid;
+    gap: 6px;
+    margin-top: var(--space-5);
+    font-size: var(--fs-small);
+    color: var(--text-2);
+  }
+  .hero__facts li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero__facts svg {
+    flex: none;
+    color: var(--text);
+  }
+  .hero__sentinel {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  /* ---------- example run ---------- */
+  @property --run-t {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 1;
+  }
+  @property --run-r {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+  }
+  .run {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: var(--space-5) var(--space-4) var(--space-4);
+    border: 1px solid var(--ink-800);
+    border-radius: var(--radius-l);
+    box-shadow: var(--float-shadow);
+    /* complete = 1 while every step is done and the reset has not begun */
+    --complete: calc(clamp(0, (var(--run-t) - 0.999) * 1000, 1) * (1 - var(--run-r)));
+    /* The reset is two beats: "done" clears in the first half, "queued" returns in the second. */
+    --reset-out: clamp(0, var(--run-r) * 2, 1);
+    --reset-in: clamp(0, var(--run-r) * 2 - 1, 1);
+  }
+  /* Same frame in both themes (the dark-theme console rule only draws top and bottom). */
+  .hero .run.theme-ink {
+    border: 1px solid var(--line);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .run {
+      animation: run-cycle 11s linear 500ms infinite both;
+    }
+  }
+  .run.is-paused,
+  .run.is-hidden-tab {
+    animation-play-state: paused;
+  }
+  @keyframes run-cycle {
+    0%,
+    5% {
+      --run-t: 0;
+      --run-r: 0;
+    }
+    80%,
+    93% {
+      --run-t: 1;
+      --run-r: 0;
+    }
+    100% {
+      --run-t: 1;
+      --run-r: 1;
+    }
+  }
+
+  .run__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .run__heading > p {
+    margin: 0;
+  }
+  .run__kicker {
+    font-size: 0.75rem;
+  }
+  .run__title {
+    margin-top: 2px;
+    font-weight: 500;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .run__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    margin: 0;
+    padding: 4px 10px 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    color: var(--text-2);
+  }
+  .run__status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: calc(1 - var(--complete) * 0.6);
+  }
+  .run__status-text {
+    display: grid;
+  }
+  .run__status-text {
+    overflow: hidden;
+  }
+  .run__status-text > span {
+    grid-area: 1 / 1;
+    transition:
+      opacity 300ms var(--ease-out),
+      transform 420ms var(--ease-emph);
+  }
+  .run__status-live {
+    opacity: calc(1 - var(--complete));
+    transform: translateY(calc(var(--complete) * -100%));
+  }
+  .run__status-done {
+    opacity: var(--complete);
+    transform: translateY(calc((1 - var(--complete)) * 100%));
+  }
+
+  .run__steps {
+    --n: 5;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .run__step {
+    /* p: this step's progress 0..1; run/done: soft 0..1 weights for the two states */
+    --x: calc(var(--run-t) * var(--n) - var(--i));
+    --p: clamp(0, var(--x), 1);
+    --run: clamp(0, min(var(--x) * 14, (1 - var(--x)) * 14), 1);
+    --done: calc(clamp(0, (var(--x) - 1) * 14 + 1, 1) * (1 - var(--reset-out)));
+    --lit: max(var(--run), var(--done));
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+    align-items: start;
+    padding: 12px 10px 12px 6px;
+  }
+  /* The working row is lifted onto a slightly lighter surface. */
+  .run__step::before {
+    content: "";
+    position: absolute;
+    inset: 2px -6px;
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    opacity: var(--run);
+    pointer-events: none;
+  }
+  .run__body,
+  .run__state {
+    position: relative;
+  }
+  .run__marker {
+    position: relative;
+    justify-self: center;
+    width: 12px;
+    height: 12px;
+    margin-top: 5px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+  }
+  .run__ring {
+    position: absolute;
+    inset: -4px;
+    border: 1px solid var(--accent);
+    opacity: var(--run);
+  }
+  .run__fill {
+    position: absolute;
+    inset: -1px;
+    background: var(--text);
+    opacity: var(--done);
+  }
+  .run__wire {
+    position: absolute;
+    left: 6px;
+    top: 34px;
+    bottom: -12px;
+    width: 28px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .run__wire::before,
+  .run__wire span {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line-strong);
+  }
+  /* The lead travelling down the wire while its step runs. */
+  .run__wire span {
+    width: 1.5px;
+    background: var(--accent);
+    transform-origin: top;
+    transform: scaleY(var(--p));
+    opacity: calc(1 - var(--run-r));
+  }
+  .run__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .run__label {
+    font-weight: 500;
+    font-size: 0.9375rem;
+    color: var(--text);
+    opacity: calc(0.62 + 0.38 * var(--lit));
+  }
+  .run__summary {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--text-2);
+  }
+  .run__state {
+    display: grid;
+    justify-items: end;
+    margin-top: 2px;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    overflow: hidden;
+  }
+  /* States roll like a ticker: the outgoing word lifts away as the next one rises in. */
+  .run__state > span {
+    grid-area: 1 / 1;
+  }
+  .run__q {
+    color: var(--text-3);
+    opacity: calc((1 - var(--lit)) * (1 - var(--reset-out) + var(--reset-in)));
+    transform: translateY(calc(var(--lit) * -7px));
+  }
+  .run__r {
+    color: var(--accent);
+    opacity: var(--run);
+    /* enters from below, leaves upward (the sign flips at the step's midpoint) */
+    transform: translateY(calc((1 - var(--run)) * (7px - 14px * clamp(0, (var(--x) - 0.5) * 1000, 1))));
+  }
+  .run__d {
+    color: var(--text-2);
+    opacity: var(--done);
+    transform: translateY(calc((1 - var(--done)) * 7px));
+  }
+  .run__foot {
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: 0.75rem;
+    color: var(--text-3);
+  }
+
+  /* ---------- tablet ---------- */
+  @media (min-width: 768px) {
+    .hero__title {
+      max-width: calc((100% - 7 * var(--gutter)) / 8 * 7 + 6 * var(--gutter));
+    }
+    .hero__ctas {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+    .hero__facts {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--space-5);
+    }
+    .run {
+      grid-column: 2 / span 6;
+      padding: var(--space-5) var(--space-5) var(--space-4);
+    }
+  }
+
+  /* ---------- desktop ---------- */
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: calc(100vh - var(--nav-h));
+      min-height: min(calc(100svh - var(--nav-h)), 58rem);
+      padding-block: var(--space-8);
+    }
+    .hero__copy {
+      grid-column: 1 / span 7;
+    }
+    .hero__title {
+      max-width: none;
+    }
+    .run {
+      grid-column: 8 / span 5;
+      grid-row: 1;
+    }
+  }
+  /* Small desktops: keep "AI automations" on one line beside the console. */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .hero__title {
+      font-size: min(var(--fs-display-xl), 6.6vw);
+    }
+  }
+  @media (forced-colors: active) {
+    .run {
+      border-color: CanvasText;
+    }
+  }
+</style>

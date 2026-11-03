@@ -1,0 +1,107 @@
+---
+/**
+ * A case's flow as a rack of ports: a teal bus down the left, one branch, jack and LED per
+ * step. Static (the hero is the animated one). Used on the home cards and the case pages.
+ *
+ * Props
+ *   steps: readonly string[]   in order
+ *   label: string              accessible name of the list
+ *   compact?: boolean          smaller rows for cards
+ *   example?: boolean          muted LEDs for an illustrative flow
+ */
+interface Props {
+  steps: readonly string[];
+  label: string;
+  compact?: boolean;
+  example?: boolean;
+}
+const { steps, label, compact = false, example = false } = Astro.props;
+---
+
+<ol class:list={['pl', { 'pl--compact': compact, 'pl--example': example }]} role="list" aria-label={label} style={`--n:${steps.length}`}>
+  {
+    steps.map((s, i) => (
+      <li class="pl__row">
+        <span class="pl__jack" aria-hidden="true" />
+        <span class="pl__num mono" aria-hidden="true">
+          {String(i + 1).padStart(2, '0')}
+        </span>
+        <span class="pl__text">{s}</span>
+        <span class="led pl__led" aria-hidden="true" />
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .pl {
+    --row: 50px;
+    position: relative;
+    display: grid;
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .pl--compact {
+    --row: 36px;
+  }
+  .pl--compact .pl__jack {
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 4px var(--bg),
+      inset 0 0 0 8px var(--accent);
+  }
+  /* The bus, from the first jack to the last. */
+  .pl::before {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: calc(6px + var(--row) / 2);
+    height: calc(var(--row) * (var(--n) - 1));
+    width: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+  }
+  .pl__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 22px auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--row);
+  }
+  .pl__row + .pl__row {
+    border-top: 1px dashed var(--line);
+  }
+  .pl__jack {
+    position: relative;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 5px var(--bg),
+      inset 0 0 0 10px var(--accent);
+  }
+  .pl__num {
+    color: var(--text-3);
+  }
+  .pl__text {
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .pl--compact .pl__text {
+    font-size: var(--fs-small);
+  }
+  .pl--example .pl__led {
+    background: var(--line-strong);
+    box-shadow: none;
+  }
+</style>

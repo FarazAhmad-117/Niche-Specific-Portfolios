@@ -1,0 +1,195 @@
+---
+/**
+ * Process: Audit → Map → Build → Optimize. On wide screens the four stops ride a single wave
+ * that draws itself left to right as the section arrives (the same path language as the
+ * hero). On phones it becomes a vertical thread. Order is shown by the path, not numbers.
+ */
+import { PROCESS } from '../../data/funnels/content';
+---
+
+<section class="section process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">How a build runs.</h2>
+      <p class="lede">Nothing gets built until the map is signed off, and nothing goes live until a test lead has run the whole way.</p>
+    </div>
+
+    <div class="proc" data-reveal>
+      <svg class="proc__wave" viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true">
+        <path pathLength="1" d="M0 120C150 120 150 40 300 40S450 120 600 120 750 40 900 40 1050 120 1200 120"></path>
+      </svg>
+      <ol class="proc__list" role="list">
+        {
+          PROCESS.map((p, i) => (
+            <li class="proc__step" style={`--i:${i}`}>
+              <span class="proc__stop" aria-hidden="true" />
+              <h3 class="proc__title">{p.title}</h3>
+              <p class="proc__text">{p.text}</p>
+              <p class="proc__leaves">
+                <span class="mono">You leave with</span>
+                {p.leaves}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .proc {
+    position: relative;
+  }
+  .proc__wave {
+    display: none;
+  }
+  .proc__list {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding-left: 34px;
+  }
+  .proc__list::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 30%, transparent));
+  }
+  .proc__step {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .proc__stop {
+    position: absolute;
+    left: -32px;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 3px var(--accent),
+      0 0 0 6px var(--bg);
+  }
+  .proc__step:last-child .proc__stop {
+    background: var(--accent);
+  }
+  .proc__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .proc__text {
+    color: var(--text-2);
+    max-width: 40ch;
+  }
+  .proc__leaves {
+    display: grid;
+    gap: 2px;
+    width: fit-content;
+    margin-top: var(--space-2);
+    padding: 10px 14px;
+    border-radius: var(--radius-m);
+    border-top-left-radius: var(--radius-tail);
+    background: var(--surface-1);
+    font-weight: 700;
+    font-size: var(--fs-small);
+  }
+  .proc__leaves .mono {
+    color: var(--text-3);
+    font-weight: 500;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 1024px) {
+    .proc__wave {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      width: 100%;
+      height: 160px;
+      overflow: visible;
+    }
+    .proc__wave path {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      /* No non-scaling-stroke: with pathLength it makes Chrome and Firefox measure the dash
+         differently, and the wave can stop part-drawn. */
+      stroke-dasharray: 1;
+    }
+    /* No column gap: column i starts at exactly i/4 of the width, which is where the wave
+       turns (x = 0, 300, 600, 900 of 1200). Spacing comes from padding instead. */
+    .proc__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      padding-left: 0;
+    }
+    .proc__list::before {
+      display: none;
+    }
+    /* Troughs at y=120, crests at y=40 of the 160px wave. Text starts under its own stop. */
+    .proc__step {
+      padding: 160px var(--space-6) 0 0;
+    }
+    .proc__step:nth-child(even) {
+      padding-top: 80px;
+    }
+    .proc__stop {
+      left: -11px;
+      top: calc(120px - 11px);
+      width: 22px;
+      height: 22px;
+    }
+    .proc__step:nth-child(even) .proc__stop {
+      top: calc(40px - 11px);
+    }
+  }
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .proc.is-armed {
+      opacity: 1;
+      transform: none;
+    }
+    .proc.is-armed .proc__wave path {
+      stroke-dashoffset: 1;
+    }
+    .proc.is-armed.is-revealed .proc__wave path {
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1800ms var(--ease-in-out-quart);
+    }
+    .proc.is-armed .proc__step {
+      opacity: 0;
+      transform: translate3d(0, 24px, 0);
+    }
+    .proc.is-armed.is-revealed .proc__step {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 700ms var(--ease-out-quint),
+        transform 900ms var(--ease-out-quint);
+      transition-delay: calc(250ms + var(--i) * 300ms);
+    }
+    .proc.is-armed .proc__stop {
+      transform: scale(0);
+    }
+    .proc.is-armed.is-revealed .proc__stop {
+      transform: none;
+      transition: transform 640ms var(--ease-spring);
+      transition-delay: calc(300ms + var(--i) * 300ms);
+    }
+  }
+</style>

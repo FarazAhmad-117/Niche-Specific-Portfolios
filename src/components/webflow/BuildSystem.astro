@@ -1,0 +1,2071 @@
+---
+/**
+ * ★ Signature: the Build system (brief §4 item 4), drawn as a visual-builder workspace: a
+ * navigator tree on the left, the canvas in the middle, a style panel on the right and a CMS
+ * panel that flies out over the navigator. An ILLUSTRATIVE mock in this site's own palette
+ * (no Webflow logo, no Webflow blue), labelled as such in the window and in the copy.
+ *
+ * Five steps: the Figma frame arrives (layer names, redline specs) → it gets a class system
+ * (navigator rows rename one by one, the heading is selected with its class chip) → the cards
+ * bind to a CMS collection (the flyout opens, items light up as each card fills) → a
+ * page-load interaction plays (the timeline's playhead sweeps while the page rises) → "edit
+ * it yourself": content mode, a real input that rewrites the canvas headline as you type.
+ *
+ * Playback: starts when a third of the player is on screen (or when it covers a third of the
+ * viewport, for a tall player on a short screen). The current step's progress fill is a CSS
+ * animation and its `animationend` advances the story, so pausing (button, off screen, hidden
+ * tab) just pauses the fill. Clicking a step, prev, next, or touching the editor hands control
+ * to the visitor (playback pauses; play resumes). Under reduced motion it never autoplays and
+ * starts on the finished step.
+ *
+ * Without JS: the finished state (content mode, cards bound), every step as a plain list, the
+ * controls hidden and the editor input disabled. The workspace visuals are aria-hidden; the
+ * steps, a visually hidden description and the editor field are the accessible content.
+ */
+import { COLLECTION, FIGMA_PROPS, HEADLINE_MAX, PAGE, STEPS, STYLE_PROPS, TIMELINE, TREE } from '../../data/webflow/build';
+
+const n = STEPS.length;
+const STEP_MS = 5200;
+const KIND_ICON: Record<string, string> = {
+  body: 'M4 4h16v16H4z',
+  section: 'M4 6h16v12H4zM4 10h16',
+  box: 'M5 5h14v14H5z',
+  heading: 'M6 5v14M18 5v14M6 12h12',
+  text: 'M5 7h14M5 12h14M5 17h9',
+  link: 'M9 15l6-6M10 6.5l1.5-1.5a4 4 0 0 1 5.5 5.5L15.5 12M8.5 12 7 13.5a4 4 0 0 0 5.5 5.5L14 17.5',
+  cms: 'M12 4c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3zM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  item: 'M5 6h14v12H5zM5 10h14',
+};
+---
+
+<section class="section bsec" id="build" aria-labelledby="build-title">
+  <div class="container head head--split">
+    <p class="eyebrow">The build system</p>
+    <h2 id="build-title">Watch a page get built to be edited.</h2>
+    <p class="lede">
+      A Figma frame becomes classes, the cards bind to the CMS, an interaction plays, and then the page is yours to edit.
+      It plays once it’s on screen; pause it, or step through.
+    </p>
+  </div>
+
+  <div class="container">
+    <div
+      class="bs"
+      data-bs
+      data-step={n - 1}
+      data-classes
+      data-cms
+      data-edit
+      data-sel="edit"
+      style={`--step-ms:${STEP_MS}ms`}
+      data-pause-offscreen
+    >
+      <div class="ws">
+        <!-- ========== top bar ========== -->
+        <div class="ws__bar" aria-hidden="true">
+          <span class="ws__app"><span></span></span>
+          <span class="ws__page mono">Page: <strong>Home</strong></span>
+          <span class="ws__bps">
+            <span class="ws__bp is-on" title="Desktop">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M3.5 5h17v11h-17zM9 19.5h6"></path></svg>
+            </span>
+            <span class="ws__bp">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 3.5h12v17H6z"></path></svg>
+            </span>
+            <span class="ws__bp">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 4h8v16H8z"></path></svg>
+            </span>
+          </span>
+          <span class="ws__mode">
+            <span class="ws__mode-thumb"></span>
+            <span class="ws__mode-opt ws__mode-opt--design">Design</span>
+            <span class="ws__mode-opt ws__mode-opt--content">Content</span>
+          </span>
+          <span class="ws__status mono">
+            <span class="ws__status-dot"></span>
+            <span class="ws__st ws__st--0">From Figma</span>
+            <span class="ws__st ws__st--1">Classes styled</span>
+            <span class="ws__st ws__st--2">CMS bound</span>
+            <span class="ws__st ws__st--3">Interaction</span>
+            <span class="ws__st ws__st--4">Content mode</span>
+          </span>
+          <span class="ws__publish">Publish</span>
+        </div>
+
+        <div class="ws__body">
+          <!-- ========== navigator ========== -->
+          <div class="ws__nav" aria-hidden="true">
+            <p class="ws__label mono">
+              <span>Navigator</span>
+              <span class="ws__lock mono">
+                <svg viewBox="0 0 24 24" width="11" height="11"><path d="M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13v9h-13z"></path></svg>
+                Locked
+              </span>
+            </p>
+            <ol class="tree" role="list">
+              {
+                TREE.map((r, i) => (
+                  <li class="tr" data-target={'target' in r ? r.target : undefined} style={`--i:${i};--d:${r.depth}`}>
+                    <svg class="tr__icon" viewBox="0 0 24 24" width="13" height="13">
+                      <path d={KIND_ICON[r.kind]} />
+                    </svg>
+                    <span class="tr__names">
+                      <span class="tr__figma">{r.figma}</span>
+                      <span class="tr__cls">{r.cls}</span>
+                    </span>
+                    {r.kind === 'cms' && <span class="tr__cms" />}
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+
+          <!-- ========== CMS flyout ========== -->
+          <div class="ws__cms" aria-hidden="true">
+            <p class="ws__label mono">
+              <span>CMS · {COLLECTION.name}</span>
+              <span class="cms__count">{COLLECTION.items.length} items</span>
+            </p>
+            <ul class="cms__items" role="list">
+              {
+                COLLECTION.items.map((it, k) => (
+                  <li class="cms__item" style={`--k:${k}`}>
+                    <span class={`cms__thumb pc__img--${k}`} />
+                    <span class="cms__text">
+                      <span class="cms__name">{it.name}</span>
+                      <span class="cms__cat mono">{it.category} · Published</span>
+                    </span>
+                  </li>
+                ))
+              }
+            </ul>
+            <p class="cms__fields mono">Fields: {COLLECTION.fields.map((f) => f.field).join(' · ')}</p>
+          </div>
+
+          <!-- ========== canvas ========== -->
+          <div class="ws__canvas" aria-hidden="true">
+            <div class="ab">
+              <p class="ab__label mono">
+                <span class="ab__l ab__l--figma">Frame 12 · 1280 × 900</span>
+                <span class="ab__l ab__l--wf">Home · Desktop · 1280</span>
+              </p>
+              <div class="pg">
+                <span class="rl rl--pad"><span>48</span></span>
+                <div class="pg__nav">
+                  <span class="pg__logo"></span>
+                  <span class="pg__brand">{PAGE.brand}</span>
+                  <span class="pg__links"><span></span><span></span><span></span></span>
+                </div>
+                <div class="pg__hero">
+                  <span class="rl rl--v"><span>64</span></span>
+                  <p class="pg__h1 pg__rise" data-target="h1" style="--r:0">
+                    <span class="pg__h1-text" data-headline>{PAGE.headline}</span>
+                    <span class="sel"><span class="sel__chip">heading-style-h1</span></span>
+                    <span class="edf"><span class="edf__pin">Edit text</span></span>
+                  </p>
+                  <p class="pg__p pg__rise" style="--r:1">{PAGE.lede}</p>
+                  <span class="pg__btn pg__rise" style="--r:2">{PAGE.button}</span>
+                </div>
+                <div class="pg__posts">
+                  <span class="pg__plabel">{PAGE.postsLabel}</span>
+                  <div class="pg__list" data-target="list">
+                    <span class="rl rl--h"><span>24</span></span>
+                    {
+                      COLLECTION.items.map((it, k) => (
+                        <div class="pc pg__rise" style={`--k:${k};--r:${3 + k}`}>
+                          <span class={`pc__img pc__img--${k}`} />
+                          <span class="pc__tag">
+                            <span class="pc__ph">Tag</span>
+                            <span class="pc__val">{it.category}</span>
+                          </span>
+                          <span class="pc__title">
+                            <span class="pc__ph">Card title</span>
+                            <span class="pc__val">{it.name}</span>
+                          </span>
+                          <span class="pc__bind" />
+                        </div>
+                      ))
+                    }
+                    <span class="sel"><span class="sel__chip">posts_list · CMS: {COLLECTION.name}</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== inspector ========== -->
+          <div class="ws__insp">
+            <div class="iv iv--figma" aria-hidden="true">
+              <p class="ws__label mono"><span>Frame 12</span><span class="iv__tag">From Figma</span></p>
+              <dl class="props">
+                {
+                  FIGMA_PROPS.map(([k, v]) => (
+                    <div>
+                      <dt>{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))
+                }
+              </dl>
+              <p class="iv__note">Specs read from the file before anything is built.</p>
+            </div>
+
+            <div class="iv iv--style" aria-hidden="true">
+              <p class="ws__label mono"><span>Style</span><span class="iv__tag">1 class</span></p>
+              <div class="selector">
+                <span class="selector__label mono">Selector</span>
+                <span class="cls">heading-style-h1</span>
+              </div>
+              <p class="props__group mono">Typography</p>
+              <dl class="props">
+                {
+                  STYLE_PROPS.map(([k, v]) => (
+                    <div>
+                      <dt>{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))
+                }
+              </dl>
+            </div>
+
+            <div class="iv iv--collection" aria-hidden="true">
+              <p class="ws__label mono"><span>Collection list</span><span class="iv__tag iv__tag--cms">CMS</span></p>
+              <dl class="props">
+                <div><dt>Source</dt><dd>{COLLECTION.name}</dd></div>
+                <div><dt>Items</dt><dd>3 · newest first</dd></div>
+              </dl>
+              <p class="props__group mono">Bound fields</p>
+              <ul class="binds" role="list">
+                {
+                  COLLECTION.fields.map((f, k) => (
+                    <li style={`--k:${k}`}>
+                      <span class="binds__dot" />
+                      <span class="binds__field">{f.field}</span>
+                      <span class="binds__arrow">→</span>
+                      <span class="binds__to mono">{f.to}</span>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+
+            <div class="iv iv--motion" aria-hidden="true">
+              <p class="ws__label mono"><span>Interactions</span><span class="iv__tag">Page load</span></p>
+              <div class="tl">
+                <div class="tl__ruler mono"><span>0</span><span>0.4s</span><span>0.8s</span><span>1.2s</span></div>
+                <ul class="tl__tracks" role="list">
+                  {
+                    TIMELINE.map((t) => (
+                      <li class="tl__row">
+                        <span class="tl__label mono">{t.label}</span>
+                        <span class="tl__lane">
+                          <span class="tl__bar" style={`--s:${t.start};--l:${t.len}`} />
+                        </span>
+                      </li>
+                    ))
+                  }
+                </ul>
+                <span class="tl__sweep"></span>
+              </div>
+              <p class="iv__note">Ease out-quint · transform + opacity · off under reduced motion</p>
+            </div>
+
+            <div class="iv iv--edit" data-iv-edit>
+              <p class="ws__label mono" aria-hidden="true"><span>Content mode</span><span class="iv__tag iv__tag--cms">Editor</span></p>
+              <div class="ed">
+                <label class="ed__label" for="bs-headline">Hero headline <span class="ed__hint">(try it)</span></label>
+                <input
+                  class="ed__input"
+                  id="bs-headline"
+                  type="text"
+                  value={PAGE.headline}
+                  maxlength={HEADLINE_MAX}
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-describedby="bs-headline-help"
+                  data-bs-input
+                  disabled
+                />
+                <p class="ed__help" id="bs-headline-help">
+                  The canvas updates as you type. Layout and classes stay locked. Nothing is saved or sent.
+                  <span class="ed__nojs">Needs JavaScript to try.</span>
+                </p>
+                <button class="ed__reset" type="button" data-bs-reset hidden>Reset headline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ws__foot">
+          <span class="tag">Illustrative mock</span>
+          <span class="ws__foot-text">Not a Webflow screenshot.</span>
+          <span class="ws__foot-ex">“{PAGE.brand}” is an example site.</span>
+          <span class="ws__crumbs mono" aria-hidden="true">
+            Body ›
+            <span class="ws__crumb ws__crumb--none">Frame 12</span>
+            <span class="ws__crumb ws__crumb--h1">section_hero › heading-style-h1</span>
+            <span class="ws__crumb ws__crumb--list">section_posts › posts_list</span>
+            <span class="ws__crumb ws__crumb--run">Page load interaction</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="visually-hidden">
+        <p>
+          Illustrative mock of a visual website builder, not a Webflow screenshot. The example site, {PAGE.brand}, has a hero
+          with a headline, a short description and a “{PAGE.button}” button, and a “{PAGE.postsLabel}” section with three cards.
+        </p>
+        <p>Class names used: {TREE.map((r) => r.cls).join(', ')}.</p>
+        <p>
+          The cards come from a CMS collection called {COLLECTION.name}, with the fields {COLLECTION.fields.map((f) => f.field).join(', ')}:
+          {COLLECTION.items.map((it) => `${it.name} (${it.category})`).join('; ')}.
+        </p>
+      </div>
+
+      <!-- ========== story: steps + controls ========== -->
+      <div class="story">
+        <ol class="story__steps" role="list">
+          {
+            STEPS.map((s, i) => (
+              <li class="st" data-st={i}>
+                <button class="st__btn" type="button" data-st-btn={i} disabled>
+                  <span class="st__bar" aria-hidden="true">
+                    <span class="st__fill" data-fill />
+                  </span>
+                  <span class="st__num mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="st__title">{s.title}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="st__body">
+                  <p class="st__ktitle" aria-hidden="true">{s.title}</p>
+                  <p class="st__text">{s.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="story__controls" data-bs-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough" aria-pressed="false">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="story__count mono" aria-hidden="true"><span data-bs-count>{n}</span> / {n}</span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-bs-live></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bs {
+    --ws-body-h: 27rem;
+    --txt-h: 3.4rem;
+    max-width: 1180px;
+    margin-inline: auto;
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* =========================================================
+     The workspace window
+     ========================================================= */
+  .ws {
+    display: grid;
+    min-width: 0;
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    overflow: hidden;
+  }
+  .ws__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-1);
+    font-size: 0.75rem;
+  }
+  .ws__app {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--text);
+  }
+  .ws__app span {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--accent);
+  }
+  .ws__page {
+    color: var(--text-3);
+    font-size: 0.71875rem;
+    white-space: nowrap;
+  }
+  .ws__page strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .ws__bps {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ws__bp {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 22px;
+    border-radius: 4px;
+    color: var(--text-3);
+  }
+  .ws__bp.is-on {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .ws__bp svg path,
+  .ws__lock svg path,
+  .tr__icon path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Design / Content switch: the thumb slides on out-expo in content mode. */
+  .ws__mode {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-inline: auto;
+    padding: 2px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ws__mode-thumb {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    bottom: 2px;
+    width: calc(50% - 2px);
+    border-radius: 4px;
+    background: var(--btn-bg);
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .bs[data-edit] .ws__mode-thumb {
+    transform: translateX(100%);
+  }
+  .ws__mode-opt {
+    position: relative;
+    padding: 3px 12px;
+    color: var(--text-2);
+    font-weight: 600;
+    text-align: center;
+    transition: color 320ms var(--ease-out-quint);
+  }
+  .bs:not([data-edit]) .ws__mode-opt--design,
+  .bs[data-edit] .ws__mode-opt--content {
+    color: var(--btn-fg);
+  }
+  .ws__status {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+  .ws__status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+  .ws__st {
+    grid-area: 1 / 2;
+    visibility: hidden;
+  }
+  .bs[data-step='0'] .ws__st--0,
+  .bs[data-step='1'] .ws__st--1,
+  .bs[data-step='2'] .ws__st--2,
+  .bs[data-step='3'] .ws__st--3,
+  .bs[data-step='4'] .ws__st--4 {
+    visibility: visible;
+  }
+  .ws__publish {
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+
+  .ws__body {
+    position: relative;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr) 15.5rem;
+    height: var(--ws-body-h);
+    overflow: hidden;
+  }
+  .ws__label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------- navigator ---------- */
+  .ws__nav {
+    grid-area: 1 / 1;
+    padding: 12px 10px;
+    border-right: 1px solid var(--line);
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .ws__lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface-1);
+    color: var(--text-2);
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 420ms var(--ease-out-expo);
+  }
+  .bs[data-edit] .ws__lock {
+    opacity: 1;
+    transform: none;
+  }
+  .tree {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+  }
+  .tr {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+    padding: 2px 6px 2px calc(4px + var(--d) * 11px);
+    border-radius: var(--radius-xs);
+    color: var(--text-2);
+    font-size: 0.75rem;
+    transition:
+      background-color 360ms var(--ease-out-expo),
+      color 360ms var(--ease-out-expo);
+  }
+  .tr__icon {
+    flex: none;
+    color: var(--text-3);
+  }
+  /* Each row holds both names in a clipped box; the class slides up into place. */
+  .tr__names {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 1.45em;
+    overflow: hidden;
+    line-height: 1.45;
+  }
+  .tr__figma,
+  .tr__cls {
+    flex: none;
+    height: 1.45em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform 620ms var(--ease-out-expo);
+    transition-delay: calc(var(--i) * 70ms);
+  }
+  .tr__cls {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.71875rem;
+  }
+  .bs[data-classes] .tr__figma,
+  .bs[data-classes] .tr__cls {
+    transform: translateY(-100%);
+  }
+  .tr__cms {
+    width: 7px;
+    height: 7px;
+    margin-left: auto;
+    border-radius: 2px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out-quint);
+  }
+  .bs[data-cms] .tr__cms {
+    opacity: 1;
+  }
+  .bs[data-sel='h1'] .tr[data-target='h1'],
+  .bs[data-sel='list'] .tr[data-target='list'] {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .bs[data-sel='h1'] .tr[data-target='h1'] .tr__cls,
+  .bs[data-sel='list'] .tr[data-target='list'] .tr__cls,
+  .bs[data-sel='h1'] .tr[data-target='h1'] .tr__icon,
+  .bs[data-sel='list'] .tr[data-target='list'] .tr__icon {
+    color: var(--accent-text);
+  }
+  /* Content mode: layout is locked. Text steps down to text-3 (still 5.7:1), never opacity. */
+  .bs[data-edit] .tr,
+  .bs[data-edit] .tr__cls {
+    color: var(--text-3);
+  }
+
+  /* ---------- CMS flyout (desktop: slides over the navigator) ---------- */
+  .ws__cms {
+    grid-area: 1 / 1;
+    z-index: 2;
+    width: calc(100% + 3rem);
+    padding: 12px 10px;
+    border-right: 1px solid var(--line);
+    background: var(--surface-2);
+    box-shadow: 18px 0 30px -24px rgb(20 10 60 / 0.45);
+    transform: translateX(calc(-100% - 12px));
+    visibility: hidden;
+    transition:
+      transform 620ms var(--ease-out-expo),
+      visibility 0s linear 620ms;
+  }
+  .bs[data-step='2'] .ws__cms {
+    transform: none;
+    visibility: visible;
+    transition:
+      transform 620ms var(--ease-out-expo),
+      visibility 0s;
+  }
+  .cms__count {
+    color: var(--text-3);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .cms__items {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+  }
+  .cms__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: var(--radius-xs);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .cms__thumb {
+    flex: none;
+    width: 30px;
+    height: 24px;
+    border-radius: 4px;
+  }
+  .cms__text {
+    display: grid;
+    min-width: 0;
+    line-height: 1.3;
+  }
+  .cms__name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cms__cat {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .cms__fields {
+    margin-top: 10px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+
+  /* ---------- canvas ---------- */
+  .ws__canvas {
+    grid-area: 1 / 2;
+    min-width: 0;
+    padding: 18px 22px;
+    background:
+      radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px) 0 0 / 18px 18px,
+      var(--canvas);
+    overflow: hidden;
+  }
+  .ab {
+    container-type: inline-size;
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+  .ab__label {
+    display: grid;
+    margin-bottom: 6px;
+    font-size: 0.6875rem;
+    color: var(--text-3);
+  }
+  .ab__l {
+    grid-area: 1 / 1;
+    transition: opacity 360ms var(--ease-out-quint);
+  }
+  .ab__l--wf,
+  .bs[data-classes] .ab__l--figma {
+    opacity: 0;
+  }
+  .bs[data-classes] .ab__l--wf {
+    opacity: 1;
+  }
+
+  /* The example page (an artboard). Text never drops under 11px. */
+  .pg {
+    position: relative;
+    display: grid;
+    gap: max(10px, 2.6cqi);
+    padding: max(12px, 3.2cqi) max(12px, 4cqi) max(14px, 3.6cqi);
+    border-radius: 6px;
+    background: var(--bg);
+    box-shadow:
+      0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .pg__nav {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    /* Room for a selection chip on the heading below. */
+    margin-bottom: 12px;
+  }
+  /* The init swap to step 1 (and the first frame) never animates. */
+  .bs[data-static] *,
+  .bs[data-static] *::before,
+  .bs[data-static] *::after {
+    transition: none !important;
+  }
+  .pg__logo {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: var(--accent);
+  }
+  .pg__brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: -0.02em;
+  }
+  .pg__links {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .pg__links span {
+    width: 26px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .pg__hero {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: max(6px, 1.4cqi);
+  }
+  .pg__h1 {
+    position: relative;
+    max-width: 18ch;
+    min-height: 1.1em;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(14px, 3.7cqi, 30px);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+  .pg__h1-text:empty::before {
+    content: 'Type a headline';
+    color: var(--text-3);
+  }
+  .pg__p {
+    max-width: 44ch;
+    color: var(--text-2);
+    font-size: max(11px, 1.9cqi);
+    line-height: 1.4;
+  }
+  .pg__btn {
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pg__posts {
+    display: grid;
+    gap: 6px;
+  }
+  .pg__plabel {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .pg__list {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: max(8px, 1.8cqi);
+  }
+  .pc {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    padding: 5px 5px 7px;
+    border-radius: 6px;
+    background: var(--surface-1);
+  }
+  .pc__img {
+    height: max(30px, 8.5cqi);
+    border-radius: 4px;
+    background: var(--line);
+    transition: background-color 500ms var(--ease-out-quint);
+    transition-delay: calc(400ms + var(--k) * 260ms);
+  }
+  /* Thumbnails: shapes only. */
+  .pc__img--0,
+  .bs[data-cms] .pc__img--0 {
+    background: linear-gradient(135deg, var(--accent) 0 40%, color-mix(in srgb, var(--accent) 40%, var(--bg)) 40%);
+  }
+  .pc__img--1,
+  .bs[data-cms] .pc__img--1 {
+    background: radial-gradient(circle at 70% 40%, var(--pop) 0 22%, transparent 23%), var(--text);
+  }
+  .pc__img--2,
+  .bs[data-cms] .pc__img--2 {
+    background: repeating-linear-gradient(90deg, var(--accent-soft) 0 8px, color-mix(in srgb, var(--accent) 55%, var(--bg)) 8px 16px);
+  }
+  .bs:not([data-cms]) .pc__img {
+    background: var(--line);
+  }
+  .pc__tag,
+  .pc__title {
+    display: grid;
+    min-width: 0;
+  }
+  .pc__ph,
+  .pc__val {
+    grid-area: 1 / 1;
+    transition:
+      opacity 360ms var(--ease-out-quint),
+      transform 520ms var(--ease-out-expo);
+    transition-delay: calc(400ms + var(--k) * 260ms);
+  }
+  .pc__tag {
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .pc__title {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .pc__ph {
+    color: var(--text-3);
+  }
+  .pc__val,
+  .bs[data-cms] .pc__ph {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  .bs[data-cms] .pc__val {
+    opacity: 1;
+    transform: none;
+  }
+  /* The purple dot of a bound field. */
+  .pc__bind {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 0 2px var(--bg);
+    opacity: 0;
+    transform: scale(0.3);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 520ms var(--ease-spring);
+    transition-delay: calc(400ms + var(--k) * 260ms);
+  }
+  .bs[data-cms] .pc__bind {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Redline specs from Figma (step 1 only): coral measures with their values. */
+  .rl {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms var(--ease-out-quint);
+  }
+  .bs[data-step='0'] .rl {
+    opacity: 1;
+  }
+  .rl span {
+    padding: 0 4px;
+    border-radius: 3px;
+    background: var(--pop);
+    color: #1a0b06;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .rl--v {
+    left: 78%;
+    top: calc(-1 * max(10px, 2.6cqi));
+    height: max(10px, 2.6cqi);
+    width: 1px;
+    background: var(--pop);
+  }
+  .rl--h {
+    z-index: 1;
+    left: calc((100% - 2 * max(8px, 1.8cqi)) / 3);
+    top: 34%;
+    width: max(8px, 1.8cqi);
+    height: 1px;
+    background: var(--pop);
+  }
+  .rl--pad {
+    z-index: 1;
+    left: 0;
+    top: 28%;
+    width: max(12px, 4cqi);
+    height: 1px;
+    background: var(--pop);
+  }
+
+  /* Selection box (with corner handles and its class chip) and the content-mode frame. */
+  .sel,
+  .edf {
+    position: absolute;
+    inset: -5px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1.03);
+    transition:
+      opacity 260ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-expo);
+  }
+  .sel {
+    border: 1.5px solid var(--accent);
+    background:
+      linear-gradient(var(--accent), var(--accent)) left top / 6px 6px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) right top / 6px 6px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) left bottom / 6px 6px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) right bottom / 6px 6px no-repeat;
+  }
+  .sel__chip {
+    position: absolute;
+    left: -1.5px;
+    bottom: 100%;
+    padding: 1px 7px;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .bs[data-sel='h1'] [data-target='h1'] > .sel,
+  .bs[data-sel='list'] [data-target='list'] > .sel,
+  .bs[data-sel='edit'] [data-target='h1'] > .edf {
+    opacity: 1;
+    transform: none;
+  }
+  .edf {
+    border: 1.5px dashed var(--accent);
+    border-radius: 4px;
+  }
+  .edf__pin {
+    position: absolute;
+    right: -1.5px;
+    bottom: 100%;
+    padding: 1px 7px;
+    border-radius: 3px 3px 0 0;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  /* ---------- inspector ---------- */
+  .ws__insp {
+    grid-area: 1 / 3;
+    display: grid;
+    min-width: 0;
+    padding: 12px;
+    border-left: 1px solid var(--line);
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .iv {
+    grid-area: 1 / 1;
+    align-content: start;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 260ms var(--ease-out-quint),
+      transform 460ms var(--ease-out-quint),
+      visibility 0s linear 260ms;
+  }
+  .bs[data-step='0'] .iv--figma,
+  .bs[data-step='1'] .iv--style,
+  .bs[data-step='2'] .iv--collection,
+  .bs[data-step='3'] .iv--motion,
+  .bs[data-step='4'] .iv--edit {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 360ms var(--ease-out-quint) 120ms,
+      transform 560ms var(--ease-out-quint) 120ms,
+      visibility 0s;
+  }
+  .iv .ws__label {
+    margin-bottom: 2px;
+  }
+  .iv__tag {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface-1);
+    color: var(--text-2);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .iv__tag--cms {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .iv__note {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    line-height: 1.45;
+  }
+  .props {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .props div {
+    display: grid;
+    grid-template-columns: 6.25rem minmax(0, 1fr);
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.75rem;
+  }
+  .props dt {
+    color: var(--text-3);
+  }
+  .props dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .props__group {
+    margin-top: 4px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .selector {
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+  }
+  .selector__label {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .binds {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+  }
+  .binds li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    font-size: 0.75rem;
+  }
+  .binds__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .binds__field {
+    font-weight: 600;
+  }
+  .binds__arrow {
+    color: var(--text-3);
+  }
+  .binds__to {
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The interactions timeline: tracks, and a playhead that sweeps while the page plays. */
+  .tl {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    overflow: hidden;
+  }
+  .tl__ruler {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 42%;
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .tl__tracks {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .tl__row {
+    display: grid;
+    grid-template-columns: 42% minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+  .tl__label {
+    color: var(--text-2);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tl__lane {
+    position: relative;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .tl__bar {
+    position: absolute;
+    left: calc(var(--s) * 100%);
+    top: 2px;
+    bottom: 2px;
+    width: calc(var(--l) * 100%);
+    border-radius: 2px;
+    background: var(--accent);
+    transform-origin: left center;
+  }
+  .tl__sweep {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(42% + 14px);
+    right: 8px;
+    pointer-events: none;
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  .tl__sweep::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--pop);
+  }
+
+  /* The editor: a real field. */
+  .ed {
+    display: grid;
+    gap: 8px;
+  }
+  .ed__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .ed__hint {
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  .ed__input {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.875rem;
+    transition:
+      border-color var(--dur-hover) var(--ease-out-quint),
+      box-shadow var(--dur-hover) var(--ease-out-quint);
+  }
+  .ed__input:focus-visible {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+  .ed__input:disabled {
+    cursor: not-allowed;
+    background: var(--surface-1);
+  }
+  .ed__help {
+    color: var(--text-3);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+  .ed__nojs {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-2);
+    font-weight: 600;
+  }
+  .bs.is-live .ed__nojs {
+    display: none;
+  }
+  .ed__reset {
+    justify-self: start;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  @media (hover: hover) {
+    .ed__reset:hover {
+      background: var(--canvas);
+    }
+  }
+
+  .ws__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-1);
+    color: var(--text-3);
+    font-size: 0.75rem;
+  }
+  .ws__foot .tag {
+    padding: 1px 8px;
+    font-size: 0.6875rem;
+  }
+  .ws__crumbs {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+  .ws__crumb {
+    grid-area: 1 / 2;
+    color: var(--text-2);
+    visibility: hidden;
+  }
+  .bs[data-step='0'] .ws__crumb--none,
+  .bs[data-sel='h1'] .ws__crumb--h1,
+  .bs[data-sel='edit'] .ws__crumb--h1,
+  .bs[data-sel='list'] .ws__crumb--list,
+  .bs[data-step='3'] .ws__crumb--run {
+    visibility: visible;
+  }
+
+  /* =========================================================
+     Motion. Static (no JS / reduced motion) = the finished state, no movement.
+     ========================================================= */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Binding: each card flashes a violet ring as its item fills it, and the flyout's item
+       lights up at the same moment. */
+    .bs.is-live.is-bind .pc {
+      animation: bs-bind 900ms var(--ease-out-quint) both;
+      animation-delay: calc(400ms + var(--k) * 260ms);
+    }
+    .bs.is-live.is-bind .cms__item {
+      animation: bs-pick 900ms var(--ease-out-quint) both;
+      animation-delay: calc(400ms + var(--k) * 260ms);
+    }
+    .bs.is-live.is-bind .binds li {
+      animation: bs-pick 900ms var(--ease-out-quint) both;
+      animation-delay: calc(400ms + var(--k) * 260ms);
+    }
+    /* The page-load interaction: rise and fade, 80ms apart, while the playhead sweeps. */
+    .bs.is-live.is-run .pg__rise {
+      animation: bs-rise 720ms var(--ease-out-quint) both;
+      animation-delay: calc(500ms + var(--r) * 80ms);
+    }
+    .bs.is-live.is-run .tl__sweep {
+      animation: bs-sweep 1500ms linear 500ms both;
+    }
+    .bs.is-live.is-run .tl__bar {
+      animation: bs-bar 720ms var(--ease-out-quint) both;
+      animation-delay: calc(500ms + var(--s) * 1500ms);
+    }
+    .bs.is-live.is-typing .pg__h1-text::after {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 0.9em;
+      margin-left: 2px;
+      vertical-align: -0.08em;
+      background: var(--accent);
+      animation: bs-caret 900ms steps(1) infinite;
+    }
+  }
+  @keyframes bs-bind {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+    }
+    35% {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+  @keyframes bs-pick {
+    0%,
+    100% {
+      background-color: transparent;
+    }
+    35% {
+      background-color: var(--accent-soft);
+    }
+  }
+  @keyframes bs-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+  }
+  @keyframes bs-sweep {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    96% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+  @keyframes bs-bar {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes bs-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* =========================================================
+     Story: steps, progress segments, controls
+     ========================================================= */
+  .story {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .story__steps {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .st__btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 4px 10px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+    cursor: default;
+  }
+  .st__bar {
+    display: none;
+  }
+  .st__num {
+    color: var(--accent-text);
+  }
+  .st__title {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+  .st__ktitle {
+    display: none;
+  }
+  .st__text {
+    margin-top: 4px;
+    padding-left: 2.3rem;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 70ch;
+  }
+
+  /* ---------- live (JS) layout: a row of segments, the current step's text below ---------- */
+  .bs.is-live .story {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: var(--space-6);
+  }
+  .bs.is-live .story__steps {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding-bottom: calc(var(--txt-h) + 10px);
+  }
+  .bs.is-live .st__btn {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    gap: 8px 8px;
+    min-height: var(--tap);
+    padding: 0 4px 6px 0;
+    cursor: pointer;
+  }
+  .bs.is-live .st__bar {
+    grid-column: 1 / -1;
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .st__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .st.is-past .st__fill {
+    transform: scaleX(1);
+  }
+  .st.is-current .st__fill {
+    animation: bs-seg-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  .bs:not(.is-playing) .st.is-current .st__fill {
+    animation-play-state: paused;
+  }
+  @keyframes bs-seg-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .st.is-current .st__fill {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+  .bs.is-live .st__title {
+    font-size: 0.9375rem;
+    color: var(--text-2);
+    transition: color 300ms var(--ease-out-quint);
+  }
+  .bs.is-live .st__num {
+    color: var(--text-3);
+  }
+  .bs.is-live .st.is-current .st__title {
+    color: var(--text);
+  }
+  .bs.is-live .st.is-current .st__num {
+    color: var(--accent-text);
+  }
+  @media (hover: hover) {
+    .bs.is-live .st__btn:hover .st__title {
+      color: var(--text);
+    }
+  }
+  .bs.is-live .st__body {
+    display: none;
+  }
+  .bs.is-live .st.is-current .st__body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
+    height: var(--txt-h);
+  }
+  .bs.is-live .st__text {
+    margin: 0;
+    padding: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .bs.is-live .st.is-current .st__body {
+      animation: bs-text-in 520ms var(--ease-out-quint) both;
+    }
+  }
+  @keyframes bs-text-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+    }
+  }
+
+  .story__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .story__count {
+    margin-left: 4px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+
+  /* =========================================================
+     Below 1024: canvas on top, ONE panel docked under it (whichever the step is about),
+     so the window never changes height between steps.
+     ========================================================= */
+  @media (max-width: 1023px) {
+    .bs {
+      --ws-canvas-h: 17.5rem;
+      --ws-dock-h: 13rem;
+      --txt-h: 4.6rem;
+    }
+    .ws__body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: var(--ws-canvas-h) var(--ws-dock-h);
+      height: auto;
+    }
+    .ws__canvas {
+      grid-area: 1 / 1;
+      padding: 12px 14px;
+    }
+    .ws__nav,
+    .ws__cms,
+    .ws__insp {
+      grid-area: 2 / 1;
+      width: auto;
+      border-right: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      box-shadow: none;
+    }
+    .ws__cms {
+      transform: none;
+    }
+    .ws__nav,
+    .ws__cms,
+    .ws__insp {
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity 300ms var(--ease-out-quint),
+        visibility 0s linear 300ms;
+    }
+    .bs[data-step='0'] .ws__nav,
+    .bs[data-step='1'] .ws__nav,
+    .bs[data-step='2'] .ws__cms,
+    .bs[data-step='3'] .ws__insp,
+    .bs[data-step='4'] .ws__insp {
+      visibility: visible;
+      opacity: 1;
+      transition:
+        opacity 360ms var(--ease-out-quint) 80ms,
+        visibility 0s;
+    }
+    .tree {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 8px;
+    }
+    .tr {
+      padding-left: calc(4px + min(var(--d), 1) * 8px);
+    }
+    .ws__crumbs,
+    .ws__page {
+      display: none;
+    }
+  }
+  @media (max-width: 1023px) and (min-width: 720px) {
+    .bs {
+      --txt-h: 3.6rem;
+    }
+  }
+  @media (max-width: 719px) {
+    .bs {
+      --ws-canvas-h: 16rem;
+      --ws-dock-h: 12.75rem;
+      --txt-h: 7.25rem;
+    }
+    .ws__bar {
+      gap: 8px;
+      padding-inline: 10px;
+    }
+    .ws__bps,
+    .ws__publish {
+      display: none;
+    }
+    .ws__mode {
+      margin-inline: 0 auto;
+    }
+    .pg__p,
+    .pg__links,
+    .rl--pad {
+      display: none;
+    }
+    .pg {
+      gap: 8px;
+      padding: 10px 12px 10px;
+    }
+    .pg__nav {
+      margin-bottom: 20px;
+    }
+    .ab__label {
+      margin-bottom: 4px;
+    }
+    .ws__canvas {
+      padding: 10px 12px;
+    }
+    .rl--h {
+      top: 14%;
+    }
+    .ws__foot-ex {
+      display: none;
+    }
+    .tr {
+      min-height: 24px;
+      font-size: 0.71875rem;
+    }
+    .ed {
+      gap: 6px;
+    }
+    .pc__img {
+      height: 24px;
+    }
+    .pc__title .pc__val,
+    .pc__title .pc__ph {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Phone: segments carry only the number; the current step's title moves into the text. */
+    .bs.is-live .story {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 10px;
+    }
+    .bs.is-live .st__title {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      clip-path: inset(50%) !important;
+      white-space: nowrap !important;
+    }
+    .bs.is-live .st.is-current .st__ktitle {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .bs.is-live .st__text {
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    .story__controls {
+      justify-self: start;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/webflow/base';
+
+  const bs = document.querySelector<HTMLElement>('[data-bs]');
+  if (bs) {
+    const steps = [...bs.querySelectorAll<HTMLElement>('[data-st]')];
+    const fills = steps.map((st) => st.querySelector<HTMLElement>('[data-fill]'));
+    const playBtn = bs.querySelector<HTMLButtonElement>('[data-play]')!;
+    const count = bs.querySelector<HTMLElement>('[data-bs-count]');
+    const live = bs.querySelector<HTMLElement>('[data-bs-live]');
+    const input = bs.querySelector<HTMLInputElement>('[data-bs-input]')!;
+    const reset = bs.querySelector<HTMLButtonElement>('[data-bs-reset]');
+    const headline = bs.querySelector<HTMLElement>('[data-headline]')!;
+    const n = steps.length;
+    const DEFAULT = input.defaultValue;
+    const TYPED = 'Launch week starts Monday.';
+    const titles = steps.map((st) => st.querySelector('.st__title')?.textContent?.trim() ?? '');
+
+    /** What each step shows: cumulative flags plus the current selection. */
+    const STATE = [
+      { classes: false, cms: false, edit: false, sel: '' },
+      { classes: true, cms: false, edit: false, sel: 'h1' },
+      { classes: true, cms: true, edit: false, sel: 'list' },
+      { classes: true, cms: true, edit: false, sel: '' },
+      { classes: true, cms: true, edit: true, sel: 'edit' },
+    ] as const;
+    const RUN = 3;
+    const EDIT = 4;
+    const BIND = 2;
+    const reduced = prefersReduced();
+
+    let active = n - 1;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let started = false;
+    let visible = false;
+    let userEdited = false;
+
+    const flag = (name: string, on: boolean) => {
+      if (on) bs.setAttribute(`data-${name}`, '');
+      else bs.removeAttribute(`data-${name}`);
+    };
+    const replay = (cls: string) => {
+      bs.classList.remove(cls);
+      void bs.offsetWidth; // flush, so the animations restart from zero
+      bs.classList.add(cls);
+    };
+    const restartFill = () => {
+      const fill = fills[active];
+      if (!fill) return;
+      fill.style.animation = 'none';
+      void fill.offsetWidth;
+      fill.style.animation = '';
+    };
+
+    // ---------- the editor ----------
+    const setHeadline = (text: string) => {
+      headline.textContent = text;
+      if (input.value !== text) input.value = text;
+    };
+    let typer: number | undefined;
+    let typing = false;
+    // The demo types once per visit to the editor step; render() resets it.
+    let typedThisStep = false;
+    const stopTyper = (finish: boolean) => {
+      window.clearTimeout(typer);
+      typer = undefined;
+      if (typing && finish && !userEdited) setHeadline(TYPED);
+      typing = false;
+      bs.classList.remove('is-typing');
+    };
+    /** Autoplay demo: erase the headline, then type a new one, like an editor would. */
+    const runTyper = () => {
+      stopTyper(false);
+      if (reduced || userEdited || !playing || typedThisStep) return;
+      typedThisStep = true;
+      typing = true;
+      bs.classList.add('is-typing');
+      const step = (fn: () => boolean, ms: number, then: () => void) => {
+        const go = () => {
+          if (!playing) return stopTyper(true);
+          if (fn()) typer = window.setTimeout(go, ms);
+          else then();
+        };
+        typer = window.setTimeout(go, ms);
+      };
+      typer = window.setTimeout(() => {
+        step(
+          () => {
+            const v = headline.textContent ?? '';
+            if (!v.length) return false;
+            setHeadline(v.slice(0, -1));
+            return true;
+          },
+          28,
+          () =>
+            step(
+              () => {
+                const v = headline.textContent ?? '';
+                if (v.length >= TYPED.length) return false;
+                setHeadline(TYPED.slice(0, v.length + 1));
+                return true;
+              },
+              62,
+              () => {
+                typing = false;
+                window.setTimeout(() => bs.classList.remove('is-typing'), 900);
+              },
+            ),
+        );
+      }, 1100);
+    };
+
+    // ---------- rendering ----------
+    const render = (i: number) => {
+      const prev = active;
+      active = (i + n) % n;
+      const s = STATE[active]!;
+      bs.dataset.step = String(active);
+      flag('classes', s.classes);
+      flag('cms', s.cms);
+      flag('edit', s.edit);
+      bs.dataset.sel = s.sel;
+      if (active === RUN) replay('is-run');
+      else bs.classList.remove('is-run');
+      if (active === BIND && prev !== BIND) replay('is-bind');
+      else if (active !== BIND) bs.classList.remove('is-bind');
+
+      steps.forEach((st, k) => {
+        const b = st.querySelector('[data-st-btn]');
+        if (k === active) b?.setAttribute('aria-current', 'step');
+        else b?.removeAttribute('aria-current');
+        st.classList.toggle('is-past', k < active);
+        st.classList.toggle('is-current', k === active);
+      });
+      if (count) count.textContent = String(active + 1);
+      // The editor step rests longer, so the typed headline lands before the loop.
+      bs.style.setProperty('--dur', active === EDIT ? 'calc(var(--step-ms) * 1.75)' : 'var(--step-ms)');
+      restartFill();
+
+      typedThisStep = false;
+      if (active === EDIT) runTyper();
+      else stopTyper(true);
+      // A new loop starts from the original page, unless the visitor wrote their own headline.
+      if (active === 0 && !userEdited) setHeadline(DEFAULT);
+    };
+
+    const setPlaying = (on: boolean) => {
+      const was = playing;
+      playing = on;
+      bs.classList.toggle('is-playing', on);
+      playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+      // One pattern site-wide: a fixed label with a pressed state (pressed = paused).
+      playBtn.setAttribute('aria-pressed', String(!wantsPlay));
+      if (!on) stopTyper(true);
+      // Only an off -> on change may start the demo typing (IO fires on every threshold).
+      else if (!was && active === EDIT && !typing) runTyper();
+    };
+    const sync = () => setPlaying(visible && wantsPlay && !document.hidden);
+
+    // The segment finishing is the clock: advance, loop after the last step.
+    bs.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-fill]')) return;
+      render(active + 1);
+    });
+
+    // Announce only what the visitor asked for (never autoplay), once, after it settles.
+    let liveTimer: number | undefined;
+    const announce = () => {
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        if (live) live.textContent = `Step ${active + 1} of ${n}: ${titles[active]}`;
+      }, 250);
+    };
+    const pauseForVisitor = () => {
+      wantsPlay = false;
+      sync();
+    };
+    const takeControl = (i: number) => {
+      pauseForVisitor();
+      render(i);
+      announce();
+    };
+    steps.forEach((st, i) => {
+      const b = st.querySelector<HTMLButtonElement>('[data-st-btn]');
+      if (!b) return;
+      b.disabled = false;
+      b.addEventListener('click', () => takeControl(i));
+    });
+    bs.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    bs.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    playBtn.addEventListener('click', () => {
+      wantsPlay = !wantsPlay;
+      if (wantsPlay && active === n - 1) render(0);
+      sync();
+    });
+    if (reduced) playBtn.hidden = true;
+
+    // The visitor's own headline: live, harmless, never sent anywhere.
+    input.disabled = false;
+    input.addEventListener('focus', pauseForVisitor);
+    input.addEventListener('input', () => {
+      userEdited = true;
+      stopTyper(false);
+      headline.textContent = input.value;
+      pauseForVisitor();
+    });
+    if (reset) {
+      reset.hidden = false;
+      reset.addEventListener('click', () => {
+        userEdited = false;
+        stopTyper(false);
+        setHeadline(DEFAULT);
+        pauseForVisitor();
+      });
+    }
+
+    bs.dataset.static = '';
+    bs.classList.add('is-live');
+    bs.querySelectorAll<HTMLElement>('[data-bs-controls]').forEach((el) => (el.hidden = false));
+    // Reduced motion: the finished step, and it stays there until the visitor steps.
+    render(reduced ? n - 1 : 0);
+    setPlaying(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => delete bs.dataset.static));
+
+    // Play only while a third of the player is visible, or it covers a third of the viewport
+    // (a tall player on a short landscape phone never reaches a third of itself).
+    const enoughNow = () => {
+      const r = bs.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const seen = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      return seen > 0 && (seen / r.height >= 0.33 || seen >= vh / 3);
+    };
+    if ('IntersectionObserver' in window && !reduced) {
+      const thresholds = Array.from({ length: 21 }, (_, k) => k / 20);
+      let recheck: number | undefined;
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          const enough = e.isIntersecting && (e.intersectionRatio >= 0.33 || e.intersectionRect.height >= window.innerHeight / 3);
+          window.clearTimeout(recheck);
+          if (enough) {
+            if (!started) {
+              started = true;
+              render(0);
+            }
+            visible = true;
+            sync();
+          } else {
+            // A momentary scroll jump (smooth-scroll start-up, a layout refresh) must not
+            // pause the story: confirm after a beat before stopping.
+            recheck = window.setTimeout(() => {
+              visible = enoughNow();
+              sync();
+            }, 180);
+          }
+        },
+        { threshold: thresholds },
+      ).observe(bs);
+    }
+    document.addEventListener('visibilitychange', sync);
+  }
+</script>

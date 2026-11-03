@@ -1,0 +1,506 @@
+---
+/**
+ * Case study page: /work/<slug>/.
+ *
+ * Reading order: what it is (hero box, which the home card morphs into) → the problem → what
+ * I built (numbered modules on a rail) → how it runs (the flow, plus what GoHighLevel receives,
+ * or the faults and the rewire for the example teardown) → the next case (which morphs too)
+ * → contact.
+ */
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../layouts/ghl/Layout.astro';
+import PortList from '../../../components/ghl/PortList.astro';
+import FinalCta from '../../../components/ghl/FinalCta.astro';
+import { CASES, GHL_RECORD, nextCase, type GhlCase } from '../../../data/ghl/cases';
+import { LIST_AFTER, LIST_BEFORE } from '../../../data/ghl/switchboard';
+import { assertMeta } from '../../../data/ghl/seo';
+import { abs, caseLdGraph } from '../../../lib/ghl/jsonld';
+import { caseHref, link } from '../../../lib/ghl/paths';
+import { bookingUrl } from '../../../data/ghl/site';
+
+export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: GhlCase;
+}
+const { study: c } = Astro.props;
+assertMeta(`case ${c.id}`, c.seo);
+const next = nextCase(c.id);
+const faults = LIST_BEFORE.filter((w) => w.fault);
+const rewired = LIST_AFTER.slice(0, 4);
+---
+
+<Layout
+  title={c.seo.title}
+  description={c.seo.description}
+  path={`/work/${c.id}/`}
+  image={abs(`og/${c.id}.png`)}
+  jsonLd={caseLdGraph(c)}
+  expect="next-title"
+>
+  <section class="chero" id="top" data-hero aria-labelledby="case-title">
+    <div class="container">
+      <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
+        <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
+      </a>
+      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+        <div class="chero__main">
+          <div class="chero__top">
+            {c.example && <span class="tape">Example</span>}
+            <span class="chero__kicker mono">{c.kicker}</span>
+            {c.status && <span class="chip chip--live">{c.status}</span>}
+          </div>
+          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <p class="chero__title">{c.title}</p>
+          <p class="lede chero__text">{c.text}</p>
+          {c.pending && <span class="todo">{c.pending}</span>}
+        </div>
+        <ul class="chero__facts" role="list" data-reveal-stagger>
+          {
+            c.facts.map((f) => (
+              <li>
+                <span class="led" aria-hidden="true" />
+                {f}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="problem-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">The problem</p>
+      <div>
+        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+        <p class="lede">{c.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="built-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">{c.example ? 'How I’d run it' : 'What I built'}</p>
+      <div>
+        <h2 id="built-title" class="cblock__h2">{c.example ? 'The method, step by step.' : 'The build, step by step.'}</h2>
+        <ol class="built" role="list" data-reveal-stagger>
+          {
+            c.built.map((b, i) => (
+              <li class="built__item">
+                <span class="built__num mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="built__title">{b.title}</h3>
+                <p class="built__text">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock cblock--tint" aria-labelledby="runs-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">{c.example ? 'Before and after' : 'How it runs'}</p>
+      <div class="runs">
+        <h2 id="runs-title" class="cblock__h2">{c.example ? 'Three faults, four clean workflows.' : 'From form post to open opportunity.'}</h2>
+        <div class="runs__visual">
+          {
+            c.example ? (
+              <>
+                <div class="panel">
+                  <p class="panel__label mono">Before · faults found</p>
+                  <ul class="panel__list" role="list">
+                    {faults.map((f) => (
+                      <li>
+                        <span class="tape tape--fault">
+                          <span class="led led--fault" aria-hidden="true" />
+                          {f.fault}
+                        </span>
+                        <span class="panel__name">{f.name}</span>
+                        <span class="panel__info">{f.info}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="panel">
+                  <p class="panel__label mono">After · one job each</p>
+                  <ul class="panel__list" role="list">
+                    {rewired.map((wfl) => (
+                      <li>
+                        <span class="tape tape--accent">{wfl.short}</span>
+                        <span class="panel__name">{wfl.name}</span>
+                        <span class="panel__info">{wfl.info}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <>
+                <PortList steps={c.flow} label={`${c.name}, the pipeline in order`} />
+                <div class="panel">
+                  <p class="panel__label mono">What GoHighLevel receives · example lead</p>
+                  <dl class="record">
+                    {GHL_RECORD.map(([k, v]) => (
+                      <div>
+                        <dt class="mono">{k}</dt>
+                        <dd>{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p class="panel__foot text-3">Field values are an example; the steps are the real ones.</p>
+                </div>
+              </>
+            )
+          }
+        </div>
+        <div class="now inverse">
+          <p class="now__label mono">{c.runsNow.label}</p>
+          <p class="now__text">{c.runsNow.text}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cnext" aria-labelledby="next-title">
+    <div class="container">
+      <p class="eyebrow">Next case</p>
+      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+        <span class="cnext__kicker mono">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
+        <span id="next-title" class="cnext__name">{next.name}</span>
+        <span class="cnext__title">{next.title}</span>
+        <span class="cnext__go" aria-hidden="true">→</span>
+      </a>
+      <p class="cnext__or">
+        Want this for your account? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
+      </p>
+    </div>
+  </section>
+
+  <FinalCta />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    padding-top: calc(var(--nav-h) + clamp(2.5rem, 2rem + 3vw, 5rem));
+    padding-bottom: var(--space-6);
+    background: radial-gradient(56rem 34rem at 92% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 70%);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    margin-bottom: var(--space-4);
+    color: var(--text-2);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chero__back-arrow {
+    display: inline-block;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .chero__back:hover {
+      color: var(--text);
+    }
+    .chero__back:hover .chero__back-arrow {
+      transform: translateX(-4px);
+    }
+  }
+  .chero__panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .chero__panel {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  .chero__main {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    align-content: start;
+  }
+  .chero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .chero__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .chero__name {
+    font-size: clamp(2.125rem, 1.3rem + 3.6vw, 4.75rem);
+    line-height: 1;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .chero__title {
+    font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 30ch;
+  }
+  .chero__text {
+    max-width: 60ch;
+  }
+  .chero__facts {
+    display: grid;
+    gap: var(--space-2);
+    align-content: center;
+    margin: 0;
+  }
+  .chero__facts li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-left: 3px solid var(--accent);
+    background: var(--surface-1);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .chero__facts .led {
+    transform: translateY(-1px);
+  }
+
+  /* ---------- content blocks ---------- */
+  .cblock__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .cblock__grid {
+      grid-template-columns: minmax(0, 0.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .cblock__grid > .eyebrow {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+      margin-top: 0.6rem;
+    }
+  }
+  .cblock__grid > div {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cblock__h2 {
+    font-size: clamp(1.75rem, 1.3rem + 1.8vw, 3rem);
+    max-width: 20ch;
+  }
+  .cblock--tint {
+    background: var(--surface-1);
+  }
+
+  /* ---------- built: numbered modules on a rail ---------- */
+  .built {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    counter-reset: built;
+  }
+  .built__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .built__num {
+    grid-row: span 2;
+    padding-top: 4px;
+    color: var(--accent-text);
+  }
+  .built__title {
+    font-size: 1.25rem;
+  }
+  .built__text {
+    color: var(--text-2);
+  }
+
+  /* ---------- runs ---------- */
+  .runs__visual {
+    display: grid;
+    gap: var(--space-4);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .runs__visual {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .panel {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .panel__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .panel__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .panel__list li {
+    display: grid;
+    gap: 4px;
+    justify-items: start;
+  }
+  .panel__name {
+    font-weight: 600;
+  }
+  .panel__info {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .panel__foot {
+    font-size: 0.8125rem;
+  }
+  .record {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .record div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .record dt {
+    color: var(--accent-text);
+  }
+  .record dd {
+    margin: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .now {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .now__label {
+    color: var(--accent-inv);
+    text-transform: uppercase;
+  }
+  .now__text {
+    font-size: var(--fs-lede);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  /* ---------- next ---------- */
+  .cnext .eyebrow {
+    margin-bottom: var(--space-4);
+  }
+  .cnext__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    padding-right: clamp(4.5rem, 3rem + 4vw, 8rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    color: var(--text);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  /* A teal signal sweeps across the card from the left on hover, slowly. */
+  .cnext__card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--accent) 9%, var(--surface-2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1100ms var(--ease-out-quint);
+  }
+  .cnext__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .cnext__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.625rem, 1.2rem + 2vw, 3rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .cnext__title {
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    max-width: 38ch;
+  }
+  .cnext__go {
+    position: absolute;
+    right: clamp(1.25rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-top: -26px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 1.25rem;
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .cnext__card:hover {
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .cnext__card:hover::before {
+      transform: scaleX(1);
+    }
+    .cnext__card:hover .cnext__go {
+      transform: translateX(6px);
+    }
+  }
+  .cnext__card:focus-visible::before {
+    transform: scaleX(1);
+  }
+  .cnext__or {
+    margin-top: var(--space-5);
+    color: var(--text-2);
+  }
+</style>

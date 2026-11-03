@@ -1,0 +1,854 @@
+---
+/**
+ * Case-study page (/work/<slug>/), one per entry in src/data/ai/cases.ts.
+ *
+ * Reads as a story: hero (what it is, for whom, the headline figure) → the product itself
+ * (a real screenshot, when one exists) → the problem and how it worked before → what I built
+ * → how it runs, step by step (the real flow, on a console) → what changed → what runs it
+ * now → next case → call.
+ *
+ * Honesty rules: values render through <Field> (sample = plain text, todo = chip). Any block
+ * that prints a sample carries <SampleNote>, which appears only while a sample is present.
+ * Meta, OG and JSON-LD never see a sample (they use seo/og strings and textOf()).
+ * No testimonial slot.
+ */
+import type { GetStaticPaths } from 'astro';
+import { Image, Picture } from 'astro:assets';
+import leadrift from '../../../assets/ai/leadrift.png';
+import Layout from '../../../layouts/ai/Layout.astro';
+import Button from '../../../components/ai/Button.astro';
+import CaseSection from '../../../components/ai/CaseSection.astro';
+import Field from '../../../components/ai/Field.astro';
+import FinalCta from '../../../components/ai/FinalCta.astro';
+import GridLines from '../../../components/ai/GridLines.astro';
+import SampleNote from '../../../components/ai/SampleNote.astro';
+import StackMarks from '../../../components/ai/StackMarks.astro';
+import WorkflowDiagram from '../../../components/ai/WorkflowDiagram.astro';
+import { CASES, nextCase, type CaseStudy } from '../../../data/ai/cases';
+import { fanOutOf } from '../../../data/ai/content';
+import { hasSample, textOf } from '../../../data/ai/todo';
+import { assertMeta } from '../../../data/ai/seo';
+import { abs, caseLdGraph } from '../../../lib/ai/jsonld';
+import { createLink } from '../../../lib/link';
+
+export const getStaticPaths = (() =>
+  CASES.map((study) => ({ params: { slug: study.slug }, props: { study } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+const next = nextCase(study.slug);
+const link = createLink('ai');
+assertMeta(study.slug, study.seo);
+
+/** A year that is still an illustrative sample is not worth a note in the hero: leave it out. */
+const year = textOf(study.year);
+const storyBody = study.baseline.story.replace(/^Before:\s*/i, '');
+const baselineStory = storyBody.charAt(0).toUpperCase() + storyBody.slice(1);
+const linkHost = study.link ? study.link.label : undefined;
+/** Pre-launch with only verified product facts: say plainly why there are no figures. */
+const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.status?.tone === 'building';
+---
+
+<Layout
+  title={study.seo.title}
+  description={study.seo.description}
+  path={`/work/${study.slug}/`}
+  image={abs(`og/${study.slug}.png`)}
+  jsonLd={caseLdGraph(study)}
+>
+  <!-- ============ hero ============ -->
+  <header class="chero">
+    <GridLines />
+    <div class="chero__inner container grid">
+      <nav class="chero__crumbs mono-label" aria-label="Breadcrumb">
+        <ol class="plain-list">
+          <li><a class="link" href={link('/#work')}>Case studies</a></li>
+          <li aria-current="page">{study.name}</li>
+        </ol>
+      </nav>
+
+      <div class="chero__copy">
+        <p class="chero__eyebrow mono-label">Case study · {study.role}</p>
+        <h1 class="chero__title case-vt" style={`--vt: case-${study.slug}`}>{study.h1}</h1>
+        <p class="chero__lede lede">{study.summary}</p>
+        <div class="chero__actions">
+          <Button variant="secondary" href="#how" arrow="↓">See how it runs</Button>
+          {
+            study.link && (
+              <Button variant="ghost" href={study.link.href} target="_blank" rel="noopener" arrow="↗">
+                Visit {linkHost}
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </Button>
+            )
+          }
+        </div>
+      </div>
+
+      <aside class="plate theme-ink" aria-label={`${study.name} at a glance`}>
+        <p class="plate__top">
+          <span class="plate__k">At a glance</span>
+          {
+            study.status && (
+              <span class:list={['pill', study.status.tone !== 'live' && 'pill--idle']}>{study.status.label}</span>
+            )
+          }
+        </p>
+        <div class="plate__metric">
+          <p class="plate__value"><Field value={study.headlineMetric.value} variant="metric" size="m" /></p>
+          <p class="plate__label">{study.headlineMetric.label}</p>
+        </div>
+        <dl class="plate__facts">
+          <div>
+            <dt>Built for</dt>
+            <dd>{study.client}</dd>
+          </div>
+          <div>
+            <dt>My role</dt>
+            <dd>{study.role}</dd>
+          </div>
+          {
+            year && (
+              <div>
+                <dt>Year</dt>
+                <dd>{year}</dd>
+              </div>
+            )
+          }
+          <div>
+            <dt>Built with</dt>
+            <dd>{study.stack.join(' · ')}</dd>
+          </div>
+        </dl>
+        <SampleNote data={study.headlineMetric} class="plate__note" />
+      </aside>
+    </div>
+  </header>
+
+  <!-- ============ the product itself (real screenshot) ============ -->
+  {
+    study.screenshot && (
+      <div class="exhibit container">
+        <figure class="exhibit__frame theme-ink" data-reveal>
+          <div class="exhibit__bar mono" aria-hidden="true">
+            <span class="exhibit__url">{linkHost ?? study.name}</span>
+          </div>
+          <Image
+            src={study.screenshot.src}
+            alt={study.screenshot.alt}
+            widths={[480, 800, 1200, 1443]}
+            sizes="(min-width: 1600px) 1440px, calc(100vw - 2 * clamp(1rem, 0.3077rem + 3.0769vw, 4rem))"
+            loading="lazy"
+            decoding="async"
+            class="exhibit__img"
+          />
+          <figcaption class="exhibit__cap mono">
+            {study.name}'s own product site{linkHost ? `, ${linkHost}` : ''}. A screenshot of the live page.
+          </figcaption>
+        </figure>
+      </div>
+    )
+  }
+
+  <!-- ============ Lead Drift only: Leadrift, its internal tool (real screenshot) ============ -->
+  {
+    study.slug === 'lead-drift' && (
+      <div class="own container">
+        <figure class="own__frame theme-ink" data-reveal>
+          <div class="own__bar mono" aria-hidden="true">
+            <span>Leadrift · sign-in page</span>
+          </div>
+          <Picture
+            src={leadrift}
+            formats={['avif', 'webp']}
+            fallbackFormat="png"
+            quality={85}
+            widths={[480, 768, 1024, 1352]}
+            sizes="min(1024px, calc(100vw - 2rem))"
+            width={1352}
+            height={888}
+            alt="Leadrift's sign-in page: the headline “Someone just posted a job. That’s your next client.”, a line on what the tool does for the Indepth Solution sales team, and a Help wanted panel of job posts."
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption class="own__cap mono">
+            Leadrift, the internal tool Indepth Solution's sales team works in: hiring ads and LinkedIn &amp; Facebook research
+            turned into conversations. Screenshot of its sign-in page.
+          </figcaption>
+        </figure>
+      </div>
+    )
+  }
+
+  <!-- ============ the problem + before ============ -->
+  <CaseSection id="problem" label="The problem">
+    <h2 id="problem-title" class="c-h2">{study.problem.title}</h2>
+    <div class="pb">
+      <p class="pb__text lede">{study.problem.text}</p>
+      <div class="before">
+        <h3 class="before__title"><span class="before__k">Before:</span> How it worked</h3>
+        <p class="before__story">{baselineStory}</p>
+        <dl class="before__facts">
+          {
+            study.baseline.facts.map((f) => (
+              <div class="before__fact">
+                <dt>{f.label}</dt>
+                <dd>
+                  <Field value={f.value} />
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+        <SampleNote data={study.baseline.facts} />
+      </div>
+    </div>
+  </CaseSection>
+
+  <!-- ============ what I built ============ -->
+  <CaseSection id="built" label="What I built" tone="sunk">
+    <h2 id="built-title" class="c-h2">What I built.</h2>
+    <ul class="built plain-list" data-reveal-stagger>
+      {
+        study.built.map((b) => (
+          <li class="built__item">
+            <span class="built__mark" aria-hidden="true" />
+            <h3 class="built__title">{b.title}</h3>
+            <p class="built__text">{b.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </CaseSection>
+
+  <!-- ============ how it runs ============ -->
+  <CaseSection id="how" label="How it works">
+    <div class="how__head">
+      <h2 id="how-title" class="c-h2">How it runs, step by step.</h2>
+      <p class="lede">Follow the wire: what comes in, what happens to it, and what comes out.</p>
+    </div>
+    <WorkflowDiagram
+      nodes={study.diagram.nodes}
+      fanOut={fanOutOf(study)}
+      live={study.inProduction}
+      title={`How ${study.name} runs`}
+      caption={`${study.slug} / flow`}
+    />
+    <div class="how__stack">
+      <p class="mono-label">Built with</p>
+      <StackMarks tools={study.stack} label={`${study.name} stack`} provisional={study.stackProvisional} />
+    </div>
+  </CaseSection>
+
+  <!-- ============ result ============ -->
+  <CaseSection id="result" label="The result">
+    <h2 id="result-title" class="c-h2">What changed.</h2>
+    <ul class="results plain-list" data-reveal-stagger>
+      {
+        study.results.map((r) => (
+          <li class="result">
+            <h3 class="result__label">{r.label}</h3>
+            <div class="result__pair">
+              <p class="result__before">
+                <span class="result__k">Before</span>
+                <span class="result__v">
+                  <Field value={r.before} />
+                </span>
+              </p>
+              <span class="result__arrow" aria-hidden="true">
+                →
+              </span>
+              <p class="result__after">
+                <span class="result__k">After</span>
+                <span class="result__v">
+                  <Field value={r.after} />
+                </span>
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    <SampleNote data={study.results} />
+    {
+      preLaunchNote && (
+        <p class="result__note">
+          Pre-launch, so there are no customer or time-saved figures yet. These are what the product does today.
+        </p>
+      )
+    }
+  </CaseSection>
+
+  <!-- ============ what runs it now ============ -->
+  <CaseSection id="now" label="Running now">
+    <h2 id="now-title" class="c-h2">What runs it now.</h2>
+    <div class="now">
+      <p class="now__statement">
+        {study.status && <span class:list={['pill', study.status.tone !== 'live' && 'pill--idle']}>{study.status.label}</span>}
+        <span>{study.runsNow.statement}</span>
+      </p>
+      <ul class="now__points plain-list">
+        {study.runsNow.points.map((p) => <li>{p}</li>)}
+      </ul>
+      {
+        study.link && (
+          <p class="now__link">
+            <a class="link ext" href={study.link.href} target="_blank" rel="noopener">
+              {study.link.label}
+              <span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          </p>
+        )
+      }
+    </div>
+  </CaseSection>
+
+  <!-- ============ next case ============ -->
+  <section class="next" aria-labelledby="next-title">
+    <div class="container">
+      <a class="next__link" href={link(`/work/${next.slug}/`)}>
+        <span class="next__k mono-label">Next case study</span>
+        <h2 id="next-title" class="next__title case-vt" style={`--vt: case-${next.slug}`}>{next.name}</h2>
+        <span class="next__angle">{next.angle}</span>
+        <span class="next__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <FinalCta form={false} />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    position: relative;
+    padding-block: var(--space-6) var(--space-8);
+    border-bottom: 1px solid var(--line);
+  }
+  .chero__inner {
+    position: relative;
+    z-index: 1;
+    row-gap: var(--space-6);
+  }
+  .chero__crumbs,
+  .chero__copy,
+  .plate {
+    grid-column: 1 / -1;
+  }
+  .chero__crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .chero__crumbs li {
+    display: inline-flex;
+    align-items: center;
+  }
+  .chero__crumbs li + li::before {
+    content: "/";
+    margin-inline-end: var(--space-2);
+    color: var(--text-3);
+  }
+  .chero__crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap);
+  }
+  .chero__crumbs [aria-current] {
+    color: var(--text);
+  }
+  .chero__copy {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+  .chero__copy > * {
+    margin: 0;
+  }
+  .chero__title {
+    font-size: var(--fs-display-l);
+    line-height: 0.98;
+    letter-spacing: var(--tr-display);
+    max-inline-size: 20ch;
+    view-transition-name: var(--vt);
+  }
+  .chero__lede {
+    max-inline-size: 58ch;
+  }
+  .chero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+  }
+
+  /* The fact plate: a console set into the page, in both themes. */
+  .plate {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    padding: var(--space-5);
+    border: 1px solid var(--line-strong);
+  }
+  .plate p {
+    margin: 0;
+  }
+  .plate__top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .plate__k,
+  .plate__label,
+  .plate__facts dt {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .plate__metric {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-2) var(--space-4);
+    border-block-end: 1px solid var(--line);
+  }
+  .plate__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-metric);
+    line-height: 0.9;
+    letter-spacing: var(--tr-metric);
+  }
+  .plate__facts {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .plate__facts > div {
+    display: grid;
+    gap: 4px;
+  }
+  .plate__facts dd {
+    margin: 0;
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  /* ---------- exhibit: the real product screenshot ---------- */
+  .exhibit {
+    padding-block: var(--space-7) 0;
+  }
+  .exhibit__frame {
+    margin: 0;
+    padding: 0 0 0;
+    border: 1px solid var(--line-strong);
+  }
+  .exhibit__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 10px 14px;
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    border-block-end: 1px solid var(--line);
+  }
+  .exhibit__url {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* The screenshot is white; a hairline inset keeps its edge crisp on ink in both themes. */
+  .exhibit__frame :global(.exhibit__img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 1443 / 877;
+    background: #fff;
+  }
+  .exhibit__cap {
+    padding: 12px 14px;
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* ---------- own: Leadrift, Lead Drift's internal tool (a sibling of the hero, outside every view-transition box) ---------- */
+  .own {
+    padding-block: var(--space-7) 0;
+  }
+  .own__frame {
+    margin: 0;
+    max-inline-size: 64rem;
+    border: 1px solid var(--line-strong);
+  }
+  .own__bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    border-block-end: 1px solid var(--line);
+  }
+  /* The screenshot is a cream page; its own hairline-bordered frame keeps the edge crisp on ink in both themes. */
+  .own__frame :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    background: #f1efe7;
+  }
+  .own__cap {
+    padding: 12px 14px;
+    font-size: var(--fs-mono-label);
+    line-height: 1.5;
+    color: var(--text-3);
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* ---------- chapters ---------- */
+  .c-h2 {
+    max-inline-size: 20ch;
+  }
+  .pb {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .pb__text {
+    margin: 0;
+    max-inline-size: 46ch;
+  }
+  .before {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: var(--space-5);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .before > * {
+    margin: 0;
+  }
+  .before__title {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--fs-h3);
+  }
+  .before__k {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .before__story {
+    color: var(--text-2);
+  }
+  .before__facts {
+    display: grid;
+    margin: 0;
+    border-block-start: 1px solid var(--line);
+  }
+  .before__fact {
+    display: grid;
+    gap: 2px;
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--line);
+  }
+  .before__fact dt {
+    font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-3);
+  }
+  .before__fact dd {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .built {
+    display: grid;
+    gap: var(--space-5) var(--gutter);
+  }
+  .built__item {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding-block-start: var(--space-5);
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .built__item > * {
+    margin: 0;
+  }
+  .built__mark {
+    position: absolute;
+    inset-block-start: -4px;
+    inset-inline-start: 0;
+    inline-size: 7px;
+    block-size: 7px;
+    background: var(--text);
+  }
+  .built__title {
+    font-size: var(--fs-h3);
+  }
+  .built__text {
+    color: var(--text-2);
+    max-inline-size: 42ch;
+  }
+
+  .how__head {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .how__head > * {
+    margin: 0;
+  }
+  .how__stack {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .how__stack > p {
+    margin: 0;
+  }
+
+  .results {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .result {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .result > * {
+    margin: 0;
+  }
+  .result__label {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .result__pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.5fr);
+    align-items: end;
+    gap: var(--space-4);
+  }
+  .result__pair p {
+    margin: 0;
+    display: grid;
+    gap: 4px;
+  }
+  .result__k {
+    font: 400 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-3);
+  }
+  .result__before .result__v {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.35;
+  }
+  .result__after .result__v {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-display-m);
+    line-height: 1.02;
+    letter-spacing: var(--tr-heading);
+    font-variant-numeric: tabular-nums;
+  }
+  .result__arrow {
+    padding-block-end: 0.3em;
+    color: var(--accent-text);
+    font-size: var(--fs-lede);
+  }
+  .result__note {
+    margin: 0;
+    max-inline-size: 60ch;
+    font: 400 var(--fs-mono-label) / 1.5 var(--font-mono);
+    color: var(--text-3);
+  }
+
+  .now {
+    display: grid;
+    gap: var(--space-5);
+    max-inline-size: 60rem;
+  }
+  .now > * {
+    margin: 0;
+  }
+  .now__statement {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    font-size: var(--fs-h3);
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+    max-inline-size: 40ch;
+  }
+  .now__points {
+    display: grid;
+    gap: var(--space-3);
+    color: var(--text-2);
+  }
+  .now__points > li {
+    display: flex;
+    gap: var(--space-3);
+  }
+  .now__points > li::before {
+    content: "";
+    flex: none;
+    inline-size: 9px;
+    block-size: 5px;
+    margin-block-start: 0.5em;
+    border-inline-start: 1.5px solid var(--accent-text);
+    border-block-end: 1.5px solid var(--accent-text);
+    transform: rotate(-45deg);
+  }
+  .now__link a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap);
+    font-weight: 500;
+  }
+
+  /* ---------- next case ---------- */
+  .next {
+    border-top: 1px solid var(--line);
+  }
+  .next__link {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding-block: var(--space-8);
+    text-decoration: none;
+  }
+  .next__k {
+    color: var(--text-3);
+  }
+  .next__title {
+    margin: 0;
+    max-inline-size: none;
+    font-size: var(--fs-display-l);
+    view-transition-name: var(--vt);
+    text-decoration: underline 2px transparent;
+    text-underline-offset: 8px;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  .next__angle {
+    max-inline-size: 48ch;
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    line-height: 1.45;
+  }
+  .next__arrow {
+    font-family: var(--font-display);
+    font-size: var(--fs-display-m);
+    line-height: 1;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .next__link:focus-visible .next__arrow {
+    transform: translateX(8px);
+  }
+  .next__link:focus-visible .next__title {
+    text-decoration-color: var(--accent-text);
+  }
+  @media (hover: hover) {
+    .next__link:hover .next__arrow {
+      transform: translateX(8px);
+    }
+    .next__link:hover .next__title {
+      text-decoration-color: var(--accent-text);
+    }
+  }
+
+  /* ---------- tablet ---------- */
+  @media (min-width: 768px) {
+    .plate__facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .built {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .results {
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
+    /* Cards share row tracks, so every "Before" and every "After" sits on one line. */
+    .result {
+      grid-row: span 3;
+      grid-template-rows: subgrid;
+      row-gap: var(--space-4);
+    }
+    .result__pair {
+      display: contents;
+    }
+    .result__arrow {
+      display: none;
+    }
+    .result__before {
+      align-self: start;
+      padding-block-end: var(--space-4);
+      border-block-end: 1px dashed var(--line);
+    }
+    .result__after {
+      align-self: start;
+    }
+    .next__link {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--space-6);
+    }
+    .next__k,
+    .next__title,
+    .next__angle {
+      grid-column: 1;
+    }
+    .next__arrow {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      align-self: center;
+    }
+  }
+
+  /* ---------- desktop ---------- */
+  @media (min-width: 1024px) {
+    .chero {
+      padding-block: var(--space-6) var(--space-9);
+    }
+    .chero__copy {
+      grid-column: 1 / span 8;
+      padding-inline-end: var(--space-5);
+    }
+    .plate {
+      grid-column: 9 / -1;
+      grid-row: 2;
+      align-self: start;
+      margin-block-start: var(--space-2);
+    }
+    .plate__facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pb {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 5fr);
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+    .built {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      column-gap: var(--space-6);
+    }
+    .results {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+  }
+  @media (min-width: 1440px) {
+    .chero__title {
+      font-size: clamp(3.5rem, 1.5rem + 2.8vw, 5.25rem);
+    }
+  }
+</style>

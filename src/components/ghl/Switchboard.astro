@@ -1,0 +1,1565 @@
+---
+/**
+ * ★ Signature: the Switchboard (brief §4 item 4, "Account X-ray"), drawn as a workflow
+ * builder, the screen a GoHighLevel user lives in: the workflow list on the left, the selected
+ * workflow as a vertical flow of action cards, and its execution log. A mock of an example
+ * sub-account (labelled), in this site's own colours: no GHL logo, colours or screenshots.
+ *
+ * Six steps: open the messy list → a copy that double-enrolls → a draft that never runs → an
+ * alert to an ex-staff inbox → rewired and numbered → a test contact runs the clean flow,
+ * ticking each card as executed while the log fills.
+ *
+ * Motion: a flow's cards drop in one by one on the spring and their connectors draw downward
+ * (in-out-quart); the list's selection bar and the Draft/Published switch move on out-expo;
+ * fault tags pop in amber; the test run ticks cards in sequence.
+ *
+ * Playback: starts when a third of the player is on screen. The current story segment's fill
+ * is a CSS animation and its `animationend` advances the story, so pausing (button, off
+ * screen, hidden tab) just pauses the fill. Clicking a step, a list row, a Before/After switch,
+ * prev or next hands control to the visitor (playback pauses; play resumes). Under reduced
+ * motion it never autoplays and there is no play button.
+ *
+ * Without JS: the window shows the finished, rewired account, every step is a plain list, and
+ * the controls are hidden. The window is a visual duplicate (aria-hidden); the steps list and
+ * a visually hidden description are the accessible content.
+ */
+import { FLOWS, LIST_AFTER, LIST_BEFORE, STEPS, flowOrder, type FlowNode, type Icon } from '../../data/ghl/switchboard';
+
+const n = STEPS.length;
+const STEP_MS = 4600;
+const last = STEPS[n - 1]!;
+
+const ICONS: Record<Icon, string> = {
+  form: 'M6 3.5h9l3 3V20.5H6zM9 9h6M9 12.5h6M9 16h4',
+  calendar: 'M4.5 6h15v14h-15zM4.5 10h15M8.5 3.5v4M15.5 3.5v4',
+  phone: 'M6.5 4h3l1.5 4-2 1.3a10 10 0 0 0 5.7 5.7L16 13l4 1.5v3A2 2 0 0 1 18 19.5C10.5 19 5 13.5 4.5 6A2 2 0 0 1 6.5 4z',
+  tag: 'M4 12.5V5h7.5l8 8-7.5 7.5zM8 8.5h.01',
+  opportunity: 'M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v5h-4z',
+  sms: 'M4.5 5.5h15v10h-9l-4.5 4v-4h-1.5z',
+  email: 'M3.5 6h17v12h-17zM3.5 7l8.5 6.5L20.5 7',
+  bell: 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
+  branch: 'M7 4v6a4 4 0 0 0 4 4h6M7 10v10M14.5 11l3 3-3 3',
+  clock: 'M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 7.5V12l3 2',
+};
+const KIND = { trigger: 'Trigger', action: 'Action', notify: 'Notification', logic: 'Condition' } as const;
+const lists = [
+  ['before', LIST_BEFORE],
+  ['after', LIST_AFTER],
+] as const;
+const all = [...LIST_BEFORE, ...LIST_AFTER];
+---
+
+<section class="section sbs" id="switchboard" aria-labelledby="switchboard-title">
+  <div class="container head head--split">
+    <p class="eyebrow">The switchboard</p>
+    <h2 id="switchboard-title">See inside a clean account.</h2>
+    <p class="lede">
+      An example sub-account in a workflow builder, before and after I get to it. The walkthrough plays on its own, or step
+      through it: the list, the flow and the execution log each tell part of the story.
+    </p>
+  </div>
+
+  <div class="container">
+    <div
+      class="sb"
+      data-sb
+      data-mode={last.mode}
+      data-step={n - 1}
+      data-status="Published"
+      style={`--step-ms:${STEP_MS}ms`}
+      data-pause-offscreen
+    >
+      <div class="sb__panel">
+        <div class="win" aria-hidden="true">
+          <div class="win__bar">
+            <span class="win__crumb mono">
+              <span class="win__crumb-dim">Automation › Workflows ›</span>
+              <span class="win__crumb-name" data-crumb>{LIST_AFTER[0]!.name}</span>
+            </span>
+            <span class="win__tabs">
+              <span class="win__tab is-on">Builder</span>
+              <span class="win__tab">Settings</span>
+              <span class="win__tab">Execution logs</span>
+            </span>
+            <span class="win__status">
+              <span class="win__switch"><span></span></span>
+              <span class="win__status-text" data-status-text>Published</span>
+            </span>
+          </div>
+
+          <div class="win__body">
+            <div class="win__list">
+              <p class="win__label mono">Workflows</p>
+              {
+                lists.map(([mode, items]) => (
+                  <ul class={`list list--${mode}`} role="list">
+                    {items.map((w) => (
+                      <li class="row" data-row={w.id}>
+                        <span class:list={['row__dot', w.status === 'Draft' ? 'is-draft' : 'is-live']} />
+                        <span class="row__name">{w.name}</span>
+                        <span class="row__trigger mono">{w.trigger}</span>
+                        {w.fault && <span class="row__fault" />}
+                      </li>
+                    ))}
+                  </ul>
+                ))
+              }
+            </div>
+
+            <div class="win__canvas">
+              <span class="win__test mono" data-test-pill>
+                <span class="led"></span>Test contact · running
+              </span>
+              {
+                FLOWS.map((f) => {
+                  const nodes = flowOrder(f);
+                  const k = (id: string) => nodes.findIndex((x) => x.id === id);
+                  const card = (nd: FlowNode) => (
+                    <div class={`fn fn--${nd.kind}`} data-node={nd.id} style={`--k:${k(nd.id)}`}>
+                      <span class="fn__icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18">
+                          <path d={ICONS[nd.icon]} />
+                        </svg>
+                      </span>
+                      <span class="fn__text">
+                        <span class="fn__kind mono">{KIND[nd.kind]}</span>
+                        <span class="fn__title">{nd.title}</span>
+                        <span class="fn__detail">{nd.detail}</span>
+                      </span>
+                      <span class="fn__check">
+                        <svg viewBox="0 0 24 24" width="12" height="12">
+                          <path d="M5 12.5l4.5 4.5L19 7.5" />
+                        </svg>
+                      </span>
+                      {nd.fault && <span class="fn__fault mono">{nd.fault}</span>}
+                    </div>
+                  );
+                  return (
+                    <div class:list={['flow', { 'flow--draft': f.draft }]} data-flow={f.id}>
+                      {f.draft && <span class="flow__draft mono">Draft · this workflow never runs</span>}
+                      {f.nodes.map((nd, i) => (
+                        <>
+                          {i > 0 && (
+                            <span class="cx" style={`--k:${k(nd.id)}`}>
+                              <span class="cx__plus">+</span>
+                            </span>
+                          )}
+                          {card(nd)}
+                          {f.branch && f.branch.after === nd.id && (
+                            <div class="fork" style={`--k:${k(nd.id) + 1}`}>
+                              {f.branch.paths.map((p, pi) => (
+                                <div class:list={['fork__path', { 'fork__path--no': pi === 1 }]}>
+                                  <span class="fork__label mono">{p.label}</span>
+                                  {card(p.node)}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ))}
+                      <span class="cx" style={`--k:${nodes.length}`}>
+                        <span class="cx__plus">+</span>
+                      </span>
+                      <span class="fn-end mono" style={`--k:${nodes.length}`}>
+                        END
+                      </span>
+                    </div>
+                  );
+                })
+              }
+            </div>
+
+            <div class="win__log">
+              <p class="win__label mono">Execution log</p>
+              {
+                STEPS.map((s, i) => (
+                  <ol class="log" data-log={i} role="list">
+                    {s.log.map((line, li) => (
+                      <li class:list={['log__line', { 'is-fault': line.fault }]} style={`--l:${li}`}>
+                        <span class="log__time mono">{line.time}</span>
+                        <span class="log__text">{line.text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="win__foot">
+            <span class="tape">Example sub-account</span>
+            <span class="mono">Northwind Dental · illustrative mock, not a GoHighLevel screenshot</span>
+            <span class="win__faults mono">
+              <span class="led" data-sb-led></span>
+              <span data-sb-faults-label>Faults open</span>
+              <span class="win__faults-num num" data-sb-faults>0</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="sb__segs" aria-hidden="true" data-sb-segs hidden>
+          {STEPS.map((_, i) => <span class="seg" data-seg={i}><span class="seg__fill" data-seg-fill /></span>)}
+        </div>
+
+        <div class="visually-hidden">
+          <p>Example sub-account, illustrative. Workflows before the cleanup:</p>
+          <ul>
+            {LIST_BEFORE.map((w) => <li>{w.name} ({w.status}, trigger: {w.trigger}): {w.info}</li>)}
+          </ul>
+          <p>Workflows after the rewire:</p>
+          <ul>
+            {LIST_AFTER.map((w) => <li>{w.name} ({w.status}, trigger: {w.trigger}): {w.info}</li>)}
+          </ul>
+        </div>
+      </div>
+
+      <div class="sb__side">
+        <div class="sb__mode" role="group" aria-label="Show the account" data-sb-mode hidden>
+          <button type="button" class="sb__mode-btn" data-mode-btn="before" aria-pressed="false">Before</button>
+          <button type="button" class="sb__mode-btn" data-mode-btn="after" aria-pressed="true">After</button>
+        </div>
+        <ol class="sb__steps" role="list">
+          {
+            STEPS.map((s, i) => (
+              <li
+                class="st"
+                data-st={i}
+                data-mode={s.mode}
+                data-wf={s.wf}
+                data-flow={s.flow}
+                data-faults={s.faults}
+                data-test={s.test ? '' : undefined}
+                data-title={s.title}
+                data-status={[...LIST_BEFORE, ...LIST_AFTER].find((w) => w.id === s.wf)?.status}
+                data-name={all.find((w) => w.id === s.wf)?.name}
+              >
+                <button class="st__btn" type="button" data-st-btn={i}>
+                  <span class="st__num mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="st__title">{s.title}</span>
+                  <span class:list={['st__mode mono', `st__mode--${s.mode}`]}>{s.mode === 'before' ? 'Before' : 'After'}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="st__body">
+                  <div class="st__body-inner">
+                    <p class="st__text">{s.text}</p>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="sb__controls" data-sb-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="sb__count mono" aria-hidden="true"><span data-sb-count>1</span> / {n}</span>
+          <span class="sb__dots" aria-hidden="true">
+            {STEPS.map((_, i) => <span class="sb__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-sb-live></p>
+        <p class="sb__note text-3">Illustrative account, not a client’s. The faults are the ones I find most often.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sb {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 1200px) {
+    .sb {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 21rem);
+      gap: var(--space-6);
+      align-items: start;
+    }
+  }
+  .sb__panel {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  /* =========================================================
+     The builder window
+     ========================================================= */
+  .win {
+    display: grid;
+    min-width: 0;
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    overflow: hidden;
+  }
+  .win__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    padding: 12px var(--space-4);
+    border-bottom: 1px solid var(--line);
+  }
+  .win__crumb {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.71875rem;
+  }
+  .win__crumb-dim {
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .win__crumb-name {
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .win__tabs {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    padding: 3px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+  }
+  .win__tab {
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: var(--text-3);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .win__tab.is-on {
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .win__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .win__switch {
+    position: relative;
+    width: 30px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+    transition:
+      background-color 420ms var(--ease-out-expo),
+      box-shadow 420ms var(--ease-out-expo);
+  }
+  .win__switch span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: translateX(14px);
+    transition:
+      transform 560ms var(--ease-spring),
+      background-color 420ms var(--ease-out-expo);
+  }
+  .sb[data-status='Draft'] .win__switch {
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  .sb[data-status='Draft'] .win__switch span {
+    transform: none;
+    background: var(--text-3);
+  }
+  .sb[data-status='Draft'] .win__status-text {
+    color: var(--fault);
+  }
+
+  .win__body {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr) 15rem;
+    min-height: 34rem;
+  }
+  .win__label {
+    margin-bottom: 8px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+
+  /* ---------- workflow list ---------- */
+  .win__list {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    padding: var(--space-4) var(--space-3);
+    border-right: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .list {
+    grid-row: 2;
+    grid-column: 1;
+    display: grid;
+    gap: 2px;
+    align-content: start;
+    margin: 0;
+    transition:
+      opacity 360ms var(--ease-out-quint),
+      transform 520ms var(--ease-out-quint);
+  }
+  .sb[data-mode='after'] .list--before,
+  .sb[data-mode='before'] .list--after {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+  }
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 8px;
+    align-items: center;
+    padding: 7px 10px 7px 12px;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: background-color 360ms var(--ease-out-expo);
+  }
+  /* The selection bar slides in from the edge on out-expo. */
+  .row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 460ms var(--ease-out-expo);
+  }
+  .row.is-sel {
+    background: var(--surface-2);
+    box-shadow: var(--shadow-soft);
+  }
+  .row.is-sel::before {
+    transform: scaleY(1);
+  }
+  .row__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .row__dot.is-live {
+    background: var(--success);
+  }
+  .row__dot.is-draft {
+    box-shadow: inset 0 0 0 1.5px var(--text-3);
+  }
+  .row__name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row__trigger {
+    grid-column: 2;
+    color: var(--text-3);
+    font-size: 0.625rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row__fault {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--fault-led);
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 520ms var(--ease-spring);
+  }
+  .row.is-found .row__fault {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- canvas: the flow ---------- */
+  .win__canvas {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    padding: var(--space-6) var(--space-4) var(--space-5);
+    background:
+      radial-gradient(circle, color-mix(in srgb, var(--line-strong) 45%, transparent) 1px, transparent 1.4px) 0 0 / 16px 16px,
+      var(--bg);
+    overflow: hidden;
+  }
+  .flow {
+    grid-area: 1 / 1;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    width: 100%;
+    max-width: 19.5rem;
+    visibility: hidden;
+  }
+  .flow.is-on {
+    visibility: visible;
+  }
+  .flow__draft {
+    margin-bottom: 18px;
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--fault-bg);
+    color: var(--fault);
+    font-size: 0.6875rem;
+  }
+  .flow--draft .fn {
+    filter: saturate(0.2);
+  }
+  .flow--draft .fn:not(:has(.fn__fault)) {
+    opacity: 0.72;
+  }
+
+  /* A card */
+  .fn {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      0 1px 0 rgb(0 0 0 / 0.03),
+      0 8px 18px -14px rgb(0 0 0 / 0.35);
+    transition: box-shadow 360ms var(--ease-out-quint);
+  }
+  .fn__icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .fn--trigger .fn__icon {
+    background: var(--text);
+    color: var(--bg);
+  }
+  .fn--notify .fn__icon {
+    background: var(--surface-1);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .fn--logic .fn__icon {
+    background: var(--btn-bg);
+    color: var(--accent-inv);
+  }
+  .fn__icon path,
+  .fn__check path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .fn__text {
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .fn__kind {
+    color: var(--text-3);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+  }
+  .fn__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .fn__detail {
+    color: var(--text-2);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+  .fn--trigger {
+    box-shadow:
+      inset 0 0 0 1.5px var(--text),
+      0 8px 18px -14px rgb(0 0 0 / 0.35);
+  }
+  /* Executed tick (test run) */
+  .fn__check {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--success);
+    color: var(--bg);
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  /* Fault tag: hangs off the card's top-right corner. */
+  .fn__fault {
+    position: absolute;
+    right: 10px;
+    top: -9px;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--fault-bg);
+    color: var(--fault);
+    box-shadow: inset 0 0 0 1px var(--fault-line);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px) scale(0.85);
+  }
+  .fn:has(.fn__fault) {
+    box-shadow:
+      inset 0 0 0 2px var(--fault-line),
+      0 8px 18px -14px rgb(0 0 0 / 0.35);
+  }
+
+  /* Connector with the builder's "+" */
+  .cx {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2px;
+    height: 30px;
+    background: var(--line-strong);
+    transform-origin: top;
+  }
+  .cx__plus {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--text-3);
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  .flow[data-flow='copy'] .cx,
+  .flow[data-flow='old'] .cx {
+    background: repeating-linear-gradient(var(--fault-line) 0 4px, transparent 4px 8px);
+  }
+  .fn-end {
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--surface-1);
+    color: var(--text-3);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 0.625rem;
+  }
+
+  /* If / Else: split into two paths, then join. */
+  .fork {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: calc(100% + 4rem);
+    max-width: 26rem;
+    padding: 30px 0 0;
+  }
+  .fork::before,
+  .fork::after {
+    content: '';
+    position: absolute;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: var(--line-strong);
+  }
+  .fork::before {
+    top: 14px;
+  }
+  .fork::after {
+    bottom: -16px;
+  }
+  .fork__path {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+  }
+  .fork__path::before,
+  .fork__path::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--line-strong);
+  }
+  .fork__path::before {
+    top: -16px;
+    height: 16px;
+  }
+  .fork__path::after {
+    bottom: -16px;
+    height: 16px;
+  }
+  .fork + .cx {
+    margin-top: 16px;
+  }
+  .fork__label {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.625rem;
+  }
+  .fork .fn {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 8px 10px;
+  }
+  .fork .fn__check {
+    position: absolute;
+    right: -6px;
+    top: -6px;
+  }
+
+  /* ---------- execution log ---------- */
+  .win__log {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    padding: var(--space-4) var(--space-3);
+    border-left: 1px solid var(--line);
+  }
+  .log {
+    grid-row: 2;
+    grid-column: 1;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    margin: 0;
+    visibility: hidden;
+  }
+  .log.is-on {
+    visibility: visible;
+  }
+  .log__line {
+    display: grid;
+    gap: 1px;
+    padding: 7px 10px;
+    border-left: 2px solid var(--success);
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
+    background: var(--surface-1);
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+  .log__line.is-fault {
+    border-left-color: var(--fault-line);
+    background: color-mix(in srgb, var(--fault-bg) 55%, var(--surface-1));
+  }
+  .log__time {
+    color: var(--text-3);
+    font-size: 0.625rem;
+  }
+
+  .win__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: 10px var(--space-4);
+    border-top: 1px solid var(--line);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .win__faults {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding: 4px 10px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .win__faults-num {
+    color: var(--text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .sb[data-mode='before'] .win__faults .led {
+    background: var(--fault-led);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fault-led) 28%, transparent);
+  }
+
+  /* ---------- the test pill ---------- */
+  .win__test {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.625rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, -6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 420ms var(--ease-out-quint);
+  }
+  .win__test .led {
+    width: 6px;
+    height: 6px;
+  }
+  .sb[data-test] .win__test {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  /* =========================================================
+     Motion. Static (no JS / reduced motion) = everything shown, fault tags shown on
+     before flows, ticks shown on the test flow.
+     ========================================================= */
+  .sb:not(.is-live) .fn__fault {
+    opacity: 1;
+    transform: none;
+  }
+  .sb:not(.is-live) .flow[data-flow='clean'] {
+    visibility: visible;
+  }
+  .sb:not(.is-live) .log[data-log='5'] {
+    visibility: visible;
+  }
+  .sb:not(.is-live) .row[data-row='a-01'] {
+    background: var(--surface-2);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* Cards drop in top to bottom on the spring; connectors draw downward. */
+    .is-live .flow.is-on .fn {
+      animation: card-in 620ms var(--ease-spring) both;
+      animation-delay: calc(120ms + var(--k, 0) * 110ms);
+    }
+    .is-live .flow.is-on .cx,
+    .is-live .flow.is-on .fork {
+      animation: draw-down 420ms var(--ease-in-out-quart) both;
+      animation-delay: calc(60ms + var(--k, 0) * 110ms);
+    }
+    .is-live .flow.is-on .fn-end {
+      animation: fade 400ms var(--ease-out-quint) both;
+      animation-delay: calc(120ms + var(--k, 0) * 110ms);
+    }
+    .is-live .log.is-on .log__line {
+      animation: log-in 460ms var(--ease-out-quint) both;
+      animation-delay: calc(500ms + var(--l, 0) * 260ms);
+    }
+    .is-live .flow.is-on .fn__fault {
+      animation: tag-pop 560ms var(--ease-spring) both;
+      animation-delay: calc(700ms + var(--k, 0) * 110ms);
+    }
+    /* Test run: ticks land card by card after the flow has drawn. */
+    .is-live[data-test] .flow.is-on .fn__check {
+      animation: tick 520ms var(--ease-spring) both;
+      animation-delay: calc(900ms + var(--k, 0) * 420ms);
+    }
+    .is-live[data-test] .flow.is-on .fn {
+      animation:
+        card-in 620ms var(--ease-spring) both,
+        run 900ms var(--ease-out-quint) both;
+      animation-delay:
+        calc(120ms + var(--k, 0) * 110ms),
+        calc(820ms + var(--k, 0) * 420ms);
+    }
+    /* The branch not taken never runs. */
+    .is-live[data-test] .flow.is-on .fork__path--no .fn {
+      animation: card-in 620ms var(--ease-spring) both;
+      animation-delay: calc(120ms + var(--k, 0) * 110ms);
+    }
+    .is-live[data-test] .log.is-on .log__line {
+      animation-delay: calc(900ms + var(--l, 0) * 420ms);
+    }
+  }
+  /* Reduced motion with JS: final frames, no movement. */
+  @media (prefers-reduced-motion: reduce) {
+    .is-live .flow.is-on .fn__fault {
+      opacity: 1;
+      transform: none;
+    }
+    .is-live[data-test] .flow.is-on .fn__check {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .sb:not(.is-live) .flow[data-flow='clean'] .fn__check {
+    opacity: 1;
+    transform: none;
+  }
+  /* Test run: the branch not taken stays quiet. */
+  .sb[data-test] .flow[data-flow='clean'] .fork__path--no .fn {
+    opacity: 0.55;
+  }
+  .sb[data-test] .flow[data-flow='clean'] .fork__path--no .fn__check {
+    display: none;
+  }
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.97);
+    }
+  }
+  @keyframes draw-down {
+    from {
+      transform: scaleY(0);
+      opacity: 0;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes log-in {
+    from {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+  }
+  @keyframes tag-pop {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes tick {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes run {
+    0% {
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    40% {
+      box-shadow:
+        inset 0 0 0 2px var(--accent),
+        0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    100% {
+      box-shadow:
+        inset 0 0 0 1.5px var(--accent),
+        0 0 0 0 transparent;
+    }
+  }
+
+  /* ---------- story segments ---------- */
+  .sb__segs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    padding-inline: 4px;
+  }
+  .seg {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .seg__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .seg.is-past .seg__fill {
+    transform: scaleX(1);
+  }
+  .seg.is-current .seg__fill {
+    animation: seg-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  .sb:not(.is-playing) .seg.is-current .seg__fill {
+    animation-play-state: paused;
+  }
+  @keyframes seg-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg.is-current .seg__fill {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+
+  /* =========================================================
+     Steps, mode switch, controls
+     ========================================================= */
+  .sb__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    min-width: 0;
+  }
+  .sb__mode {
+    display: inline-flex;
+    justify-self: start;
+    padding: 3px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .sb__mode-btn {
+    min-height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition:
+      background-color 360ms var(--ease-out-expo),
+      color 360ms var(--ease-out-expo),
+      box-shadow 360ms var(--ease-out-expo);
+  }
+  .sb__mode-btn[aria-pressed='true'] {
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: var(--shadow-soft), inset 0 0 0 1px var(--line);
+  }
+  .sb__steps {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .st {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+  .st::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .st__btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--tap);
+    padding: 12px 4px 12px 14px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+  }
+  .st__num {
+    color: var(--text-3);
+  }
+  .st__title {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+  .st__mode {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .st__mode::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    vertical-align: 1px;
+  }
+  .st__mode--before::before {
+    background: var(--fault-led);
+  }
+  .st__mode--after::before {
+    background: var(--accent);
+  }
+  .st__text {
+    padding: 0 4px 16px 14px;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .sb__note {
+    font-size: 0.8125rem;
+  }
+  .is-live .st__btn {
+    cursor: pointer;
+  }
+  .is-live .st[aria-current='step']::before {
+    transform: scaleY(1);
+  }
+  .is-live .st[aria-current='step'] .st__num {
+    color: var(--accent-text);
+  }
+  .is-live .st:not([aria-current='step']) .st__title {
+    color: var(--text-2);
+  }
+  @media (hover: hover) {
+    .is-live .st:not([aria-current='step']) .st__btn:hover .st__title {
+      color: var(--text);
+    }
+  }
+  .is-live .st__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 560ms var(--ease-out-quint);
+  }
+  .is-live .st[aria-current='step'] .st__body {
+    grid-template-rows: 1fr;
+  }
+  .is-live .st__body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .is-live .st__text {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-quint);
+  }
+  .is-live .st[aria-current='step'] .st__text {
+    opacity: 1;
+    transform: none;
+    transition-delay: 120ms;
+  }
+  .sb__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .sb__count {
+    margin-left: 6px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .sb__dots {
+    display: none;
+  }
+
+  /* ---------- narrower: log moves under the canvas ---------- */
+  @media (max-width: 1439px) {
+    .win__body {
+      grid-template-columns: 12.5rem minmax(0, 1fr);
+    }
+    .win__log {
+      grid-column: 1 / -1;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .log {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    }
+    .win__body {
+      min-height: 0;
+    }
+  }
+  /* Below 1200: window first, then the current step only. */
+  @media (max-width: 1199px) {
+    .is-live .st:not([aria-current='step']) {
+      display: none;
+    }
+    .is-live .sb__steps {
+      border-top: 0;
+    }
+    .is-live .st {
+      border-bottom: 0;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      box-shadow: inset 0 0 0 1px var(--line);
+      overflow: hidden;
+    }
+    .is-live .st[aria-current='step'] {
+      min-height: 8.5rem;
+    }
+    .sb__dots {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+    }
+    .sb__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .sb__dot.is-on {
+      background: var(--accent);
+    }
+    .sb__dot.is-current {
+      width: 20px;
+    }
+  }
+  /* Phones: the list becomes a swipeable row of chips above the canvas. */
+  @media (max-width: 719px) {
+    .win__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .win__list {
+      grid-template-rows: auto auto;
+      padding: var(--space-3);
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .list {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .list::-webkit-scrollbar {
+      display: none;
+    }
+    .row {
+      flex: none;
+      grid-template-columns: auto auto auto;
+      scroll-snap-align: start;
+      padding: 6px 10px;
+      background: var(--surface-2);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .row::before {
+      top: auto;
+      bottom: 0;
+      left: 8px;
+      right: 8px;
+      width: auto;
+      height: 2px;
+      transform: scaleX(0);
+    }
+    .row.is-sel::before {
+      transform: scaleX(1);
+    }
+    .row__trigger {
+      display: none;
+    }
+    .row__fault {
+      grid-row: auto;
+    }
+    .win__tabs {
+      display: none;
+    }
+    .win__crumb-dim {
+      display: none;
+    }
+    .win__canvas {
+      padding: var(--space-6) var(--space-3) var(--space-4);
+    }
+    .fork {
+      width: 100%;
+    }
+    .fork .fn__icon {
+      display: none;
+    }
+    .log {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* Only the live flow and log take space here, so the window is as tall as the step needs
+       (on wider screens they share one cell and the window never changes height). */
+    .is-live .flow:not(.is-on),
+    .is-live .log:not(.is-on) {
+      display: none;
+    }
+    .is-live .st[aria-current='step'] {
+      min-height: 10rem;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/ghl/base';
+
+  const sb = document.querySelector<HTMLElement>('[data-sb]');
+  if (sb) {
+    const steps = [...sb.querySelectorAll<HTMLElement>('[data-st]')];
+    const segs = [...sb.querySelectorAll<HTMLElement>('[data-seg]')];
+    const dots = [...sb.querySelectorAll<HTMLElement>('[data-dot]')];
+    const flows = [...sb.querySelectorAll<HTMLElement>('[data-flow]')].filter((el) => el.classList.contains('flow'));
+    const logs = [...sb.querySelectorAll<HTMLElement>('[data-log]')];
+    const rows = [...sb.querySelectorAll<HTMLElement>('[data-row]')];
+    const modeBtns = [...sb.querySelectorAll<HTMLButtonElement>('[data-mode-btn]')];
+    const playBtn = sb.querySelector<HTMLButtonElement>('[data-play]')!;
+    const faultsNum = sb.querySelector<HTMLElement>('[data-sb-faults]');
+    const faultsLabel = sb.querySelector<HTMLElement>('[data-sb-faults-label]');
+    const crumb = sb.querySelector<HTMLElement>('[data-crumb]');
+    const statusText = sb.querySelector<HTMLElement>('[data-status-text]');
+    const count = sb.querySelector<HTMLElement>('[data-sb-count]');
+    const live = sb.querySelector<HTMLElement>('[data-sb-live]');
+    const n = steps.length;
+    // Per-step state comes from the markup, so no page copy is bundled into this script.
+    const STEPS = steps.map((st) => ({
+      mode: st.dataset.mode === 'before' ? 'before' : 'after',
+      wf: st.dataset.wf ?? '',
+      flow: st.dataset.flow ?? '',
+      faults: Number(st.dataset.faults ?? 0),
+      test: st.dataset.test !== undefined,
+      title: st.dataset.title ?? '',
+      status: st.dataset.status ?? 'Published',
+      name: st.dataset.name ?? '',
+    }));
+    const reduced = prefersReduced();
+
+    let active = 0;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let started = false;
+
+    /** Restart the current segment's CSS animation from zero. */
+    const restartFill = () => {
+      const fill = segs[active]?.querySelector<HTMLElement>('[data-seg-fill]');
+      if (!fill) return;
+      fill.style.animation = 'none';
+      void fill.offsetWidth; // flush, so the next rule starts a fresh animation
+      fill.style.animation = '';
+    };
+
+    /** Toggling `is-on` off and on restarts the flow's card and log animations. */
+    const replay = (el: HTMLElement | undefined) => {
+      if (!el) return;
+      el.classList.remove('is-on');
+      void el.offsetWidth;
+      el.classList.add('is-on');
+    };
+
+    const render = (i: number) => {
+      const prev = STEPS[active];
+      active = (i + n) % n;
+      const s = STEPS[active]!;
+      sb.dataset.step = String(active);
+      sb.dataset.mode = s.mode;
+      sb.dataset.status = s.status;
+      if (s.test) sb.dataset.test = '';
+      else delete sb.dataset.test;
+
+      const flow = flows.find((f) => f.dataset.flow === s.flow);
+      flows.forEach((f) => f !== flow && f.classList.remove('is-on'));
+      // Same flow, new step (rewire → test): replay it so the test run starts from the top.
+      if (flow && (!flow.classList.contains('is-on') || prev?.flow === s.flow)) replay(flow);
+      logs.forEach((l, k) => (k === active ? replay(l) : l.classList.remove('is-on')));
+
+      rows.forEach((r) => r.classList.toggle('is-sel', r.dataset.row === s.wf));
+      // A fault dot stays on its row once the step that finds it has been reached.
+      const found = new Set(STEPS.slice(0, active + 1).filter((x) => x.mode === 'before' && x.faults > 0).map((x) => x.wf));
+      rows.forEach((r) => r.classList.toggle('is-found', s.mode === 'before' && found.has(r.dataset.row ?? '')));
+
+      steps.forEach((st, k) => {
+        if (k === active) st.setAttribute('aria-current', 'step');
+        else st.removeAttribute('aria-current');
+      });
+      segs.forEach((g, k) => {
+        g.classList.toggle('is-past', k < active);
+        g.classList.toggle('is-current', k === active);
+      });
+      dots.forEach((d, k) => {
+        d.classList.toggle('is-on', k <= active);
+        d.classList.toggle('is-current', k === active);
+      });
+      modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modeBtn === s.mode)));
+      if (faultsNum) faultsNum.textContent = String(s.faults);
+      if (faultsLabel) faultsLabel.textContent = s.mode === 'before' ? 'Faults found' : 'Faults open';
+      if (crumb) crumb.textContent = s.name;
+      if (statusText) statusText.textContent = s.status;
+      if (count) count.textContent = String(active + 1);
+      // The test step rests longer so every tick lands before the loop.
+      sb.style.setProperty('--dur', s.test ? 'calc(var(--step-ms) * 1.5)' : 'var(--step-ms)');
+      restartFill();
+    };
+
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      sb.classList.toggle('is-playing', on);
+      playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+      playBtn.setAttribute('aria-label', wantsPlay ? 'Pause the walkthrough' : 'Play the walkthrough');
+    };
+
+    // The segment finishing is the clock: advance, loop after the last step.
+    sb.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-seg-fill]')) return;
+      render(active + 1);
+    });
+
+    // Announce only what the visitor asked for (never autoplay), once, after it settles.
+    let liveTimer: number | undefined;
+    const announce = () => {
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        const s = STEPS[active]!;
+        if (live) live.textContent = `Step ${active + 1} of ${n}, ${s.mode}: ${s.title}`;
+      }, 250);
+    };
+    const takeControl = (i: number) => {
+      wantsPlay = false;
+      setPlaying(false);
+      render(i);
+      announce();
+    };
+    steps.forEach((st, i) => st.querySelector('[data-st-btn]')?.addEventListener('click', () => takeControl(i)));
+    sb.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    sb.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    modeBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        const target = STEPS.findIndex((s) => s.mode === b.dataset.modeBtn);
+        if (target > -1 && STEPS[active]?.mode !== b.dataset.modeBtn) takeControl(target);
+        else {
+          wantsPlay = false;
+          setPlaying(false);
+        }
+      }),
+    );
+    // Pointer shortcut: a list row jumps to the first step about that workflow. The steps
+    // list is the keyboard path to the same content.
+    rows.forEach((r) =>
+      r.addEventListener('click', () => {
+        const target = STEPS.findIndex((s) => s.wf === r.dataset.row);
+        if (target > -1) takeControl(target);
+      }),
+    );
+    playBtn.addEventListener('click', () => {
+      wantsPlay = !wantsPlay;
+      if (wantsPlay && active === n - 1) render(0);
+      setPlaying(wantsPlay);
+    });
+    if (reduced) playBtn.hidden = true;
+
+    sb.classList.add('is-live');
+    sb.querySelectorAll<HTMLElement>('[data-sb-controls], [data-sb-segs], [data-sb-mode]').forEach((el) => (el.hidden = false));
+    render(0);
+    setPlaying(false);
+
+    // Play only while a third of the player is visible; the visitor's pause always wins.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          const visible = e.isIntersecting;
+          if (visible && !started) {
+            started = true;
+            render(0);
+          }
+          setPlaying(visible && wantsPlay);
+        },
+        { threshold: 0.33 },
+      ).observe(sb);
+    }
+  }
+</script>

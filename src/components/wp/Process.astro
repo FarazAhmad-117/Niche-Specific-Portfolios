@@ -1,0 +1,113 @@
+---
+/**
+ * Process (brief §4 item 8): Audit → Plan → Build → Launch → Care, five columns between
+ * column rules, like a timeline printed across a spread. Each says what it leaves you with.
+ * Stacks into a ruled list on narrow screens.
+ */
+import { PROCESS } from '../../data/wp/content';
+import { folio } from '../../data/wp/site';
+---
+
+<section class="section proc" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('process')}</span>
+        <span class="folio__name">Process</span>
+        <span>Five stages</span>
+      </p>
+      <h2 id="process-title">From audit to care, nothing changes on the live site by surprise.</h2>
+    </div>
+
+    <ol class="proc__row" role="list" data-reveal-stagger>
+      {
+        PROCESS.map((p, i) => (
+          <li class="stage">
+            <span class="stage__num mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 class="stage__title">{p.title}</h3>
+            <p class="stage__text">{p.text}</p>
+            <p class="stage__leaves">
+              <span class="kicker">Leaves you with</span>
+              <span class="stage__leaves-v">{p.leaves}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .proc__row {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  @media (min-width: 1024px) {
+    .proc__row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+  .stage {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: var(--space-2);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  @media (min-width: 1024px) {
+    .stage {
+      padding: var(--space-5) var(--space-5) var(--space-5) var(--space-5);
+      border-bottom: 0;
+      border-left: 1px solid var(--line);
+    }
+    .stage:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+  /* A tick on the top rule marks each stage. */
+  .stage::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+  }
+  @media (min-width: 1024px) {
+    .stage:not(:first-child)::before {
+      left: -4px;
+    }
+  }
+  .stage__num {
+    color: var(--accent-text);
+  }
+  .stage__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.018em;
+  }
+  .stage__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+  .stage__leaves {
+    display: grid;
+    gap: 2px;
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px dashed var(--line-strong);
+  }
+  .stage__leaves-v {
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+</style>

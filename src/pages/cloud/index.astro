@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/cloud/Layout.astro';
+import Hero from '../../components/cloud/Hero.astro';
+import Proof from '../../components/cloud/Proof.astro';
+import Problem from '../../components/cloud/Problem.astro';
+import StatusBoard from '../../components/cloud/StatusBoard.astro';
+import Leaks from '../../components/cloud/Leaks.astro';
+import Cases from '../../components/cloud/Cases.astro';
+import Offers from '../../components/cloud/Offers.astro';
+import Included from '../../components/cloud/Included.astro';
+import Process from '../../components/cloud/Process.astro';
+import About from '../../components/cloud/About.astro';
+import Faq from '../../components/cloud/Faq.astro';
+import FinalCta from '../../components/cloud/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/cloud/seo';
+import { abs, homeLd } from '../../lib/cloud/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4, testimonials omitted): what this is → proof and tools → the problem →
+ * watch it work (signature) → where bills leak → case studies → how to buy → what's always
+ * included → how it runs → who does it → questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so all four cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <StatusBoard />
+  <Leaks />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

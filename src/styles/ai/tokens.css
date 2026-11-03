@@ -1,0 +1,316 @@
+/* ai niche design tokens (spec docs/design/ai.md §3). Global: imported once by the Layout. */
+
+/* ---------- fonts (§3.3) ---------- */
+@font-face {
+  font-family: "Clash Display";
+  src: url("../../assets/fonts/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("../../assets/fonts/Geist-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/Geist-Variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Clash Display Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 109.78%;
+  ascent-override: 81.07%;
+  descent-override: 22.77%;
+  line-gap-override: 8.2%;
+}
+@font-face {
+  font-family: "Geist Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 104.76%;
+  ascent-override: 95.94%;
+  descent-override: 28.16%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono"), local("Roboto Mono"),
+    local("Droid Sans Mono");
+  size-adjust: 100%;
+  ascent-override: 102.02%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
+/* ---------- primitives (never used directly in components) ---------- */
+:root {
+  --ink-950: #111110;
+  --ink-900: #1a1a19;
+  --ink-850: #232321;
+  --ink-800: #2c2c2a;
+  --stone-600: #787670;
+  --stone-500: #8f8d85;
+  --stone-300: #b8b6ad;
+  --stone-light-500: #7a7870;
+  --stone-light-600: #64635c;
+  --stone-light-700: #45443f;
+  --bone-50: #faf9f6;
+  --bone-100: #f2f1ec;
+  --bone-200: #e8e6de;
+  --bone-300: #d7d6d2;
+  --lime-300: #e2ff73;
+  --lime-400: #d4ff3a;
+  --lime-500: #c3ee2a;
+  --olive-700: #4a5e00;
+  --red-light: #b42318;
+  --red-dark: #ff8a7a;
+  --green-light: #1b6b3a;
+  --green-dark: #7ee2a0;
+
+  --font-display: "Clash Display", "Clash Display Fallback", system-ui, sans-serif;
+  --font-body: "Geist", "Geist Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, monospace;
+}
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--bone-100);
+  --surface-1: var(--bone-200);
+  --surface-2: var(--bone-50);
+  --line: var(--bone-300);
+  --line-strong: var(--stone-light-500);
+  --text: var(--ink-950);
+  --text-2: var(--stone-light-700);
+  --text-3: var(--stone-light-600);
+  --accent: var(--lime-400); /* FILLS ON INK ONLY */
+  --accent-hover: var(--lime-300);
+  --accent-active: var(--lime-500);
+  --on-accent: var(--ink-950);
+  --accent-text: var(--olive-700);
+  --error: var(--red-light);
+  --success: var(--green-light);
+  --focus: var(--olive-700);
+  --btn-primary-bg: var(--ink-950);
+  --btn-primary-fg: var(--bone-100);
+  --btn-primary-bg-hover: var(--ink-800);
+  --btn-primary-bg-active: var(--ink-800);
+  --btn-square: inline-block; /* lime square inside the ink primary button (light only) */
+  --todo-hatch: color-mix(in srgb, var(--ink-950) 6%, transparent);
+  --theme-color: #f2f1ec;
+}
+
+/* ---------- DARK + CONSOLE token block (written once per context, see §3.1 note) ---------- */
+:root[data-theme="dark"],
+.theme-ink {
+  color-scheme: dark;
+  --bg: var(--ink-950);
+  --surface-1: var(--ink-900);
+  --surface-2: var(--ink-850);
+  --line: var(--ink-800);
+  --line-strong: var(--stone-600);
+  --text: var(--bone-100);
+  --text-2: var(--stone-300);
+  --text-3: var(--stone-500);
+  --accent: var(--lime-400);
+  --accent-hover: var(--lime-300);
+  --accent-active: var(--lime-500);
+  --on-accent: var(--ink-950);
+  --accent-text: var(--lime-400);
+  --error: var(--red-dark);
+  --success: var(--green-dark);
+  --focus: var(--lime-400);
+  --btn-primary-bg: var(--lime-400);
+  --btn-primary-fg: var(--ink-950);
+  --btn-primary-bg-hover: var(--lime-300);
+  --btn-primary-bg-active: var(--lime-500);
+  --btn-square: none;
+  --todo-hatch: color-mix(in srgb, var(--bone-100) 6%, transparent);
+  --theme-color: #111110;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--ink-950);
+    --surface-1: var(--ink-900);
+    --surface-2: var(--ink-850);
+    --line: var(--ink-800);
+    --line-strong: var(--stone-600);
+    --text: var(--bone-100);
+    --text-2: var(--stone-300);
+    --text-3: var(--stone-500);
+    --accent: var(--lime-400);
+    --accent-hover: var(--lime-300);
+    --accent-active: var(--lime-500);
+    --on-accent: var(--ink-950);
+    --accent-text: var(--lime-400);
+    --error: var(--red-dark);
+    --success: var(--green-dark);
+    --focus: var(--lime-400);
+    --btn-primary-bg: var(--lime-400);
+    --btn-primary-fg: var(--ink-950);
+    --btn-primary-bg-hover: var(--lime-300);
+    --btn-primary-bg-active: var(--lime-500);
+    --btn-square: none;
+    --todo-hatch: color-mix(in srgb, var(--bone-100) 6%, transparent);
+    --theme-color: #111110;
+  }
+}
+
+/* ---------- CONSOLE: always ink ---------- */
+.theme-ink {
+  background: var(--bg);
+  color: var(--text);
+}
+/* In dark theme a console is set apart by surface + line, not by colour. */
+:root[data-theme="dark"] .theme-ink {
+  --bg: var(--ink-900);
+  --surface-1: var(--ink-850);
+  --surface-2: var(--ink-800);
+  border-block: 1px solid var(--line-strong);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-ink {
+    --bg: var(--ink-900);
+    --surface-1: var(--ink-850);
+    --surface-2: var(--ink-800);
+    border-block: 1px solid var(--line-strong);
+  }
+}
+/* A console nested in a console does not get a second frame. */
+.theme-ink .theme-ink {
+  border-block: 0;
+}
+
+/* ---------- type scale (§3.4) ---------- */
+:root {
+  --fs-display-xl: clamp(2.75rem, 1.5385rem + 5.3846vw, 8rem);
+  --fs-display-l: clamp(2.125rem, 1.4615rem + 2.9487vw, 5rem);
+  --fs-metric: clamp(3.5rem, 2.5769rem + 4.1026vw, 7.5rem);
+  --fs-display-m: clamp(1.75rem, 1.4615rem + 1.2821vw, 3rem);
+  --fs-signature: clamp(3.5rem, 1.6538rem + 8.2051vw, 11.5rem);
+  --fs-h3: clamp(1.375rem, 1.2885rem + 0.3846vw, 1.75rem);
+  --fs-lede: clamp(1.125rem, 1.0673rem + 0.2564vw, 1.375rem);
+  --fs-body: clamp(1.0625rem, 1.0481rem + 0.0641vw, 1.125rem);
+  --fs-small: clamp(0.9375rem, 0.9231rem + 0.0641vw, 1rem);
+  --fs-mono-label: clamp(0.8125rem, 0.7981rem + 0.0641vw, 0.875rem);
+  --fs-mono-log: clamp(0.8125rem, 0.7837rem + 0.1282vw, 0.9375rem);
+
+  --lh-display: 0.95;
+  --lh-heading: 1.02;
+  --lh-h3: 1.2;
+  --lh-body: 1.6;
+  --lh-mono: 1.5;
+
+  --tr-display: -0.035em;
+  --tr-heading: -0.025em;
+  --tr-metric: -0.04em;
+  --tr-body: 0;
+  --tr-h3: -0.01em;
+  --tr-mono-label: 0.06em;
+
+  --measure: 65ch;
+  --measure-lede: 52ch;
+  --measure-heading: 18ch;
+}
+
+/* ---------- space, radii, borders, z-index, motion (§3.5) ---------- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+  --space-section: clamp(4.5rem, 3.2308rem + 5.641vw, 10rem);
+  --space-stack: clamp(1.5rem, 1.2115rem + 1.2821vw, 2.75rem);
+
+  --radius-0: 0;
+  --radius-s: 2px;
+  --radius-m: 4px;
+  --radius-pill: 999px;
+
+  --bw-hair: 1px;
+  --bw-ui: 1px;
+  --bw-focus: 2px;
+  --bracket: 8px;
+
+  --shadow: none;
+
+  --z-base: 0;
+  --z-raised: 1;
+  --z-pin: 10;
+  --z-nav: 50;
+  --z-sticky-cta: 60;
+  --z-menu: 80;
+  --z-toast: 90;
+  --z-skip: 100;
+
+  --nav-h: 56px;
+  --tap: 44px;
+  --sticky-cta-h: 64px;
+
+  /* Gap between the nav's bottom edge and a section's first line when it is jumped to. */
+  --anchor-gap: clamp(1.5rem, 1.1rem + 1.2vw, 2.5rem);
+  --radius-l: 8px;
+
+  --dur-press: 120ms;
+  --dur-hover: 200ms;
+  --dur-reveal: 320ms;
+  --dur-enter: 600ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  /* Emphasised decelerate (iOS sheet curve): fast start, long soft landing. */
+  --ease-emph: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ---------- chrome surfaces (nav, floating bars) ---------- */
+:root {
+  --chrome-bg: color-mix(in srgb, var(--bg) 90%, transparent);
+  --chrome-blur: saturate(1.4) blur(20px);
+  --float-shadow: 0 1px 0 color-mix(in srgb, var(--ink-950) 4%, transparent),
+    0 12px 32px -12px color-mix(in srgb, var(--ink-950) 28%, transparent);
+}
+
+/* ---------- grid and containers (§3.6) ---------- */
+:root {
+  --margin: clamp(1rem, 0.3077rem + 3.0769vw, 4rem);
+  --gutter: 16px;
+  --cols: 4;
+  --container-max: 1600px;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 20px;
+    --cols: 8;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 24px;
+    --cols: 12;
+    --nav-h: 64px;
+  }
+}
+@media (min-width: 1920px) {
+  :root {
+    --gutter: 32px;
+  }
+}

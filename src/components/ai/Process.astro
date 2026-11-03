@@ -1,0 +1,141 @@
+---
+/**
+ * Process: four steps on one wire. Order is carried by the wire and the list, never by
+ * printed numbers. Each step ends with what you hold at the end of it. The last node is the
+ * only lime dot, on its own small ink square: "running".
+ */
+import Section from './Section.astro';
+import { PROCESS } from '../../data/ai/content';
+---
+
+<Section id="process">
+  <div class="sec-head sec-head--split" data-reveal>
+    <h2 id="process-title">How a project runs.</h2>
+    <p class="lede">From the first call to a system your team runs. You always know what you have so far.</p>
+  </div>
+
+  <ol class="proc plain-list" data-reveal-stagger>
+    {
+      PROCESS.map((step, i) => (
+        <li class="proc__step">
+          <span class:list={['proc__node', i === PROCESS.length - 1 && 'proc__node--live']} aria-hidden="true" />
+          <h3 class="proc__title">{step.title}</h3>
+          <p class="proc__text">{step.text}</p>
+          <p class="proc__leaves">
+            <span class="proc__leaves-k">You have</span>
+            {step.leaves}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+</Section>
+
+<style>
+  .proc {
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
+    padding-inline-start: var(--space-7);
+  }
+  /* Mobile: vertical wire on the left. */
+  .proc::before {
+    content: "";
+    position: absolute;
+    inset-block: 10px 40px;
+    inset-inline-start: 7px;
+    inline-size: 1px;
+    background: var(--line-strong);
+  }
+  .proc__step {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .proc__step > * {
+    margin: 0;
+  }
+  .proc__node {
+    position: absolute;
+    inset-block-start: 6px;
+    inset-inline-start: calc(-1 * var(--space-7));
+    inline-size: 15px;
+    block-size: 15px;
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+  }
+  /* The one "running" node: a lime dot, legal because it sits on its own ink square. */
+  .proc__node--live {
+    background: var(--ink-950);
+    border-color: var(--stone-600);
+    display: grid;
+    place-items: center;
+  }
+  .proc__node--live::after {
+    content: "";
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: 50%;
+    background: var(--lime-400);
+  }
+  .proc__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-display-m);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--tr-heading);
+  }
+  .proc__text {
+    color: var(--text-2);
+    max-inline-size: 36ch;
+  }
+  .proc__leaves {
+    display: grid;
+    gap: 4px;
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--line);
+    font: 500 var(--fs-mono-label) / 1.45 var(--font-mono);
+    color: var(--text);
+    max-inline-size: 36ch;
+  }
+  .proc__leaves-k {
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  @media (min-width: 768px) {
+    .proc {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-inline-start: 0;
+      column-gap: var(--gutter);
+      row-gap: var(--space-7);
+    }
+    .proc::before {
+      display: none;
+    }
+    .proc__node {
+      position: static;
+      margin-block-end: var(--space-2);
+    }
+  }
+  @media (min-width: 1024px) {
+    .proc {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      row-gap: 0;
+    }
+    /* Desktop: one horizontal wire through the node row, stopping at the live node. */
+    .proc::before {
+      display: block;
+      inset-block: auto;
+      inset-block-start: 7px;
+      inset-inline: 0 calc((100% - 3 * var(--gutter)) / 4 * 1 - 0px);
+      inline-size: auto;
+      block-size: 1px;
+    }
+    .proc__step {
+      padding-inline-end: var(--space-5);
+    }
+  }
+</style>

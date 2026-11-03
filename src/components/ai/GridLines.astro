@@ -1,0 +1,101 @@
+---
+/**
+ * Visible hairline column grid with "+" crosshairs (spec §1). Only for the Hero
+ * and the Production checklist. Fills its nearest positioned ancestor; content
+ * must sit above it (position: relative; z-index: 1).
+ *
+ * Props
+ *   crosshairs?: boolean   "+" marks on every 3rd column line at the top and bottom edge (default true)
+ *   fade?: boolean         lines fade out toward the bottom edge (default false)
+ *   class?: string
+ */
+interface Props {
+  crosshairs?: boolean;
+  fade?: boolean;
+  class?: string;
+}
+const { crosshairs = true, fade = false, class: className } = Astro.props;
+const cols = Array.from({ length: 12 }, (_, i) => i);
+---
+
+<div class:list={['gl', fade && 'gl--fade', className]} aria-hidden="true">
+  <div class="gl__cols container">
+    {cols.map((i) => <span class:list={['gl__col', crosshairs && i % 3 === 0 && 'gl__col--x']} />)}
+  </div>
+</div>
+
+<style>
+  .gl {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .gl--fade {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  }
+  .gl__cols {
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .gl__col {
+    position: relative;
+    border-left: 1px solid var(--line);
+  }
+  .gl__col:nth-child(4) {
+    border-right: 1px solid var(--line);
+  }
+  .gl__col:nth-child(n + 5) {
+    display: none;
+  }
+  .gl__col--x::before,
+  .gl__col--x::after {
+    content: "";
+    position: absolute;
+    left: -5px;
+    width: 9px;
+    height: 9px;
+    background:
+      linear-gradient(var(--line-strong), var(--line-strong)) center / 1px 100% no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) center / 100% 1px no-repeat;
+  }
+  .gl__col--x::before {
+    top: -5px;
+  }
+  .gl__col--x::after {
+    bottom: -5px;
+  }
+  @media (min-width: 768px) {
+    .gl__col:nth-child(4) {
+      border-right: 0;
+    }
+    .gl__col:nth-child(n + 5) {
+      display: block;
+    }
+    .gl__col:nth-child(8) {
+      border-right: 1px solid var(--line);
+    }
+    .gl__col:nth-child(n + 9) {
+      display: none;
+    }
+  }
+  @media (min-width: 1024px) {
+    .gl__col:nth-child(8) {
+      border-right: 0;
+    }
+    .gl__col:nth-child(n + 9) {
+      display: block;
+    }
+    .gl__col:nth-child(12) {
+      border-right: 1px solid var(--line);
+    }
+  }
+  @media (forced-colors: active) {
+    .gl {
+      display: none;
+    }
+  }
+</style>

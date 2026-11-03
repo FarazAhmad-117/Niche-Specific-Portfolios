@@ -1,0 +1,295 @@
+/*
+ * ghl niche design tokens. Concept "Switchboard" (docs/brief/ghl.md §6): light, organised,
+ * every wire labelled; the opposite of a messy account. Global: imported once by the Layout.
+ *
+ * Deliberately not the other niches: no console grid (ai), no bubbles or curves (funnels), no
+ * SERP or highlighter (seo). Hardware language instead: patch jacks, orthogonal cables,
+ * label-maker tape, rack rails, status LEDs. Small radii, hairlines, one deep-teal accent
+ * (decisions.md › ghl › Accent colour overrides the brief's cobalt) and amber for faults only.
+ */
+
+/* ---------- fonts ---------- */
+/* Saira at its widest (wdth 125), cut to that one width and weights 600–800: squared,
+   machined letterforms that read like the engraved label on a patch panel. */
+@font-face {
+  font-family: "Saira Expanded";
+  src: url("../../assets/fonts/SairaExpanded-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/SairaExpanded-Variable-latin.woff2") format("woff2");
+  font-weight: 600 800;
+  font-style: normal;
+  font-display: swap;
+}
+/* Red Hat Text: an engineering brand's text face, open and plain at body sizes. */
+@font-face {
+  font-family: "Red Hat Text";
+  src: url("../../assets/fonts/RedHatText-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/RedHatText-Variable-latin.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Clash Display";
+  src: url("../../assets/fonts/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* Metric-matched fallbacks (Saira Expanded 800: avg width 607/1000, ascent 1135, descent 439;
+   Red Hat Text: ascent 1018, descent 305) keep the swap from shifting the hero. */
+@font-face {
+  font-family: "Saira Fallback";
+  src: local("Arial Black"), local("Arial Bold"), local("Arial"), local("Helvetica Neue"), local("Roboto");
+  size-adjust: 101%;
+  ascent-override: 112%;
+  descent-override: 43%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Red Hat Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 103%;
+  ascent-override: 99%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
+/* ---------- primitives (never used directly in components) ---------- */
+:root {
+  --paper-50: #fbfaf7;
+  --paper-100: #f4f2ec;
+  --paper-200: #e9e6dd;
+  --paper-300: #d9d4c8;
+  --paper-500: #8a8373;
+  --ink-950: #121211;
+  --ink-700: #45433e;
+  --ink-600: #636058;
+  --deep-950: #0b1312;
+  --deep-900: #111b1a;
+  --deep-850: #162221;
+  --deep-800: #22302e;
+  --deep-600: #586d69;
+  --mist-300: #b4bcb7;
+  --mist-400: #8f9a94;
+  --teal-100: #d4ebe7;
+  --teal-300: #5fe0ce;
+  --teal-400: #2cc9b5;
+  --teal-700: #0b6e68;
+  --teal-800: #0a5f5a;
+  --teal-950: #05201c;
+  --teal-900: #0e3a35;
+  --amber-200: #f9e7c4;
+  --amber-300: #f5b955;
+  --amber-400: #f59e0b;
+  --amber-800: #9a4a06;
+  --amber-950: #33230a;
+  --green-700: #1e6b45;
+  --green-300: #7fdcaa;
+  --red-700: #b42318;
+  --red-300: #ff9a8c;
+
+  --font-display: "Saira Expanded", "Saira Fallback", system-ui, sans-serif;
+  --font-body: "Red Hat Text", "Red Hat Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "Courier New", monospace;
+  --font-signature: "Clash Display", var(--font-display);
+}
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--paper-100);
+  --surface-1: var(--paper-200);
+  --surface-2: var(--paper-50);
+  --line: var(--paper-300);
+  --line-strong: var(--paper-500); /* 3.3:1 on paper: form borders, jack rings */
+  --text: var(--ink-950);
+  --text-2: var(--ink-700);
+  --text-3: var(--ink-600);
+  --accent: var(--teal-700); /* fills, cables, LEDs. 5.4:1 on paper */
+  --accent-soft: var(--teal-100);
+  --accent-text: var(--teal-800); /* 6.7:1 on paper */
+  --on-accent: #f6fbfa; /* 5.8:1 on the teal fill */
+  --fault: var(--amber-800); /* fault text, 5.6:1 */
+  --fault-led: var(--amber-400); /* LEDs only: bright, decorative */
+  --fault-line: #b45309; /* fault cables and outlines: 4.5:1 on paper */
+  --fault-bg: var(--amber-200);
+  --success: var(--green-700);
+  --error: var(--red-700);
+  --focus: var(--teal-800);
+  --btn-bg: var(--ink-950);
+  --btn-fg: var(--paper-100);
+  /* On inverted (--btn-bg) cards: teal text and focus rings that still clear 4.5:1 / 3:1. */
+  --accent-inv: var(--teal-300);
+  --focus-inv: var(--teal-300);
+  --cable-off: var(--paper-300);
+  --shadow-soft: 0 1px 0 rgb(18 18 17 / 0.05), 0 14px 30px -18px rgb(30 40 38 / 0.28);
+  --shadow-lift: 0 1px 0 rgb(18 18 17 / 0.06), 0 26px 50px -26px rgb(30 40 38 / 0.4);
+  --theme-color: #f4f2ec;
+}
+
+/* ---------- DARK: written once for the explicit choice, once for the system preference ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--deep-950);
+  --surface-1: var(--deep-900);
+  --surface-2: var(--deep-850);
+  --line: var(--deep-800);
+  --line-strong: var(--deep-600);
+  --text: #ecebe4;
+  --text-2: var(--mist-300);
+  --text-3: var(--mist-400);
+  --accent: var(--teal-400);
+  --accent-soft: var(--teal-900);
+  --accent-text: var(--teal-300);
+  --on-accent: var(--teal-950);
+  --fault: var(--amber-300);
+  --fault-led: var(--amber-400);
+  --fault-line: var(--amber-400);
+  --fault-bg: var(--amber-950);
+  --success: var(--green-300);
+  --error: var(--red-300);
+  --focus: var(--teal-300);
+  --btn-bg: #ecebe4;
+  --btn-fg: var(--ink-950);
+  --accent-inv: var(--teal-800);
+  --focus-inv: var(--teal-800);
+  --cable-off: var(--deep-800);
+  --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 30px -18px rgb(0 0 0 / 0.7);
+  --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 26px 50px -26px rgb(0 0 0 / 0.8);
+  --theme-color: #0b1312;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--deep-950);
+    --surface-1: var(--deep-900);
+    --surface-2: var(--deep-850);
+    --line: var(--deep-800);
+    --line-strong: var(--deep-600);
+    --text: #ecebe4;
+    --text-2: var(--mist-300);
+    --text-3: var(--mist-400);
+    --accent: var(--teal-400);
+    --accent-soft: var(--teal-900);
+    --accent-text: var(--teal-300);
+    --on-accent: var(--teal-950);
+    --fault: var(--amber-300);
+    --fault-led: var(--amber-400);
+    --fault-line: var(--amber-400);
+    --fault-bg: var(--amber-950);
+    --success: var(--green-300);
+    --error: var(--red-300);
+    --focus: var(--teal-300);
+    --btn-bg: #ecebe4;
+    --btn-fg: var(--ink-950);
+    --accent-inv: var(--teal-800);
+    --focus-inv: var(--teal-800);
+    --cable-off: var(--deep-800);
+    --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 30px -18px rgb(0 0 0 / 0.7);
+    --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 26px 50px -26px rgb(0 0 0 / 0.8);
+    --theme-color: #0b1312;
+  }
+}
+
+/* ---------- type scale ---------- */
+:root {
+  /* Expanded letterforms are wide: the hero tops out lower than a condensed face would. */
+  --fs-hero: clamp(2.5rem, 1.35rem + 5vw, 6.25rem);
+  --fs-h2: clamp(1.875rem, 1.3rem + 2.5vw, 3.875rem);
+  --fs-h3: clamp(1.25rem, 1.15rem + 0.45vw, 1.625rem);
+  --fs-lede: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);
+  --fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.125rem);
+  --fs-small: 0.9375rem;
+  --fs-mono: clamp(0.75rem, 0.73rem + 0.08vw, 0.8125rem);
+
+  --lh-display: 0.98;
+  --lh-heading: 1.02;
+  --lh-body: 1.6;
+
+  --tr-display: -0.045em;
+  --tr-heading: -0.035em;
+  --tr-mono: 0.04em;
+
+  --measure: 62ch;
+  --measure-lede: 50ch;
+}
+
+/* ---------- space, shape, layering ---------- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  /* Applied top and bottom, so the gap between two sections is twice this. */
+  --space-section: clamp(3.5rem, 2.6rem + 4vw, 7rem);
+
+  /* Hardware shapes: machined corners, never pills or blobs. */
+  --radius-xs: 3px;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+  --radius-xl: 20px;
+
+  --z-raised: 1;
+  --z-nav: 50;
+  --z-sticky-cta: 60;
+  --z-menu: 80;
+  --z-skip: 100;
+
+  --nav-h: 64px;
+  --tap: 44px;
+  --sticky-cta-h: 56px;
+  --anchor-gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+
+  --margin: clamp(1rem, 0.4rem + 3vw, 4.5rem);
+  --container-max: 1400px;
+}
+
+/*
+ * ---------- motion ----------
+ * One curve per job, so the whole site moves with the same hand:
+ *  - out-quint    reveals and long glides: quick to leave, very soft landing
+ *  - out-expo     hover snaps on big shapes (cards, arrows): snappy then still
+ *  - in-out-quart wipes, cable draws and page transitions where both ends are on screen
+ *  - spring       something "arriving" (a jack seating, an LED popping on): a real damped
+ *                 spring (zeta 0.62, ~8% overshoot) sampled into linear(); browsers without
+ *                 linear() get a back-out bezier
+ *  - sine         ambient loops (the idle LED breathe, the test signal), never jerky at the turn
+ */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-press: 140ms;
+  --dur-hover: 260ms;
+  --dur-reveal: 900ms;
+  --dur-seat: 640ms;
+  --dur-draw: 1100ms;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.046, 0.1589, 0.3069, 0.4655, 0.6176, 0.7521, 0.8634, 0.9496, 1.0115, 1.0519, 1.0744, 1.0831,
+      1.0817, 1.0737, 1.062, 1.0489, 1.0359, 1.0241, 1.0142, 1.0063, 1.0005, 0.9966, 0.9942, 0.9932, 0.9936,
+      0.9956, 0.9977, 0.9993, 1.0002, 1.0006, 1
+    );
+  }
+}

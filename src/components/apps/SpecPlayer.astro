@@ -1,0 +1,1235 @@
+---
+/**
+ * ★ Signature: Spec → shipped (brief §4 item 4), as an in-place player, not a scroll-jack
+ * (the owner rejected a pinned scroll). One example project, a clinic booking app, goes
+ * sketch → schema → architecture → working UI → deploy log on one drafting sheet.
+ *
+ * Desktop: the steps on the left (the current one open, with a story-style progress bar),
+ * the sheet on the right. Phone: the sheet first, then the current step and a dot row.
+ * About one screen of scroll on either.
+ *
+ * Playback: starts when a third of the player is on screen. The current step's bar is a CSS
+ * animation and its `animationend` advances the story, so pausing (button, off screen,
+ * hidden tab) just pauses the bar and nothing drifts out of sync. Clicking a step, prev or
+ * next hands control to the visitor (playback pauses; play resumes). Reduced motion: no
+ * autoplay and no play button, stepping is manual, and every panel shows its end state.
+ *
+ * Without JS: every step is open, the (disabled) step buttons are plain headings, and the
+ * sheet shows the finished, working UI. Keyboard focus inside the player pauses autoplay, so
+ * a focused step is never hidden from under the visitor (phones show only the current one).
+ * The sheet is a visual duplicate (aria-hidden); the ordered list is the accessible content.
+ */
+import Diagram from './Diagram.astro';
+import { SPEC_ARCH, SPEC_STEPS } from '../../data/apps/content';
+
+const n = SPEC_STEPS.length;
+const STEP_MS = 4600;
+
+const days = [
+  { d: 'Mon', n: '9' },
+  { d: 'Tue', n: '10' },
+  { d: 'Wed', n: '11' },
+  { d: 'Thu', n: '12' },
+  { d: 'Fri', n: '13' },
+];
+const slots = ['09:00', '09:45', '10:30', '11:15', '14:00', '14:45'];
+const log = [
+  ['git push origin main', ''],
+  ['ci · typecheck', 'ok'],
+  ['ci · lint', 'ok'],
+  ['ci · tests', 'passed'],
+  ['preview · staging', 'deployed'],
+  ['e2e · book a visit', 'passed'],
+  ['prod · promote', 'done'],
+] as const;
+const tables = [
+  { name: 'patients', rows: [['id', 'PK'], ['name', ''], ['email', 'unique'], ['phone', '']] },
+  { name: 'bookings', rows: [['id', 'PK'], ['patient_id', 'FK'], ['slot_id', 'FK'], ['status', 'enum']] },
+  { name: 'clinics', rows: [['id', 'PK'], ['name', ''], ['timezone', ''], ['hours', '']] },
+  { name: 'slots', rows: [['id', 'PK'], ['clinic_id', 'FK'], ['starts_at', 'utc'], ['capacity', '']] },
+] as const;
+---
+
+<section class="section spec" id="spec" aria-labelledby="spec-title">
+  <div class="container head head--split">
+    <p class="eyebrow"><span class="eyebrow__no">02</span>Spec → shipped</p>
+    <h2 id="spec-title">From a sketch to a deploy log.</h2>
+    <p class="lede">
+      Every build runs the same way. Here is one, an example clinic booking app, from the first sketch to production.
+    </p>
+  </div>
+
+  <div class="container">
+    <div class="player" data-player style={`--step-ms:${STEP_MS}ms`} data-pause-offscreen>
+      <div class="player__side">
+        <ol class="steps" role="list">
+          {
+            SPEC_STEPS.map((s, i) => (
+              <li class="step" data-step={i} data-phase={s.phase}>
+                <button class="step__btn" type="button" data-step-btn={i} disabled>
+                  <span class="step__no mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="step__phase label">{s.phase}</span>
+                  <span class="step__title">{s.title}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="step__body">
+                  <div class="step__body-inner">
+                    <p class="step__text">{s.text}</p>
+                  </div>
+                </div>
+                <span class="step__bar" aria-hidden="true">
+                  <span data-bar />
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="controls" data-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough" disabled>
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="controls__count mono" aria-hidden="true"><span data-count>1</span> / {n}</span>
+          <span class="controls__dots" aria-hidden="true">
+            {SPEC_STEPS.map((_, i) => <span class="controls__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="spec__note text-3">Example project, screens and data. The phases are how every build runs; durations are agreed per project.</p>
+      </div>
+
+      <div class="sheet" aria-hidden="true">
+        <div class="sheet__strip">
+          <span class="label">Example · clinic booking app</span>
+          <span class="mono sheet__step"><span data-sheet-no>04</span> / 0{n} · <span data-sheet-phase>Build cycles</span></span>
+        </div>
+        <div class="sheet__stage">
+          {/* 1. sketch */}
+          <div class="panel panel--sketch" data-panel="sketch">
+            <div class="sketch">
+              <svg class="sketch__svg" viewBox="0 0 600 360">
+                <g class="ink">
+                  <rect x="24" y="20" width="250" height="320" rx="14" pathLength="1" style="--i:0"></rect>
+                  <path d="M48 52h120" pathLength="1" style="--i:1"></path>
+                  <path d="M48 88h34v30H48zM90 88h34v30H90zM132 88h34v30h-34zM174 88h34v30h-34zM216 88h34v30h-34z" pathLength="1" style="--i:2"></path>
+                  <path d="M48 140h62v34H48zM118 140h62v34h-62zM188 140h62v34h-62zM48 182h62v34H48zM118 182h62v34h-62zM188 182h62v34h-62z" pathLength="1" style="--i:3"></path>
+                  <path d="M130 158m-46 0a46 22 0 1 0 92 0a46 22 0 1 0-92 0" class="ink--accent" pathLength="1" style="--i:4"></path>
+                  <rect x="48" y="276" width="202" height="40" rx="6" pathLength="1" style="--i:5"></rect>
+                  <rect x="326" y="20" width="250" height="320" rx="14" pathLength="1" style="--i:2"></rect>
+                  <path d="M350 52h104" pathLength="1" style="--i:3"></path>
+                  <path d="M362 102m-12 0a12 12 0 1 0 24 0a12 12 0 1 0-24 0M386 96h120M386 110h70M362 166m-12 0a12 12 0 1 0 24 0a12 12 0 1 0-24 0M386 160h120M386 174h70M362 230m-12 0a12 12 0 1 0 24 0a12 12 0 1 0-24 0M386 224h120M386 238h70" pathLength="1" style="--i:4"></path>
+                  <path d="M350 300h60" class="ink--accent" pathLength="1" style="--i:6"></path>
+                  <path d="M262 104c30-6 44-40 30-62M256 196c34 10 54 30 54 56M260 300c30 0 40-6 52-24" class="ink--note" pathLength="1" style="--i:6"></path>
+                </g>
+              </svg>
+              <span class="sketch__note" style="left:51%;top:5%;--i:7">pick a day</span>
+              <span class="sketch__note" style="left:52%;top:72%;--i:7">free slots only</span>
+              <span class="sketch__note" style="left:53%;top:84%;--i:8">confirm → email + SMS</span>
+              <span class="sketch__note sketch__note--q" style="left:57%;top:91%;--i:8">cancel up to when? ask</span>
+              <span class="sketch__title" style="left:8%;top:-1%">Book a visit</span>
+              <span class="sketch__title" style="left:58%;top:-1%">My bookings</span>
+            </div>
+          </div>
+
+          {/* 2. schema */}
+          <div class="panel panel--schema" data-panel="schema">
+            <div class="schema">
+              <svg class="schema__wires" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M25 25H75M75 25V75M75 75H25" vector-effect="non-scaling-stroke"></path>
+              </svg>
+              <span class="schema__rel schema__rel--h" style="left:50%;top:25%">n : 1</span>
+              <span class="schema__rel" style="left:75%;top:50%">n : 1</span>
+              <span class="schema__rel schema__rel--h" style="left:50%;top:75%">n : 1</span>
+              {
+                tables.map((t, i) => (
+                  <div class="tbl" style={`--i:${i}`}>
+                    <span class="tbl__name">{t.name}</span>
+                    {t.rows.map(([f, k]) => (
+                      <span class="tbl__row">
+                        <span>{f}</span>
+                        <span class:list={['tbl__k', { 'is-key': k === 'PK' || k === 'FK' }]}>{k}</span>
+                      </span>
+                    ))}
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          {/* 3. architecture */}
+          <div class="panel panel--arch" data-panel="arch">
+            <Diagram diagram={SPEC_ARCH} label="Example architecture" caption={false} rowH="7.5rem" class="arch" />
+          </div>
+
+          {/* 4. working UI */}
+          <div class="panel panel--ui" data-panel="ui" data-final>
+            <div class="ui">
+              <div class="ui__bar">
+                <span class="ui__logo"></span>
+                <span class="ui__brand">Riverside Physio</span>
+                <span class="ui__chip mono">staging</span>
+              </div>
+              <div class="ui__body">
+                <div class="ui__pick">
+                  <p class="ui__h">Book a visit</p>
+                  <div class="ui__days">
+                    {
+                      days.map((d) => (
+                        <span class:list={['ui__day', { 'is-on': d.d === 'Thu' }]}>
+                          <span class="ui__day-d">{d.d}</span>
+                          <span class="ui__day-n">{d.n}</span>
+                        </span>
+                      ))
+                    }
+                  </div>
+                  <div class="ui__slots">
+                    {slots.map((s) => <span class:list={['ui__slot', { 'is-on': s === '10:30', 'is-off': s === '09:45' }]}>{s}</span>)}
+                  </div>
+                </div>
+                <div class="ui__sum">
+                  <span class="ui__sum-k label">Your visit</span>
+                  <span class="ui__sum-v">Physio · 45 min</span>
+                  <span class="ui__sum-t mono">Thu 12 · 10:30</span>
+                  <span class="ui__cta">Confirm booking</span>
+                </div>
+              </div>
+              <div class="ui__toast">
+                <span class="ui__tick"></span>Booked. Confirmation sent by email and SMS.
+              </div>
+            </div>
+          </div>
+
+          {/* 5. deploy log */}
+          <div class="panel panel--deploy" data-panel="deploy">
+            <div class="term print">
+              <div class="term__bar mono"><span></span><span></span><span></span>deploy · main</div>
+              <ol class="term__log mono" role="list">
+                {
+                  log.map(([k, v], i) => (
+                    <li class="term__line" style={`--i:${i}`}>
+                      <span class="term__k">› {k}</span>
+                      {v && <span class="term__lead" />}
+                      {v && <span class="term__v">{v}</span>}
+                    </li>
+                  ))
+                }
+              </ol>
+              <p class="term__live" style={`--i:${log.length}`}>
+                <span class="term__stamp">Live</span>
+                <span class="mono">bookings.example.com</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .player {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 960px) {
+    .player {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: clamp(2rem, 1rem + 3vw, 4.5rem);
+      align-items: center;
+    }
+  }
+  .player__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: center;
+    min-width: 0;
+  }
+
+  /* ---------- steps (no JS: all open, a plain list) ---------- */
+  .steps {
+    margin: 0;
+    border-top: 1.5px solid var(--text);
+  }
+  .step {
+    position: relative;
+    padding: 12px 8px 14px 52px;
+    border-bottom: 1px solid var(--line-strong);
+    transition: background-color 420ms var(--ease-out-quint);
+  }
+  .step__btn:disabled {
+    cursor: default;
+  }
+  .step__btn {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    color: var(--text);
+    border-radius: var(--radius-xs);
+  }
+  .step__no {
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--text-2);
+    color: var(--text-2);
+    transition:
+      background-color 300ms var(--ease-out-quint),
+      color 300ms var(--ease-out-quint),
+      border-color 300ms var(--ease-out-quint);
+  }
+  .step__phase {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .step__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-stretch: 104%;
+    font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.375rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+  .step__text {
+    margin-top: 6px;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 50ch;
+  }
+  .step__bar {
+    display: none;
+  }
+  .spec__note {
+    font-size: 0.8125rem;
+  }
+
+  /* ---------- live (JS) ---------- */
+  .is-live .step__btn {
+    cursor: pointer;
+  }
+  .is-live .step.is-past .step__no,
+  .is-live .step[aria-current='step'] .step__no {
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+  .is-live .step[aria-current='step'] .step__no {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .is-live .step[aria-current='step'] {
+    background: var(--surface-2);
+  }
+  .is-live .step:not([aria-current='step']) .step__title {
+    color: var(--text-2);
+  }
+  @media (hover: hover) {
+    .is-live .step:not([aria-current='step']):hover {
+      background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    }
+  }
+  .is-live .step__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 560ms var(--ease-out-quint);
+  }
+  .is-live .step[aria-current='step'] .step__body {
+    grid-template-rows: 1fr;
+  }
+  .is-live .step__body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .is-live .step__text {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-quint);
+  }
+  .is-live .step[aria-current='step'] .step__text {
+    opacity: 1;
+    transform: none;
+    transition-delay: 120ms;
+  }
+  /* Story-style progress bar along the bottom rule of the current step. */
+  .is-live .step__bar {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out-quint);
+  }
+  .is-live .step[aria-current='step'] .step__bar {
+    opacity: 1;
+  }
+  .step__bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .is-live .step[aria-current='step'] .step__bar span {
+    animation: bar-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-live .step__bar {
+      display: none !important;
+    }
+  }
+  .is-live:not(.is-playing) .step[aria-current='step'] .step__bar span,
+  .is-live.is-paused .step[aria-current='step'] .step__bar span,
+  .is-live.is-hidden-tab .step[aria-current='step'] .step__bar span {
+    animation-play-state: paused;
+  }
+  @keyframes bar-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .controls__count {
+    white-space: nowrap;
+    margin-left: 6px;
+    color: var(--text-3);
+  }
+  .controls__dots {
+    display: none;
+  }
+
+  /* ---------- the sheet ---------- */
+  .sheet {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-width: 0;
+    border-radius: var(--radius-s);
+    background-color: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-lift);
+  }
+  .sheet__strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding: 10px 16px;
+    border-bottom: 1.5px solid var(--text);
+    color: var(--text-2);
+  }
+  .sheet__step {
+    color: var(--accent-text);
+  }
+  .sheet__stage {
+    position: relative;
+    height: 440px;
+    margin: 14px;
+    overflow: hidden;
+    background-image:
+      linear-gradient(var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .panel {
+    display: none;
+    position: absolute;
+    inset: 0;
+    place-items: center;
+    padding: clamp(10px, 2.5%, 28px);
+  }
+  .player:not(.is-live) .panel[data-final] {
+    display: grid;
+  }
+  .is-live .panel {
+    display: grid;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition:
+      opacity 420ms var(--ease-out-quint),
+      transform 700ms var(--ease-out-quint),
+      visibility 0s linear 420ms;
+  }
+  .is-live .panel.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 120ms, 120ms, 0s;
+  }
+
+  /* ---------- 1. sketch: ink drawn on ---------- */
+  .sketch {
+    position: relative;
+    width: min(100%, calc((440px - 40px) * 600 / 360));
+    aspect-ratio: 600 / 360;
+    font-family: var(--font-mono);
+  }
+  .sketch__svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .ink :is(rect, path) {
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ink .ink--accent {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .ink .ink--note {
+    stroke: var(--text-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 5;
+  }
+  .sketch__note,
+  .sketch__title {
+    position: absolute;
+    font-size: clamp(0.625rem, 0.55rem + 0.3vw, 0.8125rem);
+    white-space: nowrap;
+    color: var(--text-2);
+  }
+  .sketch__title {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 620;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: clamp(0.5625rem, 0.5rem + 0.25vw, 0.75rem);
+    transform: translateY(-100%);
+    color: var(--text-3);
+  }
+  .sketch__note {
+    padding: 1px 5px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .sketch__note--q {
+    color: var(--accent-text);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .panel--sketch.is-active .ink :is(rect, path):not(.ink--note) {
+      stroke-dasharray: 1;
+      animation: ink-draw 900ms var(--ease-out-quint) both;
+      animation-delay: calc(var(--i) * 260ms);
+    }
+    .is-live .panel--sketch.is-active .ink .ink--note {
+      animation: fade-in 500ms var(--ease-out-quint) both;
+      animation-delay: calc(var(--i) * 260ms);
+    }
+    .is-live .panel--sketch.is-active .sketch__note {
+      animation: note-in 600ms var(--ease-out-quint) both;
+      animation-delay: calc(var(--i) * 260ms);
+    }
+  }
+  @keyframes ink-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes note-in {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+  }
+
+  /* ---------- 2. schema ---------- */
+  .schema {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, auto);
+    gap: clamp(28px, 6%, 64px) clamp(28px, 10%, 96px);
+    width: min(100%, 560px);
+  }
+  .schema__wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .schema__wires path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  .schema__rel {
+    position: absolute;
+    z-index: 1;
+    padding: 1px 6px;
+    background: var(--surface-2);
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+  }
+  .tbl {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(0.625rem, 0.58rem + 0.2vw, 0.78rem);
+  }
+  .tbl__name {
+    padding: 5px 10px;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 500;
+  }
+  .tbl__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 10px;
+    border-top: 1px solid var(--line);
+  }
+  .tbl__k {
+    color: var(--text-3);
+  }
+  .tbl__k.is-key {
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .panel--schema.is-active .tbl {
+      animation: pop 620ms var(--ease-spring) both;
+      animation-delay: calc(var(--i) * 180ms);
+    }
+    .is-live .panel--schema.is-active .schema__wires {
+      animation: wipe-x 1100ms var(--ease-in-out-quart) 700ms both;
+    }
+    .is-live .panel--schema.is-active .schema__rel {
+      animation: fade-in 400ms var(--ease-out-quint) 1500ms both;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.94);
+    }
+  }
+  @keyframes wipe-x {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* ---------- 3. architecture (the shared diagram renderer, assembled on entry) ---------- */
+  .panel--arch :global(.arch) {
+    width: min(100%, 620px);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .panel--arch.is-active :global(.dg__node),
+    .is-live .panel--arch.is-active :global(.dg__chip) {
+      animation: pop 640ms var(--ease-spring) both;
+      animation-delay: calc(var(--c, 0) * 260ms);
+    }
+    .is-live .panel--arch.is-active :global(.dg__wires) {
+      animation: wipe-x 1300ms var(--ease-in-out-quart) 500ms both;
+    }
+    .is-live .panel--arch.is-active :global(.dg__head),
+    .is-live .panel--arch.is-active :global(.dg__elabel) {
+      animation: fade-in 400ms var(--ease-out-quint) both;
+      animation-delay: calc(900ms + var(--c, 0) * 260ms);
+    }
+  }
+
+  /* ---------- 4. working UI ---------- */
+  .ui {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    width: min(100%, 600px);
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-sheet);
+    overflow: hidden;
+    font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+  }
+  .ui__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .ui__logo {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: var(--accent);
+  }
+  .ui__brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+  .ui__chip {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .ui__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px;
+  }
+  .ui__pick {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .ui__h {
+    font-family: var(--font-display);
+    font-weight: 760;
+    font-stretch: 106%;
+    font-size: 1.35em;
+    letter-spacing: -0.02em;
+  }
+  .ui__days {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ui__day {
+    display: grid;
+    justify-items: center;
+    padding: 6px 0;
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ui__day-d {
+    color: var(--text-3);
+    font-size: 0.85em;
+  }
+  .ui__day-n {
+    font-weight: 600;
+  }
+  .ui__day.is-on {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: none;
+  }
+  .ui__day.is-on .ui__day-d {
+    color: inherit;
+  }
+  .ui__slots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ui__slot {
+    padding: 6px 0;
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+  .ui__slot.is-off {
+    color: var(--text-3);
+    text-decoration: line-through;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ui__slot.is-on {
+    box-shadow: inset 0 0 0 2px var(--accent);
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  .ui__sum {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 6px;
+    background: var(--surface-1);
+  }
+  .ui__sum-k {
+    color: var(--text-3);
+    font-size: 0.625rem;
+  }
+  .ui__sum-v {
+    font-weight: 600;
+  }
+  .ui__sum-t {
+    color: var(--text-2);
+    font-size: 0.9em;
+  }
+  .ui__cta {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+    text-align: center;
+  }
+  .ui__toast {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 500;
+    box-shadow: var(--shadow-lift);
+  }
+  .ui__tick {
+    flex: none;
+    width: 14px;
+    height: 8px;
+    margin-top: -4px;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+  }
+  .ui__body {
+    padding-bottom: 64px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .panel--ui.is-active .ui__slot.is-on,
+    .is-live .panel--ui.is-active .ui__day.is-on {
+      animation: select 700ms var(--ease-spring) 500ms both;
+    }
+    .is-live .panel--ui.is-active .ui__toast {
+      animation: toast 700ms var(--ease-spring) 1500ms both;
+    }
+  }
+  @keyframes select {
+    from {
+      transform: scale(0.9);
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+      background: transparent;
+      color: var(--text);
+    }
+  }
+  @keyframes toast {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  /* ---------- 5. deploy log ---------- */
+  .term {
+    width: min(100%, 560px);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    box-shadow: var(--shadow-lift);
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .term__bar span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .term__bar span:last-of-type {
+    margin-right: 8px;
+  }
+  .term__log {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 16px 16px 6px;
+    font-size: clamp(0.6875rem, 0.64rem + 0.2vw, 0.8125rem);
+  }
+  .term__line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--text-2);
+  }
+  .term__k {
+    white-space: nowrap;
+  }
+  .term__line:first-child .term__k {
+    color: var(--text);
+  }
+  .term__lead {
+    flex: 1;
+    min-width: 12px;
+    border-bottom: 1px dotted var(--line-strong);
+    transform: translateY(-3px);
+  }
+  .term__v {
+    color: var(--success);
+  }
+  .term__live {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 16px;
+    color: var(--text-2);
+    font-size: 0.8125rem;
+  }
+  .term__stamp {
+    padding: 4px 10px 3px;
+    border: 2px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .panel--deploy.is-active .term__line,
+    .is-live .panel--deploy.is-active .term__live {
+      animation: type 360ms steps(4, end) both;
+      animation-delay: calc(250ms + var(--i) * 420ms);
+    }
+    .is-live .panel--deploy.is-active .term__stamp {
+      animation: stamp 640ms var(--ease-spring) both;
+      animation-delay: calc(400ms + var(--i) * 420ms);
+    }
+  }
+  @keyframes type {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      transform: rotate(-4deg) scale(1.5);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(-4deg);
+    }
+  }
+
+  /* ---------- phones: the sheet first, then only the current step and a dot row ---------- */
+  @media (max-width: 959px) {
+    .player__side {
+      order: 2;
+    }
+    .sheet {
+      order: 1;
+    }
+    .sheet__stage {
+      height: 340px;
+      margin: 10px;
+    }
+    .sketch {
+      width: min(100%, calc((340px - 24px) * 600 / 360));
+    }
+    .is-live .step:not([aria-current='step']) {
+      display: none;
+    }
+    .is-live .steps {
+      border-top-width: 1px;
+    }
+    .is-live .step[aria-current='step'] {
+      min-height: 9.5rem;
+    }
+    .controls__dots {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .controls__dot {
+      width: 7px;
+      height: 7px;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .controls__dot.is-on {
+      background: var(--accent);
+    }
+    .controls__dot.is-current {
+      width: 20px;
+    }
+  }
+  @media (max-width: 560px) {
+    .ui__body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px 12px 58px;
+    }
+    .ui__sum {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 2px 10px;
+      padding: 8px 10px;
+    }
+    .ui__sum-k {
+      display: none;
+    }
+    .ui__sum-t {
+      grid-row: 2;
+    }
+    .ui__cta {
+      grid-row: 1 / span 2;
+      grid-column: 2;
+      margin: 0;
+    }
+    .ui__slots {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 4px;
+    }
+    .ui__slot {
+      font-size: 0.75em;
+    }
+    .schema {
+      gap: 26px 22px;
+    }
+    .tbl__row {
+      padding: 2px 7px;
+    }
+    /* The gap between columns is too narrow for a label on a phone. */
+    .schema__rel--h {
+      display: none;
+    }
+    .tbl__name {
+      padding: 4px 7px;
+    }
+  }
+  /* No JS on a phone: the sheet only repeats the list. */
+  @media (max-width: 959px) {
+    .player:not(.is-live) .sheet {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/apps/base';
+
+  const player = document.querySelector<HTMLElement>('[data-player]');
+  if (player) {
+    const steps = [...player.querySelectorAll<HTMLElement>('[data-step]')];
+    const panels = [...player.querySelectorAll<HTMLElement>('[data-panel]')];
+    const dots = [...player.querySelectorAll<HTMLElement>('[data-dot]')];
+    const controls = player.querySelector<HTMLElement>('[data-controls]')!;
+    const playBtn = player.querySelector<HTMLButtonElement>('[data-play]')!;
+    const count = player.querySelector<HTMLElement>('[data-count]');
+    const sheetNo = player.querySelector<HTMLElement>('[data-sheet-no]');
+    const sheetPhase = player.querySelector<HTMLElement>('[data-sheet-phase]');
+    const n = steps.length;
+    const reduced = prefersReduced();
+
+    let active = 0;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let started = false;
+    let visible = false;
+    let focusInside = false;
+    /** Playback runs only when wanted, a third is on screen and focus is not inside. */
+    const sync = () => setPlaying(visible && wantsPlay && !focusInside);
+
+    /** Restart the current bar's CSS animation from zero. */
+    const restartBar = () => {
+      const bar = steps[active]?.querySelector<HTMLElement>('[data-bar]');
+      if (!bar) return;
+      bar.style.animation = 'none';
+      void bar.offsetWidth; // flush, so the next rule starts a fresh animation
+      bar.style.animation = '';
+    };
+
+    const render = (i: number) => {
+      active = (i + n) % n;
+      steps.forEach((s, k) => {
+        if (k === active) s.setAttribute('aria-current', 'step');
+        else s.removeAttribute('aria-current');
+        s.classList.toggle('is-past', k < active);
+      });
+      // Re-adding .is-active restarts the panel's own CSS animations (the ink draws again).
+      panels.forEach((p, k) => p.classList.toggle('is-active', k === active));
+      dots.forEach((d, k) => {
+        d.classList.toggle('is-on', k <= active);
+        d.classList.toggle('is-current', k === active);
+      });
+      if (count) count.textContent = String(active + 1);
+      if (sheetNo) sheetNo.textContent = String(active + 1).padStart(2, '0');
+      if (sheetPhase) sheetPhase.textContent = steps[active]?.dataset.phase ?? '';
+      // The deploy log rests longer so "Live" lands before the loop restarts.
+      player.style.setProperty('--dur', active === n - 1 ? 'calc(var(--step-ms) * 1.5)' : 'var(--step-ms)');
+      restartBar();
+    };
+
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      player.classList.toggle('is-playing', on);
+      playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+      playBtn.setAttribute('aria-label', wantsPlay ? 'Pause the walkthrough' : 'Play the walkthrough');
+    };
+
+    // The bar finishing is the clock: advance, loop after the last step.
+    player.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-bar]')) return;
+      render(active + 1);
+    });
+
+    const takeControl = (i: number) => {
+      wantsPlay = false;
+      setPlaying(false);
+      render(i);
+    };
+    steps.forEach((s, i) => s.querySelector('[data-step-btn]')?.addEventListener('click', () => takeControl(i)));
+    player.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    player.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    playBtn.addEventListener('click', () => {
+      wantsPlay = !wantsPlay;
+      if (wantsPlay && active === n - 1) render(0);
+      sync();
+    });
+    if (reduced) playBtn.hidden = true;
+
+    player.querySelectorAll<HTMLButtonElement>('button[disabled]').forEach((b) => (b.disabled = false));
+    player.classList.add('is-live');
+    controls.hidden = false;
+    render(0);
+    setPlaying(false);
+
+    // Play only while a third of the player is visible; the visitor's pause always wins.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          visible = e.isIntersecting && e.intersectionRatio >= 0.33;
+          if (visible && !started) {
+            started = true;
+            render(0);
+          }
+          sync();
+        },
+        { threshold: [0, 0.34] },
+      ).observe(player);
+    }
+    // Keyboard focus inside pauses the story (on phones autoplay would hide the focused step).
+    player.addEventListener('focusin', (e) => {
+      // The play button is never hidden, and pressing it means "play".
+      focusInside = !(e.target instanceof Element && e.target.matches('[data-play]'));
+      sync();
+    });
+    player.addEventListener('focusout', (e) => {
+      if (e.relatedTarget instanceof Node && player.contains(e.relatedTarget)) return;
+      focusInside = false;
+      sync();
+    });
+  }
+</script>

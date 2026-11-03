@@ -1,0 +1,242 @@
+---
+/**
+ * One case study as a "spec row": the headline figure set large on the left, what it is and
+ * who it is for in the middle, how it runs (the real flow) and the stack on the right.
+ * The h3's link is stretched over the whole card, so the card is one target and the link
+ * text stays the case name. The h3 shares `--vt: case-<slug>` with the case page h1.
+ *
+ * Props
+ *   study: CaseStudy
+ */
+import Field from './Field.astro';
+import StackMarks from './StackMarks.astro';
+import WorkflowDiagram from './WorkflowDiagram.astro';
+import { createLink } from '../../lib/link';
+import { fanOutOf } from '../../data/ai/content';
+import type { CaseStudy } from '../../data/ai/cases';
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+const link = createLink('ai');
+const href = link(`/work/${study.slug}/`);
+---
+
+<article class:list={['card', 'card--link', 'case', study.inProduction && 'case--live']}>
+  <div class="case__metric">
+    <p class="case__value"><Field value={study.headlineMetric.value} variant="metric" size="m" /></p>
+    <p class="case__value-label">{study.headlineMetric.label}</p>
+  </div>
+
+  <div class="case__main">
+    <p class="case__top">
+      <span class="case__role">{study.role}</span>
+      {
+        study.status && (
+          <span class:list={['pill', study.status.tone !== 'live' && 'pill--idle']}>{study.status.label}</span>
+        )
+      }
+    </p>
+    <h3 class="case__title case-vt" style={`--vt: case-${study.slug}`}>
+      <a class="case__link" href={href}>{study.name}</a>
+    </h3>
+    <p class="case__angle">{study.angle}</p>
+    <p class="case__client"><span class="case__k">For</span> {study.client}</p>
+  </div>
+
+  <div class="case__how">
+    <p class="case__k">How it runs</p>
+    <WorkflowDiagram
+      variant="mini"
+      nodes={study.diagram.nodes}
+      fanOut={fanOutOf(study)}
+      title={`How ${study.name} runs`}
+    />
+    <StackMarks tools={study.stack} size="s" label={`${study.name} stack`} />
+  </div>
+
+  <p class="case__cta" aria-hidden="true">
+    <span>Read the case study</span>
+    <span class="case__arrow">→</span>
+  </p>
+</article>
+
+<style>
+  .case {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    transition: background-color var(--dur-hover) var(--ease-out);
+  }
+  .case > * {
+    margin: 0;
+  }
+  .case p {
+    margin: 0;
+  }
+
+  /* Headline figure: numbers are typography (spec §1). */
+  .case__metric {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+  .case__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-metric);
+    line-height: 0.9;
+    letter-spacing: var(--tr-metric);
+    font-variant-numeric: tabular-nums;
+  }
+  .case__value-label {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .case__main {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .case__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+  .case__role {
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    color: var(--text-3);
+  }
+  .case__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-display-m);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--tr-heading);
+    view-transition-name: var(--vt);
+  }
+  .case__link {
+    text-decoration: underline 2px transparent;
+    text-underline-offset: 6px;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  /* The stretched link: the whole card is the target. */
+  .case__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .case__link:focus-visible {
+    outline: none; /* the ring is drawn on the card box below */
+    text-decoration-color: var(--accent-text);
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: var(--bw-focus) solid var(--focus);
+    outline-offset: 3px;
+  }
+  .case__angle {
+    font-size: var(--fs-lede);
+    line-height: 1.45;
+    color: var(--text-2);
+    max-inline-size: 40ch;
+  }
+  .case__client {
+    font: 400 var(--fs-mono-label) / 1.5 var(--font-mono);
+    color: var(--text-2);
+  }
+  .case__k {
+    display: inline-block;
+    margin-inline-end: 6px;
+    font: 500 var(--fs-mono-label) / 1.4 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .case__how {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--line);
+  }
+
+  .case__cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: var(--tap);
+    font-weight: 500;
+  }
+  .case__arrow {
+    display: inline-block;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .case:has(.case__link:focus-visible) .case__arrow {
+    transform: translateX(4px);
+  }
+  @media (hover: hover) {
+    .case:hover {
+      background: color-mix(in srgb, var(--surface-2) 70%, var(--surface-1));
+    }
+    .case:hover .case__link {
+      text-decoration-color: var(--accent-text);
+    }
+    .case:hover .case__arrow {
+      transform: translateX(4px);
+    }
+  }
+
+  /* Small screens: the name leads; the figure follows as a compact value + label row. */
+  @media (max-width: 1023px) {
+    .case__main {
+      order: -1;
+    }
+    .case__metric {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: baseline;
+      column-gap: var(--space-4);
+      padding-block-start: var(--space-4);
+      border-block-start: 1px solid var(--line);
+    }
+    .case__value {
+      font-size: var(--fs-display-l);
+    }
+  }
+
+  /* Desktop: one row per case, three columns. */
+  @media (min-width: 1024px) {
+    .case {
+      grid-template-columns: minmax(0, 2.6fr) minmax(0, 4fr) minmax(0, 3.4fr);
+      grid-template-rows: 1fr auto;
+      column-gap: var(--space-6);
+      row-gap: var(--space-4);
+      padding: var(--space-6);
+    }
+    .case__metric {
+      grid-row: 1 / span 2;
+      align-content: start;
+      padding-inline-end: var(--space-4);
+    }
+    .case__how {
+      padding-block-start: 0;
+      padding-inline-start: var(--space-6);
+      border-block-start: 0;
+      border-inline-start: 1px solid var(--line);
+    }
+    .case__cta {
+      grid-column: 2 / -1;
+      justify-content: flex-end;
+      padding-block-start: var(--space-3);
+      border-block-start: 1px solid var(--line);
+    }
+  }
+</style>

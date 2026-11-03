@@ -1,0 +1,766 @@
+---
+/**
+ * ★ Signature: the status board (brief §4 item 4), as an in-place player, NOT a scroll-jack (the
+ * owner rejected pinned scrolling). An example service moves from an incident to a steady state
+ * in five steps: incident → diagnose → fix the pipeline → rollback-safe deploy → steady state.
+ *
+ * Desktop: the steps on the left (the current one open, with a story-style progress bar), the
+ * ops screen on the right: four metric tiles with sparklines, a status pill and a log line.
+ * Phone: the screen first as stacked metric cards (2×2), then only the current step and a dot row.
+ * About one screen tall either way.
+ *
+ * Playback: starts when a third of the board is on screen. The current step's progress bar is a
+ * CSS animation and its `animationend` advances the story, so pausing (button, off screen, hidden
+ * tab) just pauses the bar. Clicking a step, prev or next hands control to the visitor (playback
+ * pauses; play resumes). Reduced motion: never autoplays, no play button, values switch instantly.
+ *
+ * Without JS: every step is open and the screen shows the finished (steady) state.
+ * Every number is ILLUSTRATIVE and says so twice: on the screen and under the controls.
+ * The screen is a visual duplicate (aria-hidden); the ordered list is the accessible content.
+ */
+import { BOARD_METRICS, BOARD_STEPS, SPARK_H, SPARK_W, formatMetric, sparkPath } from '../../data/cloud/board';
+
+const n = BOARD_STEPS.length;
+const last = BOARD_STEPS[n - 1]!;
+const STEP_MS = 4200;
+const unitText = (u: string) => (u === 'USD' ? '/ month' : u);
+const readout = (s: (typeof BOARD_STEPS)[number]) =>
+  BOARD_METRICS.map((m) => `${m.label} ${formatMetric(m.id, s.values[m.id])}${m.unit === 'USD' ? ' a month' : ` ${m.unit}`}`).join(', ');
+---
+
+<section class="section sbsec" id="board" aria-labelledby="board-title">
+  <div class="container head head--split">
+    <p class="eyebrow">Status board</p>
+    <h2 id="board-title">From incident to steady state, on one screen.</h2>
+    <p class="lede">
+      An example service through a typical engagement, step by step. The numbers are illustrative: they show the shape of
+      the work, not a client’s result.
+    </p>
+  </div>
+
+  <div class="container">
+    <div class="sb" data-board style={`--step-ms:${STEP_MS}ms`} data-pause-offscreen>
+      <div class="sb__side">
+        <ol class="steps" role="list">
+          {
+            BOARD_STEPS.map((s, i) => (
+              <li class="step" data-step={i} data-tone={s.status.tone}>
+                <button class="step__btn" type="button" data-step-btn={i}>
+                  <span class="step__idx mono" aria-hidden="true">
+                    0{i + 1}
+                  </span>
+                  <span class="step__title">{s.title}</span>
+                  <span class:list={['status', `status--${s.status.tone}`, 'step__status']}>{s.status.label}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="step__body">
+                  <div class="step__body-inner">
+                    <p class="step__text">{s.text}</p>
+                    <p class="visually-hidden">Illustrative readout: {readout(s)}.</p>
+                  </div>
+                </div>
+                <span class="step__bar" aria-hidden="true">
+                  <span data-bar />
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="controls" data-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="controls__count mono" aria-hidden="true"><span data-count>{n}</span> / {n}</span>
+          <span class="controls__dots" aria-hidden="true">
+            {BOARD_STEPS.map((_, i) => <span class="controls__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-sb-live></p>
+        <p class="sb__note text-3">Illustrative numbers for an example service. Not a client result.</p>
+      </div>
+
+      <div class="screen panel panel--ticks" aria-hidden="true" data-screen data-tone={last.status.tone}>
+        <div class="screen__head">
+          <span class="screen__title mono">example-app · production</span>
+          <span class="stamp">Illustrative</span>
+        </div>
+        <div class="screen__status">
+          <span class:list={['status', `status--${last.status.tone}`]} data-sb-status>{last.status.label}</span>
+          <span class="screen__step mono"><span data-sb-step>{last.title}</span></span>
+        </div>
+
+        <div class="tiles">
+          {
+            BOARD_METRICS.map((m) => (
+              <div class="tile" data-tile={m.id} data-tone={last.tones[m.id]}>
+                <span class="tile__label mono">{m.label}</span>
+                <span class="tile__value num">
+                  <span data-val>{formatMetric(m.id, last.values[m.id])}</span>
+                  <span class="tile__unit">{unitText(m.unit)}</span>
+                </span>
+                <svg class="tile__spark" viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} preserveAspectRatio="none">
+                  <path class="tile__spark-line" d={sparkPath(m.id, last.series[m.id])} data-spark />
+                </svg>
+              </div>
+            ))
+          }
+        </div>
+
+        <p class="screen__log mono">
+          <span class="screen__prompt" aria-hidden="true">›</span>
+          <span data-sb-log>{last.log}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" data-board-data set:html={JSON.stringify(BOARD_STEPS.map((s) => ({ title: s.title, status: s.status, values: s.values, tones: s.tones, log: s.log, spark: Object.fromEntries(BOARD_METRICS.map((m) => [m.id, sparkPath(m.id, s.series[m.id])])) }))).replace(/</g, '\\u003c')} />
+
+<style>
+  .sb {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(0.75rem, 0.4rem + 1.4vw, 1.75rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  @media (min-width: 960px) {
+    .sb {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: clamp(1.5rem, 0.5rem + 2.5vw, 3.5rem);
+      align-items: center;
+      padding: clamp(1.25rem, 0.8rem + 1.6vw, 2.5rem);
+    }
+  }
+  .sb__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: center;
+    min-width: 0;
+  }
+
+  /* ---------- steps (no JS: all open, a plain list) ---------- */
+  .steps {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+  }
+  .step {
+    position: relative;
+    padding: 12px 14px 14px;
+    border-radius: var(--radius-s);
+    transition:
+      background-color 420ms var(--ease-out-quint),
+      box-shadow 420ms var(--ease-out-quint);
+  }
+  .step__btn {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 10px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    color: var(--text);
+    border-radius: var(--radius-xs);
+  }
+  .step__idx {
+    color: var(--text-3);
+  }
+  .step__title {
+    font-family: var(--font-display);
+    font-stretch: 106%;
+    font-weight: 650;
+    font-size: clamp(1.0625rem, 0.98rem + 0.35vw, 1.25rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .step__status {
+    background: var(--bg);
+  }
+  .step__body {
+    padding-left: calc(2.25rem + 10px);
+  }
+  .step__text {
+    margin-top: 6px;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 50ch;
+  }
+  .step__bar {
+    display: none;
+  }
+  .sb__note {
+    font-size: 0.8125rem;
+  }
+
+  /* ---------- live (JS) ---------- */
+  .is-live .step__btn {
+    cursor: pointer;
+  }
+  .is-live .step.is-current {
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .is-live .step.is-current .step__idx {
+    color: var(--accent-text);
+  }
+  .is-live .step:not(.is-current) .step__title {
+    color: var(--text-2);
+  }
+  .is-live .step:not(.is-current) .step__status {
+    color: var(--text-3);
+  }
+  .is-live .step:not(.is-current) .step__status::before {
+    opacity: 0.5;
+  }
+  @media (hover: hover) {
+    .is-live .step:not(.is-current):hover {
+      background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    }
+  }
+  .is-live .step__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 560ms var(--ease-out-quint);
+  }
+  .is-live .step.is-current .step__body {
+    grid-template-rows: 1fr;
+  }
+  .is-live .step__body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .is-live .step__text {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-quint);
+  }
+  .is-live .step.is-current .step__text {
+    opacity: 1;
+    transform: none;
+    transition-delay: 120ms;
+  }
+  /* Story-style progress bar on the current step. Its animationend advances the story. */
+  .is-live .step__bar {
+    display: block;
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 5px;
+    height: 2px;
+    background: var(--line);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out-quint);
+  }
+  .is-live .step.is-current .step__bar {
+    opacity: 1;
+  }
+  .step__bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .is-live .step.is-current .step__bar span {
+    animation: bar-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-live .step__bar {
+      display: none !important;
+    }
+  }
+  .is-live:not(.is-playing) .step.is-current .step__bar span,
+  .is-live.is-paused .step.is-current .step__bar span,
+  .is-live.is-hidden-tab .step.is-current .step__bar span {
+    animation-play-state: paused;
+  }
+  @keyframes bar-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 2px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      box-shadow var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      box-shadow: inset 0 0 0 1px var(--text-3);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .controls__count {
+    white-space: nowrap;
+    margin-left: 6px;
+    color: var(--text-3);
+  }
+  .controls__dots {
+    display: none;
+  }
+
+  /* ---------- the ops screen ---------- */
+  .screen {
+    --tone: var(--ok);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    min-width: 0;
+    padding: clamp(14px, 0.8rem + 0.8vw, 24px);
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      inset 0 3px 0 0 var(--tone),
+      var(--shadow-lift);
+    transition: box-shadow 600ms var(--ease-out-quint);
+  }
+  .screen[data-tone='warn'] {
+    --tone: var(--warn);
+  }
+  .screen[data-tone='bad'] {
+    --tone: var(--bad);
+  }
+  .screen__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .screen__title {
+    color: var(--text-2);
+  }
+  .screen__status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .screen__status .status {
+    min-height: 32px;
+    font-size: 0.75rem;
+    background: color-mix(in srgb, var(--tone) 14%, var(--surface-2));
+    color: var(--text);
+    transition: background-color 600ms var(--ease-out-quint);
+  }
+  .screen__step {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .tile {
+    --t: var(--ok);
+    --t-text: var(--text);
+    position: relative;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 12px 14px 10px;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .tile[data-tone='warn'] {
+    --t: var(--warn);
+    --t-text: var(--warn-text);
+  }
+  .tile[data-tone='bad'] {
+    --t: var(--bad);
+    --t-text: var(--bad-text);
+  }
+  .tile::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: var(--t);
+    transition: background-color 600ms var(--ease-out-quint);
+  }
+  .tile__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+    font-size: 0.625rem;
+  }
+  .tile__value {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2.125rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--t-text);
+    transition: color 600ms var(--ease-out-quint);
+  }
+  .tile__unit {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .tile__spark {
+    width: 100%;
+    height: 36px;
+    overflow: visible;
+  }
+  .tile__spark-line {
+    fill: none;
+    stroke: var(--t);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    transition:
+      d 800ms var(--ease-out-quint),
+      stroke 600ms var(--ease-out-quint);
+  }
+  .screen__log {
+    display: flex;
+    gap: 8px;
+    min-height: 2.6em;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text-2);
+    overflow: hidden;
+  }
+  .screen__prompt {
+    color: var(--accent-text);
+  }
+  .screen__log [data-sb-log] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .screen__log .is-arriving {
+    animation: log-in var(--dur-arrive) var(--ease-spring) both;
+  }
+  @keyframes log-in {
+    from {
+      opacity: 0;
+      transform: translateY(60%);
+    }
+  }
+
+  /* ---------- phones: the screen first as stacked cards, then only the current step ---------- */
+  @media (max-width: 959px) {
+    .sb__side {
+      order: 2;
+    }
+    .screen {
+      order: 1;
+    }
+    .is-live .step:not(.is-current) {
+      display: none;
+    }
+    .is-live .step.is-current {
+      min-height: 8.75rem;
+    }
+    .controls__dots {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .controls__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .controls__dot.is-on {
+      background: var(--accent);
+    }
+    .controls__dot.is-current {
+      width: 20px;
+    }
+    .screen__log [data-sb-log] {
+      white-space: normal;
+    }
+  }
+  @media (max-width: 420px) {
+    .tiles {
+      gap: 8px;
+    }
+    .tile {
+      padding: 10px 10px 8px 12px;
+    }
+    .tile__spark {
+      height: 28px;
+    }
+    .step__btn {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+    .step__status {
+      grid-column: 2;
+      justify-self: start;
+    }
+    .step__body {
+      padding-left: calc(2rem + 10px);
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/cloud/base';
+
+  interface StepData {
+    title: string;
+    status: { label: string; tone: string };
+    values: Record<string, number>;
+    tones: Record<string, string>;
+    log: string;
+    spark: Record<string, string>;
+  }
+
+  const board = document.querySelector<HTMLElement>('[data-board]');
+  const dataEl = document.querySelector<HTMLScriptElement>('[data-board-data]');
+  if (board && dataEl) {
+    let DATA: StepData[] = [];
+    try {
+      DATA = JSON.parse(dataEl.textContent ?? '[]') as StepData[];
+    } catch {
+      DATA = [];
+    }
+    const steps = [...board.querySelectorAll<HTMLElement>('[data-step]')];
+    const dots = [...board.querySelectorAll<HTMLElement>('[data-dot]')];
+    const tiles = [...board.querySelectorAll<HTMLElement>('[data-tile]')];
+    const controls = board.querySelector<HTMLElement>('[data-controls]')!;
+    const playBtn = board.querySelector<HTMLButtonElement>('[data-play]')!;
+    const screen = board.querySelector<HTMLElement>('[data-screen]')!;
+    const statusEl = board.querySelector<HTMLElement>('[data-sb-status]')!;
+    const stepEl = board.querySelector<HTMLElement>('[data-sb-step]')!;
+    const logEl = board.querySelector<HTMLElement>('[data-sb-log]')!;
+    const count = board.querySelector<HTMLElement>('[data-count]');
+    const live = board.querySelector<HTMLElement>('[data-sb-live]');
+    const n = Math.min(steps.length, DATA.length);
+    const reduced = prefersReduced();
+
+    if (n > 0) {
+      let active = 0;
+      let playing = false;
+      let wantsPlay = !reduced;
+      let started = false;
+      const shown: Record<string, number> = {};
+      const rafs: Record<string, number> = {};
+
+      const fmt = (id: string, v: number) => {
+        if (id === 'errors') return v.toFixed(1);
+        if (id === 'cost') return `$${Math.round(v).toLocaleString('en-US')}`;
+        return Math.round(v).toLocaleString('en-US');
+      };
+
+      /** Tick a tile's number toward its target (out-expo, ~700ms). */
+      const tween = (id: string, el: HTMLElement, target: number) => {
+        cancelAnimationFrame(rafs[id] ?? 0);
+        const from = shown[id];
+        if (reduced || from === undefined || !Number.isFinite(from)) {
+          shown[id] = target;
+          el.textContent = fmt(id, target);
+          return;
+        }
+        const t0 = performance.now();
+        const dur = 700;
+        const step = (now: number) => {
+          const t = Math.min(1, (now - t0) / dur);
+          const e = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+          shown[id] = from + (target - from) * e;
+          el.textContent = fmt(id, t >= 1 ? target : shown[id]!);
+          if (t < 1) rafs[id] = requestAnimationFrame(step);
+        };
+        rafs[id] = requestAnimationFrame(step);
+      };
+
+      const restartBar = () => {
+        const bar = steps[active]?.querySelector<HTMLElement>('[data-bar]');
+        if (!bar) return;
+        bar.style.animation = 'none';
+        void bar.offsetWidth; // flush, so the next rule starts a fresh animation
+        bar.style.animation = '';
+      };
+
+      const render = (i: number) => {
+        active = (i + n) % n;
+        const d = DATA[active]!;
+        steps.forEach((s, k) => {
+          s.classList.toggle('is-current', k === active);
+          const b = s.querySelector('[data-step-btn]');
+          if (k === active) b?.setAttribute('aria-current', 'step');
+          else b?.removeAttribute('aria-current');
+        });
+        dots.forEach((dot, k) => {
+          dot.classList.toggle('is-on', k <= active);
+          dot.classList.toggle('is-current', k === active);
+        });
+        screen.dataset.tone = d.status.tone;
+        statusEl.className = `status status--${d.status.tone}`;
+        statusEl.textContent = d.status.label;
+        stepEl.textContent = d.title;
+        if (logEl.textContent !== d.log) {
+          logEl.textContent = d.log;
+          if (!reduced) {
+            logEl.classList.remove('is-arriving');
+            void logEl.offsetWidth;
+            logEl.classList.add('is-arriving');
+          }
+        }
+        tiles.forEach((t) => {
+          const id = t.dataset.tile ?? '';
+          t.dataset.tone = d.tones[id] ?? 'ok';
+          const val = t.querySelector<HTMLElement>('[data-val]');
+          if (val && d.values[id] !== undefined) tween(id, val, d.values[id]!);
+          const path = t.querySelector<SVGPathElement>('[data-spark]');
+          const dAttr = d.spark[id];
+          if (path && dAttr) {
+            path.setAttribute('d', dAttr);
+            // Where CSS `d` is supported this glides the line between shapes.
+            (path.style as CSSStyleDeclaration & { d?: string }).d = `path("${dAttr}")`;
+          }
+        });
+        if (count) count.textContent = String(active + 1);
+        board.style.setProperty('--dur', active === n - 1 ? 'calc(var(--step-ms) * 1.6)' : 'var(--step-ms)');
+        restartBar();
+      };
+
+      const setPlaying = (on: boolean) => {
+        playing = on;
+        board.classList.toggle('is-playing', on);
+        playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+        playBtn.setAttribute('aria-label', wantsPlay ? 'Pause the walkthrough' : 'Play the walkthrough');
+      };
+
+      board.addEventListener('animationend', (e) => {
+        if (!playing || reduced) return;
+        if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-bar]')) return;
+        render(active + 1);
+      });
+
+      // Announce only steps the visitor chose, once, after they stop clicking.
+      let liveTimer: number | undefined;
+      const takeControl = (i: number) => {
+        wantsPlay = false;
+        setPlaying(false);
+        render(i);
+        window.clearTimeout(liveTimer);
+        liveTimer = window.setTimeout(() => {
+          if (live) live.textContent = `Step ${active + 1} of ${n}: ${DATA[active]?.title ?? ''}`;
+        }, 450);
+      };
+      steps.forEach((s, i) => s.querySelector('[data-step-btn]')?.addEventListener('click', () => takeControl(i)));
+      board.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+      board.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+      playBtn.addEventListener('click', () => {
+        wantsPlay = !wantsPlay;
+        if (wantsPlay && active === n - 1) render(0);
+        setPlaying(wantsPlay);
+      });
+      if (reduced) playBtn.hidden = true;
+
+      board.classList.add('is-live');
+      controls.hidden = false;
+      // Seed the tweens from the server-rendered (finished) values, then show step 1.
+      tiles.forEach((t) => {
+        const id = t.dataset.tile ?? '';
+        const last = DATA[n - 1]?.values[id];
+        if (last !== undefined) shown[id] = last;
+      });
+      render(0);
+      setPlaying(false);
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(
+          ([e]) => {
+            if (!e) return;
+            const visible = e.isIntersecting;
+            if (visible && !started) {
+              started = true;
+              render(0);
+            }
+            setPlaying(visible && wantsPlay);
+          },
+          { threshold: 0.34 },
+        ).observe(board);
+      }
+    }
+  }
+</script>

@@ -1,0 +1,218 @@
+---
+/**
+ * Footer = the drawing's title block. Ruled cells for the call, the page links, contact and
+ * elsewhere; then the brand thread shared by every niche, the Clash Display "Faraz Ahmad"
+ * signature, sized in container units so it spans the content width at every breakpoint;
+ * then the sheet's legal strip (drawn by, sheet, year).
+ */
+import Arrow from './Arrow.astro';
+import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/apps/site';
+import { CALL_PROMISE } from '../../data/apps/content';
+import { nicheHost } from '../../niches';
+import { isHome, sectionHref } from '../../lib/apps/paths';
+
+const year = new Date().getFullYear();
+const host = (u: string) => new URL(u).host;
+---
+
+<footer class="foot">
+  <div class="container">
+    <div class="foot__block">
+      <div class="foot__cell foot__intro">
+        <p class="label foot__label">Next step</p>
+        <p class="foot__lead">Free 30-minute scoping call.</p>
+        <p class="foot__promise">{CALL_PROMISE}.</p>
+        <a class="btn foot__book" href={bookingUrl('footer')}>
+          <span>Book a scoping call</span>
+          <Arrow />
+        </a>
+      </div>
+
+      <nav class="foot__cell" aria-label="Footer">
+        <p class="label foot__label">{isHome(Astro.url) ? 'On this page' : 'Home sections'}</p>
+        <ul role="list">
+          {
+            NAV_LINKS.map((l) => (
+              <li>
+                <a class="foot__link" href={sectionHref(Astro.url, l.id)}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="foot__cell">
+        <p class="label foot__label">Contact</p>
+        <ul role="list">
+          <li><a class="foot__link" href={bookingUrl('footer-contact')}>{host(BOOKING_URL)}</a></li>
+          <li><a class="foot__link foot__email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></li>
+        </ul>
+      </div>
+
+      <div class="foot__cell">
+        <p class="label foot__label">Elsewhere</p>
+        <ul role="list">
+          {
+            [MAIN_SITE_URL].map((u) => (
+              <li>
+                <a class="foot__link" href={u} target="_blank" rel="noopener">
+                  {host(u)}
+                  <Arrow dir="up-right" />
+                  <span class="visually-hidden">(opens in a new tab)</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot__sig-wrap" data-reveal>
+      <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+    </div>
+
+    <div class="foot__legal">
+      <p><span class="label">Drawn by</span> <span class="mono">{PERSON_NAME}</span></p>
+      <p><span class="label">Sheet</span> <span class="mono">{nicheHost('apps')}</span></p>
+      <p><span class="label">Rev</span> <span class="mono">© <span class="num">{year}</span></span></p>
+      <a class="foot__link foot__top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    position: relative;
+    margin-top: var(--space-7);
+    padding-top: var(--space-7);
+    padding-bottom: calc(var(--space-4) + var(--sticky-cta-h) + 28px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--surface-1);
+    color: var(--text);
+  }
+  @media (min-width: 900px) {
+    .foot {
+      padding-bottom: var(--space-5);
+    }
+  }
+  /* Ruled title-block cells: borders between cells, never doubled. */
+  .foot__block {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1.5px solid var(--text);
+    border-left: 1px solid var(--line-strong);
+  }
+  .foot__cell {
+    min-width: 0;
+    padding: var(--space-5);
+    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .foot__intro {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .foot__cell:last-child {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 900px) {
+    .foot__block {
+      grid-template-columns: 1.6fr 1fr 1.3fr 1fr;
+    }
+    .foot__intro,
+    .foot__cell:last-child {
+      grid-column: auto;
+    }
+  }
+  .foot__label {
+    margin-bottom: var(--space-2);
+    color: var(--text-3);
+  }
+  .foot__lead {
+    font-family: var(--font-display);
+    font-weight: 760;
+    font-stretch: 106%;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .foot__promise {
+    max-width: 38ch;
+    color: var(--text-2);
+  }
+  .foot__book {
+    margin-top: var(--space-3);
+  }
+  .foot ul {
+    margin: 0;
+  }
+  .foot__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--tap);
+    max-width: 100%;
+    color: var(--text);
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .foot__link :global(.btn__arrow) {
+    width: 12px;
+    height: 12px;
+  }
+  .foot__link:focus-visible {
+    text-decoration-color: var(--accent);
+  }
+  @media (hover: hover) {
+    .foot__link:hover {
+      text-decoration-color: var(--accent);
+    }
+  }
+  .foot__email {
+    overflow-wrap: anywhere;
+  }
+
+  .foot__sig-wrap {
+    container-type: inline-size;
+    margin-top: var(--space-9);
+  }
+  .foot__signature {
+    font-family: var(--font-signature);
+    font-weight: 600;
+    /* "Faraz Ahmad" in Clash 600 at -0.035em spans 6.315em (measured for the ai footer). */
+    font-size: calc(100cqi / 6.29);
+    line-height: 0.82;
+    letter-spacing: -0.035em;
+    white-space: nowrap;
+    margin-left: -0.035em;
+    user-select: none;
+  }
+  .foot__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-6);
+    margin-top: var(--space-5);
+    padding-top: var(--space-2);
+    border-top: 1.5px solid var(--text);
+    color: var(--text-3);
+  }
+  .foot__legal p {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .foot__legal .mono {
+    color: var(--text-2);
+  }
+  .foot__top {
+    margin-left: auto;
+  }
+</style>

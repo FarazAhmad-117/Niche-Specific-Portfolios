@@ -1,0 +1,106 @@
+---
+/**
+ * Process (brief §4 item 9): Audit → Fix → Build engine → Grow → Report, set as a breadcrumb
+ * trail across one row on desktop (five steps, one complete row) and a numbered list on phones.
+ * "Report" loops back to "Audit": the trail's last chevron curls home.
+ */
+import { PROCESS } from '../../data/seo/content';
+---
+
+<section class="section section--sunk process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">Five steps, in this order.</h2>
+      <p class="lede">You can stop after any of them. The audit comes first; everything after it is decided with the fix list in hand.</p>
+    </div>
+
+    <ol class="trail" role="list" data-reveal-stagger>
+      {
+        PROCESS.map((s, i) => (
+          <li class="trail__step">
+            <p class="trail__crumb mono">
+              <span class="trail__n">{String(i + 1).padStart(2, '0')}</span>
+              <span class="trail__sep" aria-hidden="true">{i < PROCESS.length - 1 ? '›' : '↺'}</span>
+            </p>
+            <h3 class="trail__title">{s.title}</h3>
+            <p class="trail__text">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .trail {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+  .trail__step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-4);
+    row-gap: 4px;
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--line-strong);
+  }
+  .trail__crumb {
+    grid-row: span 2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-3);
+  }
+  .trail__n {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-weight: 600;
+  }
+  .trail__sep {
+    display: none;
+  }
+  .trail__title {
+    font-size: var(--fs-h3);
+  }
+  .trail__text {
+    max-width: 34ch;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  @media (min-width: 1000px) {
+    .trail {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+    .trail__step {
+      grid-template-columns: 1fr;
+      row-gap: var(--space-3);
+      padding-top: var(--space-5);
+    }
+    .trail__crumb {
+      grid-row: auto;
+    }
+    .trail__sep {
+      display: inline;
+      margin-left: auto;
+      font-size: 1.25rem;
+      color: var(--text-3);
+    }
+    .trail__step:hover .trail__n {
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+    .trail__n {
+      transition:
+        background-color var(--dur-hover) var(--ease-out),
+        color var(--dur-hover) var(--ease-out);
+    }
+  }
+</style>

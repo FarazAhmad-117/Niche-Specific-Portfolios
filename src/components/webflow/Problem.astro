@@ -1,0 +1,228 @@
+---
+/**
+ * The problem (brief §4 item 3): "Your site shouldn't need a developer to change a headline."
+ * Left: the story and the fears. Right: two navigator panels side by side, the class soup of
+ * a typical handoff (an illustrative example, labelled) and the same page with names that say
+ * what each thing is.
+ */
+import { PROBLEM } from '../../data/webflow/content';
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container problem__grid">
+    <div class="problem__copy">
+      <p class="eyebrow">The problem</p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede">{PROBLEM.body}</p>
+      <ul class="problem__fears" role="list" data-reveal-stagger>
+        {
+          PROBLEM.fears.map((f) => (
+            <li>
+              <span class="problem__x" aria-hidden="true" />
+              {f}
+            </li>
+          ))
+        }
+      </ul>
+      <p class="problem__resolution">{PROBLEM.resolution}</p>
+    </div>
+
+    <figure class="navs" aria-labelledby="navs-cap" data-reveal>
+      <div class="navs__pair">
+        <div class="navp navp--soup">
+          <p class="navp__head mono">
+            <span>Navigator</span>
+            <span class="tag">Typical handoff · example</span>
+          </p>
+          <ol class="navp__list" role="list">
+            {
+              PROBLEM.soup.map((name, i) => (
+                <li class="navp__row" style={`--d:${[0, 1, 2, 2, 3, 3, 1, 2][i] ?? 0}`}>
+                  <span class="navp__icon" aria-hidden="true" />
+                  <span class="navp__name">{name}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div class="navp navp--clean">
+          <p class="navp__head mono">
+            <span>Navigator</span>
+            <span class="tag tag--accent">How I hand it over</span>
+          </p>
+          <ol class="navp__list" role="list">
+            {
+              PROBLEM.clean.map((name, i) => (
+                <li class="navp__row" style={`--d:${[0, 1, 2, 3, 3, 3, 1, 2][i] ?? 0}`}>
+                  <span class="navp__icon" aria-hidden="true" />
+                  <span class="cls">{name}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+      <figcaption id="navs-cap" class="navs__cap text-3">
+        The same page, two navigators. Left is an illustrative handoff; right is the naming I use, so your team can find
+        and reuse what they need.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 1100px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .problem__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .problem__copy h2 {
+    max-width: 18ch;
+  }
+  .problem__fears {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+  }
+  .problem__fears li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-weight: 500;
+  }
+  /* A small struck-through frame: a broken element. */
+  .problem__x {
+    position: relative;
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid var(--line-strong);
+    transform: translateY(1px);
+  }
+  .problem__x::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    top: 50%;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background: var(--pop);
+    transform: rotate(-45deg);
+  }
+  .problem__resolution {
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    max-width: 26ch;
+  }
+
+  /* ---------- the two navigators ---------- */
+  .navs {
+    margin: 0;
+    padding: clamp(1rem, 0.6rem + 1.5vw, 1.75rem);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px) 0 0 / 20px 20px,
+      var(--canvas);
+  }
+  .navs__pair {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 600px) {
+    .navs__pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .navp {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+    padding: 10px 8px 12px;
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .navp--clean {
+    box-shadow:
+      inset 0 0 0 1.5px var(--accent),
+      var(--shadow-lift);
+  }
+  .navp__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 0 4px 8px;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-3);
+    font-size: 0.75rem;
+  }
+  .navp__head .tag {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+  }
+  .navp__list {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+  }
+  .navp__row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 28px;
+    padding: 3px 6px 3px calc(6px + var(--d) * 12px);
+    border-radius: var(--radius-xs);
+    font-size: 0.8125rem;
+  }
+  .navp__icon {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 2px;
+  }
+  .navp--clean .navp__icon {
+    border-color: var(--accent);
+  }
+  .navp__name {
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .navp--soup .navp__row:nth-child(odd) {
+    background: var(--surface-1);
+  }
+  .navp .cls {
+    font-size: 0.71875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .navs__cap {
+    margin-top: var(--space-3);
+    font-size: 0.8125rem;
+  }
+</style>

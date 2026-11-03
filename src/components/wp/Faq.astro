@@ -1,0 +1,155 @@
+---
+/**
+ * FAQ. Native <details>, so it works without JS and with find-in-page. Where the browser
+ * supports ::details-content and interpolate-size, the answer glides open on out-quint. The
+ * marker is a plus that turns into a pilcrow-like minus. Copy is shared with FAQPage JSON-LD.
+ */
+import { FAQ } from '../../data/wp/content';
+import { bookingUrl, folio } from '../../data/wp/site';
+---
+
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="head" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('faq')}</span>
+        <span class="folio__name">FAQ</span>
+        <span>Letters</span>
+      </p>
+    </div>
+    <div class="faq__grid">
+      <div class="faq__head">
+        <h2 id="faq-title">What people ask first.</h2>
+        <p class="lede">Something else? Ask it on the call; that’s what it’s for.</p>
+        <a class="btn btn--ghost btn--side" href={bookingUrl('faq')}>
+          <span>Book a scoping call</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="faq__list" data-reveal-stagger>
+        {
+          FAQ.map((f, i) => (
+            <details class="qa">
+              <summary class="qa__q">
+                <span class="qa__num mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="qa__text">{f.q}</span>
+                <span class="qa__mark" aria-hidden="true" />
+              </summary>
+              <p class="qa__a">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+    }
+  }
+  .faq__head {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .faq__list {
+    display: grid;
+    border-top: 1px solid var(--text);
+  }
+  .qa {
+    border-bottom: 1px solid var(--line);
+  }
+  .qa__q {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 64px;
+    padding: var(--space-4) 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    list-style: none;
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__num {
+    color: var(--text-3);
+  }
+  .qa[open] .qa__num {
+    color: var(--accent-text);
+  }
+  .qa__mark {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .qa__mark::before,
+  .qa__mark::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background: var(--text);
+    transition:
+      transform 520ms var(--ease-out-expo),
+      background-color 300ms var(--ease-out-quint);
+  }
+  .qa__mark::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__mark::before,
+  .qa[open] .qa__mark::after {
+    background: var(--accent);
+  }
+  .qa[open] .qa__mark::after {
+    transform: rotate(0deg);
+  }
+  .qa__a {
+    padding: 0 0 var(--space-5) calc(var(--space-4) + 2.5ch);
+    color: var(--text-2);
+    max-width: 64ch;
+  }
+  @media (max-width: 560px) {
+    .qa__a {
+      padding-left: 0;
+    }
+  }
+  @supports selector(::details-content) {
+    .qa {
+      interpolate-size: allow-keywords;
+    }
+    .qa::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 520ms var(--ease-out-quint),
+        content-visibility 520ms allow-discrete;
+    }
+    .qa[open]::details-content {
+      block-size: auto;
+    }
+  }
+</style>

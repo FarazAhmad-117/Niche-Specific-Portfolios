@@ -1,0 +1,34 @@
+---
+/**
+ * The honest note that sits next to illustrative (sample) figures. Renders only when the data
+ * it is given actually contains a SampleField, so it can never outlive the samples.
+ *
+ * Props
+ *   data: unknown        whatever the nearby markup displays (checked with hasSample())
+ *   text?: string        override the default wording
+ *   class?: string
+ */
+import { hasSample } from '../../data/ai/todo';
+
+interface Props {
+  data: unknown;
+  text?: string;
+  class?: string;
+}
+
+const {
+  data,
+  text = 'Illustrative figures, replaced with measured results before launch.',
+  class: className,
+} = Astro.props;
+const show = hasSample(data);
+---
+
+{
+  show && (
+    <p class:list={['sample-note', className]}>
+      <span class="sample-note__mark" aria-hidden="true" />
+      {text}
+    </p>
+  )
+}

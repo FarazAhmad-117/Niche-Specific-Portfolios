@@ -1,0 +1,90 @@
+---
+/**
+ * "Copy link" button. `href` is what the card opens (resolved to an absolute URL on click, see
+ * lib/all/copy.ts). `name` completes the accessible label. Hidden without JS: the links still work.
+ */
+interface Props {
+  href: string;
+  name: string;
+  class?: string;
+}
+const { href, name, class: className } = Astro.props;
+---
+
+<button type="button" class:list={['copy', className]} data-copy={href}>
+  <span class="copy__icons" aria-hidden="true">
+    <svg class="copy__icon copy__icon--idle" viewBox="0 0 20 20" width="16" height="16">
+      <rect x="6.5" y="6.5" width="10" height="10" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"></rect>
+      <path d="M13.5 4.2V4a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 4v7A1.5 1.5 0 0 0 5 12.5h.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+    </svg>
+    <svg class="copy__icon copy__icon--done" viewBox="0 0 20 20" width="16" height="16">
+      <path d="m4.5 10.5 3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </span>
+  <span data-copy-label>Copy link</span><span class="visually-hidden"> to {name}</span>
+</button>
+
+<style>
+  .copy {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) var(--ease-out-expo),
+      border-color var(--dur-hover) var(--ease-out-expo),
+      color 300ms var(--ease-out-expo);
+  }
+  :global(html.js) .copy {
+    display: inline-flex;
+  }
+  .copy__icons {
+    position: relative;
+    display: inline-grid;
+    width: 16px;
+    height: 16px;
+  }
+  .copy__icon {
+    grid-area: 1 / 1;
+    transition:
+      opacity 300ms var(--ease-out-expo),
+      transform 500ms var(--ease-out-expo);
+  }
+  .copy__icon--done {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .copy[data-state='copied'] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .copy[data-state='copied'] .copy__icon--idle {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .copy[data-state='copied'] .copy__icon--done {
+    opacity: 1;
+    transform: none;
+  }
+  @media (hover: hover) {
+    .copy:hover {
+      background: var(--surface-2);
+    }
+    .copy[data-state='copied']:hover {
+      background: var(--accent-soft);
+    }
+  }
+</style>
+
+<script>
+  import '../../lib/all/copy';
+</script>

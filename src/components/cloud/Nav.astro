@@ -1,0 +1,455 @@
+---
+/**
+ * Top bar: a full-width instrument strip with a hairline under it, not a floating pill.
+ * Tucks away while you scroll down and returns when you scroll up (out-quint), and never hides
+ * while it holds keyboard focus or its menu is open.
+ * Phone: brand, theme switch, and a menu button that drops a sheet with the links and the CTA.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_LINKS, PERSON_NAME, SUPPORT_HOURS, bookingUrl } from '../../data/cloud/site';
+import { BARS } from '../../lib/cloud/brand-mark';
+import { isHome, link, sectionHref } from '../../lib/cloud/paths';
+
+const href = (id: string) => sectionHref(Astro.url, id);
+const brandHref = isHome(Astro.url) ? '#top' : link('/');
+---
+
+<header class="nav" data-nav style="view-transition-name: site-nav">
+  <div class="nav__bar">
+    <a class="nav__brand" href={brandHref} aria-label={`${PERSON_NAME}, cloud and DevOps: home`}>
+      <svg class="nav__mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="currentColor"></rect>
+        {
+          BARS.map(([x, y, w, hh], i) => (
+            <rect
+              class:list={['nav__bar-rect', { 'nav__bar-rect--last': i === BARS.length - 1 }]}
+              x={x}
+              y={y}
+              width={w}
+              height={hh}
+              rx="1.2"
+              style={`--i:${i}`}
+            />
+          ))
+        }
+      </svg>
+      <span class="nav__name">{PERSON_NAME}</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <span class="nav__hours status">Support {SUPPORT_HOURS} · not on-call</span>
+      <ThemeToggle />
+      <a class="btn nav__cta" href={bookingUrl('nav')}>
+        <span class="btn__led" aria-hidden="true"></span>
+        <span>Book a call</span>
+      </a>
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-btn>
+        <span class="visually-hidden">Menu</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__sheet" id="nav-sheet" data-menu hidden>
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="nav__sheet-link" href={href(l.id)} data-menu-link>
+              <span class="nav__sheet-num mono" aria-hidden="true">
+                0{i + 1}
+              </span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="nav__sheet-hours mono">Support {SUPPORT_HOURS} · not on-call</p>
+    <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
+      <span class="btn__led" aria-hidden="true"></span>
+      <span>Book a scoping call</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-nav);
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    backdrop-filter: saturate(1.4) blur(16px);
+    box-shadow: inset 0 -1px 0 var(--line);
+    transform: translate3d(0, 0, 0);
+    transition:
+      transform 560ms var(--ease-out-quint),
+      background-color 400ms var(--ease-out-quint);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav {
+      background: var(--bg);
+    }
+  }
+  .nav.is-tucked {
+    transform: translate3d(0, calc(-100% - 2px), 0);
+  }
+  .nav__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    width: min(100% - 2 * var(--margin), var(--container-max));
+    min-height: var(--nav-h);
+    margin-inline: auto;
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: var(--radius-s);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__mark {
+    flex: none;
+  }
+  .nav__bar-rect {
+    fill: var(--bg);
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transition: transform 520ms var(--ease-spring);
+    transition-delay: calc(var(--i) * 45ms);
+  }
+  .nav__bar-rect--last {
+    fill: var(--accent);
+  }
+  @media (hover: hover) {
+    .nav__brand:hover .nav__bar-rect {
+      transform: scaleY(0.72);
+    }
+  }
+  .nav__name {
+    font-family: var(--font-display);
+    font-stretch: 108%;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 2px;
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 14px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition:
+      color var(--dur-hover) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .nav__link:focus-visible,
+  .nav__link[aria-current='location'] {
+    color: var(--text);
+  }
+  /* Current section: a short mint bar along the bottom edge of the strip. */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: -8px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 520ms var(--ease-out-quint);
+  }
+  .nav__link[aria-current='location']::after {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .nav__link:hover {
+      color: var(--text);
+      background: var(--surface-1);
+    }
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .nav__hours {
+    display: none;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  @media (min-width: 1320px) {
+    .nav__hours {
+      display: inline-flex;
+    }
+  }
+  .nav__cta {
+    display: none;
+    min-height: 42px;
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 900px) {
+    .nav__links,
+    .nav__cta {
+      display: flex;
+    }
+    .nav__links {
+      display: block;
+    }
+    .nav__end {
+      margin-left: 0;
+    }
+    .nav__menu-btn {
+      display: none !important;
+    }
+  }
+
+  .nav__menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    touch-action: manipulation;
+  }
+  .nav__burger {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+  .nav__burger span {
+    display: block;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* Without JS the menu button and theme switch cannot work: hide them and show the CTA.
+     The footer's "On this page" links stay as the way around. */
+  :global(html:not(.js)) .nav__menu-btn,
+  :global(html:not(.js)) .nav :global(.tt) {
+    display: none;
+  }
+  :global(html:not(.js)) .nav__cta {
+    display: inline-flex;
+  }
+  @media (max-width: 480px) {
+    :global(html:not(.js)) .nav__name {
+      display: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .nav__link::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
+  }
+
+  /* ---------- phone sheet ---------- */
+  .nav__sheet {
+    max-height: calc(100dvh - var(--nav-h) - 16px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    width: min(100% - 2 * var(--margin), var(--container-max));
+    margin: 0 auto;
+    padding: var(--space-2) 0 var(--space-5);
+    transform-origin: top center;
+  }
+  .nav__sheet ul {
+    display: grid;
+    margin: 0 0 var(--space-4);
+  }
+  .nav__sheet-link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    min-height: 58px;
+    padding: var(--space-3) var(--space-2);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-stretch: 110%;
+    font-weight: 700;
+    font-size: 1.625rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__sheet-num {
+    color: var(--accent-text);
+  }
+  .nav__sheet-hours {
+    margin-bottom: var(--space-3);
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .nav__sheet-cta {
+    width: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav__sheet.is-open {
+      animation: sheet-in 420ms var(--ease-out-quint) both;
+    }
+    .nav__sheet.is-open li {
+      animation: sheet-item 480ms var(--ease-out-quint) both;
+      animation-delay: calc(50ms + var(--i) * 45ms);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes sheet-item {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const btn = nav?.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const sheet = nav?.querySelector<HTMLElement>('[data-menu]');
+
+  if (nav && btn && sheet) {
+    let open = false;
+    const desktop = window.matchMedia('(min-width: 900px)');
+
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      if (open === next) return;
+      open = next;
+      btn.setAttribute('aria-expanded', String(next));
+      btn.querySelector('.visually-hidden')!.textContent = next ? 'Close menu' : 'Menu';
+      sheet.hidden = !next;
+      sheet.classList.toggle('is-open', next);
+      nav.classList.remove('is-tucked');
+      document.documentElement.classList.toggle('menu-open', next);
+      const m = getActiveMotion();
+      if (next) m?.stop();
+      else m?.start();
+      if (!next && restoreFocus) btn.focus();
+    };
+
+    btn.addEventListener('click', () => setOpen(!open));
+    sheet.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (open && e.key === 'Escape') setOpen(false, true);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !nav.contains(e.target)) setOpen(false);
+    });
+    nav.addEventListener('focusout', (e) => {
+      if (open && e.relatedTarget instanceof Node && !nav.contains(e.relatedTarget)) setOpen(false);
+    });
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Tuck on scroll down, return on scroll up. Small jitters (< 6px) are ignored.
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) < 6) return;
+        let keyboardFocus = false;
+        try {
+          keyboardFocus = nav.matches(':has(:focus-visible)');
+        } catch {
+          keyboardFocus = false;
+        }
+        const keep = open || keyboardFocus || y < 120;
+        nav.classList.toggle('is-tucked', !keep && dy > 0);
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    nav.addEventListener('focusin', () => {
+      try {
+        if (nav.matches(':has(:focus-visible)')) nav.classList.remove('is-tucked');
+      } catch {
+        nav.classList.remove('is-tucked');
+      }
+    });
+
+    // Current-section bar on desktop links.
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')];
+    const targets = links
+      .map((a) => document.getElementById(a.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    if ('IntersectionObserver' in window && targets.length) {
+      const visible = new Set<string>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+          const current = targets.find((t) => visible.has(t.id))?.id;
+          links.forEach((a) => {
+            if (a.hash.slice(1) === current) a.setAttribute('aria-current', 'location');
+            else a.removeAttribute('aria-current');
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

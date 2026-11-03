@@ -1,0 +1,91 @@
+---
+/**
+ * What you always get (brief §4 item 7): six items, a complete 3×2 sheet of ruled cells,
+ * each with a small line icon drawn in the site's ink.
+ */
+import { INCLUDED } from '../../data/apps/content';
+
+const ICON: Record<(typeof INCLUDED)[number]['key'], string> = {
+  repo: 'M6 4v16M6 8h6a4 4 0 0 1 4 4v8M6 4h0M16 20h0',
+  ci: 'M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4',
+  tests: 'M5 12l4 4L19 6M4 21h16',
+  staging: 'M3 7h18v10H3zM3 11h18M7 21h10',
+  demo: 'M4 5h16v11H4zM10 9l4 2.5-4 2.5zM8 20h8',
+  docs: 'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7',
+};
+---
+
+<section class="section included" id="included" aria-labelledby="included-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow"><span class="eyebrow__no">05</span>Always included</p>
+      <h2 id="included-title">What every build comes with.</h2>
+    </div>
+    <ul class="inc" role="list" data-reveal-stagger>
+      {
+        INCLUDED.map((it, i) => (
+          <li class="inc__cell">
+            <span class="inc__no mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <svg class="inc__icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+              <path d={ICON[it.key]} />
+            </svg>
+            <h3 class="inc__title">{it.title}</h3>
+            <p class="inc__text">{it.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .inc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    border-top: 1.5px solid var(--text);
+    border-left: 1px solid var(--line-strong);
+  }
+  @media (min-width: 640px) {
+    .inc {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .inc {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .inc__cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-5) var(--space-6);
+    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .inc__no {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    color: var(--text-3);
+  }
+  .inc__icon path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+  }
+  .inc__title {
+    margin-top: var(--space-2);
+  }
+  .inc__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 40ch;
+  }
+</style>

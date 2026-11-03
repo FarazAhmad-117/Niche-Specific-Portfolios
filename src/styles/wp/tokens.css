@@ -1,0 +1,321 @@
+/*
+ * wp niche design tokens. Concept "Editorial" (docs/brief/wp.md §6): WordPress began as
+ * publishing, so the site reads like a confident magazine. Paper, ink, hairline column rules,
+ * folios and section marks, one ultramarine accent (decisions.md › wp › Accent colour), and a
+ * proofreader's red used only for faults.
+ *
+ * Deliberately not the other niches: no console grid (ai), no bubbles or curves (funnels), no
+ * SERP or highlighter (seo), no rack hardware (ghl), no shelf or receipt (shopify). A newspaper
+ * page instead: rules, columns, drop caps, pull quotes, proof marks in the margin.
+ */
+
+/* ---------- fonts ---------- */
+/* Boska: a sharp, high-contrast editorial serif (Fontshare). Set like a magazine: medium for
+   heads, regular for smaller display lines, the italic for the accent word. Static cuts only. */
+@font-face {
+  font-family: "Boska";
+  src: url("../../assets/fonts/Boska-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Boska";
+  src: url("../../assets/fonts/Boska-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Boska";
+  src: url("../../assets/fonts/Boska-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Boska";
+  src: url("../../assets/fonts/Boska-MediumItalic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+/* Hanken Grotesk: a quiet, slightly warm grotesque for text; the variable cut covers 100–900. */
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("../../assets/fonts/HankenGrotesk-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/HankenGrotesk-Variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Clash Display";
+  src: url("../../assets/fonts/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* Metric-matched fallbacks, measured with fontTools:
+   Boska Medium: avg width 0.423 em, ascent 0.96, descent 0.25, gap 0.09 (vs Times New Roman 0.411)
+   Boska Medium Italic: 0.423 (vs Times New Roman Italic 0.410)
+   Hanken Grotesk: avg width 0.461 em, ascent 1.0, descent 0.303 (vs Arial 0.453) */
+@font-face {
+  font-family: "Boska Fallback";
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Times"), local("Liberation Serif"), local("Georgia");
+  size-adjust: 102.9%;
+  ascent-override: 93.3%;
+  descent-override: 24.3%;
+  line-gap-override: 8.7%;
+}
+@font-face {
+  font-family: "Boska Fallback";
+  font-style: italic;
+  src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT"), local("Times Italic"), local("Georgia Italic");
+  size-adjust: 103.1%;
+  ascent-override: 93.1%;
+  descent-override: 24.2%;
+  line-gap-override: 8.7%;
+}
+@font-face {
+  font-family: "Hanken Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 101.7%;
+  ascent-override: 98.3%;
+  descent-override: 29.8%;
+  line-gap-override: 0%;
+}
+
+/* ---------- primitives (never used directly in components) ---------- */
+:root {
+  --paper-0: #ffffff;
+  --paper-100: #fafaf7;
+  --paper-200: #f1f0ea;
+  --paper-300: #dedcd3;
+  --paper-600: #86847a;
+  --ink-950: #14141a;
+  --ink-700: #44434c;
+  --ink-600: #5c5b64;
+  --night-950: #0e0e13;
+  --night-900: #15151c;
+  --night-850: #1b1b24;
+  --night-800: #2a2a36;
+  --night-600: #6c6b7b;
+  --fog-300: #bfbdc7;
+  --fog-400: #9d9ba8;
+  --ultra-100: #e7e7ff;
+  --ultra-300: #a9a9ff;
+  --ultra-400: #8f8fff;
+  --ultra-500: #3a3aff;
+  --ultra-600: #2b2bd9;
+  --ultra-900: #22224a;
+  --red-100: #fbe6e2;
+  --red-300: #ff8f80;
+  --red-400: #ff6f5e;
+  --red-600: #c8402f;
+  --red-700: #b3261e;
+  --red-950: #3b1815;
+  --green-700: #1d7348;
+  --green-300: #6fd3a0;
+
+  --font-display: "Boska", "Boska Fallback", "Times New Roman", serif;
+  --font-body: "Hanken Grotesk", "Hanken Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "Courier New", monospace;
+  --font-signature: "Clash Display", var(--font-body);
+}
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--paper-100);
+  --surface-1: var(--paper-200);
+  --surface-2: var(--paper-0);
+  --line: var(--paper-300);
+  --line-strong: var(--paper-600); /* 3.3:1+ on every surface: inputs, control borders */
+  --text: var(--ink-950);
+  --text-2: var(--ink-700);
+  --text-3: var(--ink-600); /* 5.9:1 on surface-1, the dimmest text anywhere */
+  --accent: var(--ultra-500); /* 6.2:1 on paper; fills, rules, selection outlines */
+  --accent-soft: var(--ultra-100);
+  --accent-text: var(--ultra-600); /* 8.2:1 */
+  --on-accent: #ffffff; /* 6.5:1 on the ultramarine fill */
+  --fault: var(--red-700); /* proofreader's red, text: 6.2:1 */
+  --fault-line: var(--red-600);
+  --fault-bg: var(--red-100);
+  --success: var(--green-700);
+  --error: var(--red-700);
+  --focus: var(--ultra-600);
+  --btn-bg: var(--ink-950);
+  --btn-fg: var(--paper-100);
+  /* On inverted (--btn-bg) panels. */
+  --accent-inv: var(--ultra-300);
+  --focus-inv: var(--ultra-300);
+  --shadow-soft: 0 1px 0 rgb(20 20 26 / 0.04), 0 12px 28px -18px rgb(20 20 40 / 0.25);
+  --shadow-lift: 0 1px 0 rgb(20 20 26 / 0.05), 0 30px 60px -30px rgb(20 20 50 / 0.35);
+  --theme-color: #fafaf7;
+}
+
+/* ---------- DARK: written once for the explicit choice, once for the system preference ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--night-950);
+  --surface-1: var(--night-900);
+  --surface-2: var(--night-850);
+  --line: var(--night-800);
+  --line-strong: var(--night-600);
+  --text: #eeece5;
+  --text-2: var(--fog-300);
+  --text-3: var(--fog-400);
+  --accent: var(--ultra-400);
+  --accent-soft: var(--ultra-900);
+  --accent-text: var(--ultra-300);
+  --on-accent: var(--night-950);
+  --fault: var(--red-300);
+  --fault-line: var(--red-400);
+  --fault-bg: var(--red-950);
+  --success: var(--green-300);
+  --error: var(--red-300);
+  --focus: var(--ultra-300);
+  --btn-bg: #eeece5;
+  --btn-fg: var(--night-950);
+  --accent-inv: var(--ultra-600);
+  --focus-inv: var(--ultra-600);
+  --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 28px -18px rgb(0 0 0 / 0.7);
+  --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 30px 60px -30px rgb(0 0 0 / 0.85);
+  --theme-color: #0e0e13;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--night-950);
+    --surface-1: var(--night-900);
+    --surface-2: var(--night-850);
+    --line: var(--night-800);
+    --line-strong: var(--night-600);
+    --text: #eeece5;
+    --text-2: var(--fog-300);
+    --text-3: var(--fog-400);
+    --accent: var(--ultra-400);
+    --accent-soft: var(--ultra-900);
+    --accent-text: var(--ultra-300);
+    --on-accent: var(--night-950);
+    --fault: var(--red-300);
+    --fault-line: var(--red-400);
+    --fault-bg: var(--red-950);
+    --success: var(--green-300);
+    --error: var(--red-300);
+    --focus: var(--ultra-300);
+    --btn-bg: #eeece5;
+    --btn-fg: var(--night-950);
+    --accent-inv: var(--ultra-600);
+    --focus-inv: var(--ultra-600);
+    --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 28px -18px rgb(0 0 0 / 0.7);
+    --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 30px 60px -30px rgb(0 0 0 / 0.85);
+    --theme-color: #0e0e13;
+  }
+}
+
+/* ---------- type scale ---------- */
+:root {
+  /* Masthead scale, not poster scale: Boska carries authority at modest sizes. */
+  --fs-hero: clamp(2.625rem, 1.55rem + 4.3vw, 5.5rem);
+  --fs-h2: clamp(2rem, 1.45rem + 2.2vw, 3.5rem);
+  --fs-h3: clamp(1.1875rem, 1.12rem + 0.3vw, 1.375rem);
+  --fs-lede: clamp(1.125rem, 1.06rem + 0.3vw, 1.3125rem);
+  --fs-body: clamp(1rem, 0.98rem + 0.1vw, 1.0625rem);
+  --fs-small: 0.9375rem;
+  --fs-mono: 0.75rem;
+
+  /* Generous for multi-line heads; high-contrast serifs need air between lines. */
+  --lh-display: 1.04;
+  --lh-heading: 1.08;
+  --lh-body: 1.62;
+
+  --tr-display: -0.02em;
+  --tr-heading: -0.018em;
+  /* Display weights: medium for heads, regular for smaller display lines. */
+  --fw-head: 500;
+  --fw-display: 400;
+  --tr-mono: 0.02em;
+
+  --measure: 64ch;
+  --measure-lede: 52ch;
+}
+
+/* ---------- space, shape, layering ---------- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  /* Applied top and bottom, so the gap between two sections is twice this. */
+  --space-section: clamp(3.5rem, 2.6rem + 4vw, 7rem);
+
+  /* Print shapes: square-ish corners, hairlines; never pills or blobs. */
+  --radius-xs: 2px;
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 10px;
+  --radius-xl: 14px;
+
+  --z-raised: 1;
+  --z-nav: 50;
+  --z-sticky-cta: 60;
+  --z-menu: 80;
+  --z-skip: 100;
+
+  --nav-h: 64px;
+  --tap: 44px;
+  --sticky-cta-h: 54px;
+  --anchor-gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+
+  --margin: clamp(1rem, 0.4rem + 3vw, 4rem);
+  --container-max: 1240px;
+}
+
+/*
+ * ---------- motion ----------
+ * One curve per job:
+ *  - out-quint    reveals and long glides (lines rising, rules drawing in)
+ *  - out-expo     hover snaps (cards, arrows, selection outlines)
+ *  - in-out-quart wipes and page transitions where both ends are on screen
+ *  - spring       something arriving (a proof mark, a block toolbar): a real damped spring
+ *                 (zeta 0.62, ~8% overshoot) sampled into linear(); a back-out bezier otherwise
+ *  - sine         ambient loops (the caret blink, the update badge breathe)
+ */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-press: 140ms;
+  --dur-hover: 260ms;
+  --dur-reveal: 900ms;
+  --dur-draw: 1100ms;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.046, 0.1589, 0.3069, 0.4655, 0.6176, 0.7521, 0.8634, 0.9496, 1.0115, 1.0519, 1.0744, 1.0831,
+      1.0817, 1.0737, 1.062, 1.0489, 1.0359, 1.0241, 1.0142, 1.0063, 1.0005, 0.9966, 0.9942, 0.9932, 0.9936,
+      0.9956, 0.9977, 0.9993, 1.0002, 1.0006, 1
+    );
+  }
+}

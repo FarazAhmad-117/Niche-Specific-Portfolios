@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/ads/Layout.astro';
+import Hero from '../../components/ads/Hero.astro';
+import Proof from '../../components/ads/Proof.astro';
+import Problem from '../../components/ads/Problem.astro';
+import RulesEngine from '../../components/ads/RulesEngine.astro';
+import Cases from '../../components/ads/Cases.astro';
+import Offers from '../../components/ads/Offers.astro';
+import Included from '../../components/ads/Included.astro';
+import Process from '../../components/ads/Process.astro';
+import About from '../../components/ads/About.astro';
+import Faq from '../../components/ads/Faq.astro';
+import FinalCta from '../../components/ads/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/ads/seo';
+import { abs, homeLd } from '../../lib/ads/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4, testimonials omitted): what this is → facts → why the platforms won't
+ * do it → watch rules act (signature) → proof → how to buy →
+ * what's always included → how it runs → who builds it → questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so both linked cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <RulesEngine />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

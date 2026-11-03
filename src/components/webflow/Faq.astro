@@ -1,0 +1,140 @@
+---
+/**
+ * FAQ (brief §5 plus the certification question, answered honestly). Native <details>, so it
+ * works without JS; the open answer slides down (grid-rows, out-quint) where supported.
+ * Same copy feeds the FAQPage JSON-LD.
+ */
+import { FAQ } from '../../data/webflow/content';
+---
+
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+  <div class="container faq__grid">
+    <div class="faq__head">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title">Questions before a call.</h2>
+      <p class="text-2">Anything else, ask on the call. It’s free and there’s no pitch deck.</p>
+    </div>
+    <div class="faq__list">
+      {
+        FAQ.map((f, i) => (
+          <details class="qa" name="faq">
+            <summary class="qa__q">
+              <span class="qa__num mono" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="qa__text">{f.q}</span>
+              <span class="qa__icon" aria-hidden="true" />
+            </summary>
+            <div class="qa__a">
+              <p>{f.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-6) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--nav-h) + 40px);
+    }
+  }
+  .faq__head {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .faq__head h2 {
+    max-width: 14ch;
+  }
+  .faq__list {
+    border-top: 1px solid var(--line-strong);
+  }
+  .qa {
+    border-bottom: 1px solid var(--line);
+  }
+  .qa__q {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 64px;
+    padding: var(--space-3) var(--space-2);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    cursor: pointer;
+    list-style: none;
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__num {
+    color: var(--text-3);
+  }
+  .qa[open] .qa__num {
+    color: var(--accent-text);
+  }
+  /* A plus drawn from two bars; the vertical bar folds away when open. */
+  .qa__icon {
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+  .qa__icon::before,
+  .qa__icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 14px;
+    height: 2px;
+    background: currentColor;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .qa__icon::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__icon::after {
+    transform: rotate(0deg);
+  }
+  @media (hover: hover) {
+    .qa__q:hover .qa__text {
+      text-decoration: underline 1px var(--accent);
+      text-underline-offset: 0.25em;
+    }
+  }
+  .qa__a {
+    padding: 0 var(--space-2) var(--space-5) calc(var(--space-2) + 2.4rem);
+    color: var(--text-2);
+    max-width: 68ch;
+  }
+  @supports (interpolate-size: allow-keywords) {
+    @media (prefers-reduced-motion: no-preference) {
+      .qa {
+        interpolate-size: allow-keywords;
+      }
+      .qa::details-content {
+        height: 0;
+        overflow: clip;
+        transition:
+          height 520ms var(--ease-out-quint),
+          content-visibility 520ms allow-discrete;
+      }
+      .qa[open]::details-content {
+        height: auto;
+      }
+    }
+  }
+</style>

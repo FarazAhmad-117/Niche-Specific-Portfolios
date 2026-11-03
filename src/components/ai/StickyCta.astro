@@ -1,0 +1,137 @@
+---
+/**
+ * Sticky mobile CTA bar (< 1024px only; spec §4.4). Rendered once by the Layout.
+ * A floating ink capsule, inset from the screen edges and the home indicator.
+ * Shows once the first [data-cta-sentinel] (hero bottom, or the Layout fallback) has
+ * scrolled above the viewport; hides while #contact is in view and while the menu is open.
+ * No props.
+ */
+import { bookingUrl } from '../../data/ai/site';
+import Button from './Button.astro';
+---
+
+<div class="sticky-cta" data-sticky-cta>
+  <div class="sticky-cta__bar theme-ink">
+    <p class="sticky-cta__text">
+      <span class="sticky-cta__title">Free scoping call</span>
+      <span class="sticky-cta__meta">30 minutes · leave with a plan</span>
+    </p>
+    <Button href={bookingUrl('sticky')} size="s" arrow={false}>Book a call</Button>
+  </div>
+</div>
+
+<style>
+  .sticky-cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-sticky-cta);
+    padding: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    pointer-events: none;
+  }
+  .sticky-cta__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    max-width: 560px;
+    min-height: var(--sticky-cta-h);
+    margin-inline: auto;
+    padding: 10px 10px 10px 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px -12px rgb(17 17 16 / 0.45);
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(calc(100% + 24px));
+    visibility: hidden;
+    transition:
+      transform 220ms var(--ease-in),
+      opacity 220ms var(--ease-in),
+      visibility 0s linear 220ms;
+  }
+  /* The dark-theme console rule draws only top and bottom borders; keep the full capsule. */
+  .sticky-cta .sticky-cta__bar.theme-ink {
+    border: 1px solid var(--line-strong);
+  }
+  .sticky-cta:global(.is-visible) .sticky-cta__bar {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition:
+      transform 520ms var(--ease-emph),
+      opacity 240ms var(--ease-out),
+      visibility 0s;
+  }
+  :global(html.menu-open) .sticky-cta .sticky-cta__bar {
+    opacity: 0;
+    transform: translateY(calc(100% + 24px));
+    visibility: hidden;
+  }
+  .sticky-cta :global(.btn) {
+    border-radius: 9px;
+  }
+  .sticky-cta__text {
+    display: grid;
+    line-height: 1.25;
+    min-width: 0;
+  }
+  .sticky-cta__title {
+    font-weight: 500;
+    font-size: 0.9375rem;
+  }
+  .sticky-cta__meta {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sticky-cta__bar,
+    .sticky-cta:global(.is-visible) .sticky-cta__bar {
+      transform: none;
+      transition: none;
+    }
+    :global(html.menu-open) .sticky-cta .sticky-cta__bar {
+      transform: none;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sticky-cta {
+      display: none;
+    }
+  }
+  @media print {
+    .sticky-cta {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-sticky-cta]');
+  const sentinel = document.querySelector('[data-cta-sentinel]');
+  if (bar && sentinel && 'IntersectionObserver' in window) {
+    let pastHero = false;
+    let contactInView = false;
+    const update = () => {
+      bar.classList.toggle('is-visible', pastHero && !contactInView);
+      // Lets the nav button step back while the hero's own primary CTA is on screen.
+      document.documentElement.classList.toggle('past-hero', pastHero);
+    };
+
+    new IntersectionObserver(([e]) => {
+      if (!e) return;
+      pastHero = !e.isIntersecting && e.boundingClientRect.top < 0;
+      update();
+    }).observe(sentinel);
+
+    const contact = document.getElementById('contact');
+    if (contact) {
+      new IntersectionObserver(([e]) => {
+        contactInView = !!e?.isIntersecting;
+        update();
+      }).observe(contact);
+    }
+  }
+</script>

@@ -1,0 +1,197 @@
+---
+/**
+ * Services, set as a ruled contents page rather than a card grid: five offers, one per row,
+ * each with who it's for, what it is, what you get, and "Scoped on a call" (no prices, per
+ * decisions.md). The WooCommerce note closes the list. Each row is a #offer-<id> anchor, so
+ * the hero's "Get a site health check" lands on the audit.
+ */
+import { OFFERS, WOO_NOTE } from '../../data/wp/content';
+import { bookingUrl, folio } from '../../data/wp/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('services')}</span>
+        <span class="folio__name">Services</span>
+        <span>No price list</span>
+      </p>
+      <h2 id="services-title">Five ways in. Pick the one that sounds like your site.</h2>
+      <p class="lede">Every one starts with a free 30-minute call. Scope and cost are agreed there, before anything is touched.</p>
+    </div>
+
+    <ol class="ledger" role="list" data-reveal-stagger>
+      {
+        OFFERS.map((o, i) => (
+          <li class="offer" id={`offer-${o.id}`}>
+            <span class="offer__num" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div class="offer__name-wrap">
+              <h3 class="offer__name">{o.name}</h3>
+              <p class="offer__for">{o.forWho}</p>
+            </div>
+            <div class="offer__body">
+              <p class="offer__desc">{o.description}</p>
+              <ul class="offer__gets" role="list">
+                {o.gets.map((g) => (
+                  <li>{g}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="offer__end">
+              <span class="stamp">{o.priceLine}</span>
+              <a class="offer__cta" href={bookingUrl(`offer-${o.id}`)}>
+                {o.cta}
+                <span class="offer__arrow" aria-hidden="true">
+                  →
+                </span>
+                <span class="visually-hidden">: {o.name}</span>
+              </a>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="offers__woo">
+      <span class="stamp stamp--accent">WooCommerce</span>
+      {WOO_NOTE}
+    </p>
+  </div>
+</section>
+
+<style>
+  .ledger {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  .offer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3) var(--space-5);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .offer {
+      grid-template-columns: 3.5rem minmax(0, 1fr) minmax(0, 1.25fr) 14.5rem;
+      align-items: start;
+      gap: var(--space-6);
+    }
+  }
+  .offer__num {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--accent-text);
+  }
+  .offer__name-wrap {
+    display: grid;
+    gap: 6px;
+  }
+  .offer__name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.375rem, 1.22rem + 0.6vw, 1.8125rem);
+    line-height: 1.12;
+    letter-spacing: -0.018em;
+  }
+  .offer__for {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    font-style: italic;
+    line-height: 1.4;
+    max-width: 34ch;
+  }
+  .offer__body,
+  .offer__end {
+    grid-column: 2;
+  }
+  @media (min-width: 1024px) {
+    .offer__body,
+    .offer__end {
+      grid-column: auto;
+    }
+  }
+  .offer__body {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .offer__desc {
+    line-height: 1.55;
+    max-width: 52ch;
+  }
+  .offer__gets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 0;
+    color: var(--text-2);
+    font-size: 0.875rem;
+  }
+  .offer__gets li {
+    position: relative;
+    padding-left: 14px;
+  }
+  .offer__gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 6px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+  .offer__end {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  @media (min-width: 1024px) {
+    .offer__end {
+      justify-items: end;
+      text-align: right;
+    }
+  }
+  .offer__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: underline 1px var(--line-strong);
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .offer__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  .offer__cta:focus-visible {
+    text-decoration-color: var(--accent);
+  }
+  @media (hover: hover) {
+    .offer__cta:hover {
+      text-decoration-color: var(--accent);
+    }
+    .offer__cta:hover .offer__arrow {
+      transform: translateX(4px);
+    }
+  }
+  .offers__woo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: var(--space-5);
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

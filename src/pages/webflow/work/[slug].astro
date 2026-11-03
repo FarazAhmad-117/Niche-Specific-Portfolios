@@ -1,0 +1,608 @@
+---
+/**
+ * Case study page: /work/<slug>/.
+ *
+ * Reading order: what it is (hero box, which the home card morphs into) → the problem → what
+ * I built (numbered layers) → how it runs (the real motion spec of this site, or, for the
+ * example, the Figma-layer-to-class map and the collection plan) → the next case (which
+ * morphs too) → contact.
+ */
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../layouts/webflow/Layout.astro';
+import FinalCta from '../../../components/webflow/FinalCta.astro';
+import { CASES, nextCase, type WebflowCase } from '../../../data/webflow/cases';
+import { COLLECTION, TREE } from '../../../data/webflow/build';
+import { assertMeta } from '../../../data/webflow/seo';
+import { abs, caseLdGraph } from '../../../lib/webflow/jsonld';
+import { caseHref, link } from '../../../lib/webflow/paths';
+import { bookingUrl } from '../../../data/webflow/site';
+
+export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: WebflowCase;
+}
+const { study: c } = Astro.props;
+assertMeta(`case ${c.id}`, c.seo);
+const next = nextCase(c.id);
+
+/** The real curves in src/styles/webflow/tokens.css, one job each. */
+const CURVES = [
+  { name: 'out-quint', css: 'cubic-bezier(.22, 1, .36, 1)', p: [0.22, 1, 0.36, 1], job: 'Reveals and long glides' },
+  { name: 'out-expo', css: 'cubic-bezier(.16, 1, .3, 1)', p: [0.16, 1, 0.3, 1], job: 'Hover snaps, selection boxes' },
+  { name: 'in-out-quart', css: 'cubic-bezier(.76, 0, .24, 1)', p: [0.76, 0, 0.24, 1], job: 'Wipes, playheads, page pans' },
+  { name: 'spring', css: 'linear(…) · zeta 0.62', p: [0.34, 1.4, 0.64, 1], job: 'Things arriving: chips, handles' },
+  { name: 'in-out-sine', css: 'cubic-bezier(.37, 0, .63, 1)', p: [0.37, 0, 0.63, 1], job: 'Ambient loops only' },
+] as const;
+const curvePath = ([x1, y1, x2, y2]: readonly number[]) =>
+  `M0 100 C${x1! * 100} ${100 - y1! * 100} ${x2! * 100} ${100 - y2! * 100} 100 0`;
+const GATE = '(min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)';
+const PLAN = [
+  { name: COLLECTION.name, fields: COLLECTION.fields.map((f) => f.field) },
+  { name: 'Team', fields: ['Name', 'Role', 'Photo'] },
+  { name: 'Case studies', fields: ['Name', 'Client', 'Summary', 'Cover'] },
+];
+---
+
+<Layout
+  title={c.seo.title}
+  description={c.seo.description}
+  path={`/work/${c.id}/`}
+  image={abs(`og/${c.id}.png`)}
+  jsonLd={caseLdGraph(c)}
+  expect="next-title"
+>
+  <section class="chero" id="top" data-hero aria-labelledby="case-title">
+    <div class="container">
+      <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
+        <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
+      </a>
+      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+        <div class="chero__main">
+          <div class="chero__top">
+            {c.example ? <span class="tag">Example · illustrative</span> : c.status && <span class="tag tag--live">{c.status}</span>}
+            <span class="chero__kicker mono">{c.kicker}</span>
+          </div>
+          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <p class="chero__title">{c.title}</p>
+          <p class="lede chero__text">{c.text}</p>
+          {c.pending && <span class="todo">{c.pending}</span>}
+        </div>
+        <ul class="chero__facts" role="list">
+          {
+            c.facts.map((f, i) => (
+              <li>
+                <span class="chero__fnum mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {f}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="problem-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">The problem</p>
+      <div>
+        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+        <p class="lede">{c.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="built-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">{c.example ? 'The method' : 'What I built'}</p>
+      <div>
+        <h2 id="built-title" class="cblock__h2">{c.example ? 'Step by step, as I’d run it.' : 'The build, layer by layer.'}</h2>
+        <ol class="built" role="list" data-reveal-stagger>
+          {
+            c.built.map((b, i) => (
+              <li class="built__item">
+                <span class="built__num mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="built__title">{b.title}</h3>
+                <p class="built__text">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock cblock--tint" aria-labelledby="runs-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">{c.example ? 'The plan' : 'The motion spec'}</p>
+      <div class="runs">
+        <h2 id="runs-title" class="cblock__h2">
+          {c.example ? 'Layers in, classes and collections out.' : 'Five curves, one job each.'}
+        </h2>
+        {
+          c.example ? (
+            <div class="runs__visual">
+              <div class="panel">
+                <p class="panel__label mono">Figma layer → class · example</p>
+                <ul class="map" role="list">
+                  {TREE.map((r) => (
+                    <li>
+                      <span class="map__from">{r.figma}</span>
+                      <span class="map__arrow" aria-hidden="true">
+                        →
+                      </span>
+                      <span class="visually-hidden">becomes</span>
+                      <span class="cls">{r.cls}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div class="panel">
+                <p class="panel__label mono">CMS collections · example plan</p>
+                <ul class="plan" role="list">
+                  {PLAN.map((p) => (
+                    <li>
+                      <span class="plan__name">{p.name}</span>
+                      <span class="plan__fields">
+                        {p.fields.map((f) => (
+                          <span class="cls cls--plain">{f}</span>
+                        ))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p class="panel__foot text-3">Names are an example; the method is the one I use.</p>
+              </div>
+            </div>
+          ) : (
+            <div class="runs__visual">
+              <ul class="curves" role="list">
+                {CURVES.map((cv) => (
+                  <li class="curve">
+                    <svg class="curve__plot" viewBox="-6 -22 112 132" width="84" height="99" aria-hidden="true">
+                      <path class="curve__grid" d="M0 100H100M0 0H100M0 0V100M100 0V100" />
+                      <path class="curve__line" d={curvePath(cv.p)} />
+                    </svg>
+                    <span class="curve__text">
+                      <span class="curve__name mono">{cv.name}</span>
+                      <span class="curve__job">{cv.job}</span>
+                      <span class="curve__css mono">{cv.css}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div class="panel">
+                <p class="panel__label mono">When the motion library loads</p>
+                <code class="gate mono">{GATE}</code>
+                <p class="panel__text">
+                  Lenis and GSAP ScrollTrigger load after the page is idle, and only when that query matches. Everywhere else
+                  the page is plain CSS motion, and reduced motion turns that off too.
+                </p>
+                <p class="panel__foot text-3">The spring is drawn with its bezier fallback; browsers with linear() get the real spring.</p>
+              </div>
+            </div>
+          )
+        }
+        <div class="now inverse">
+          <p class="now__label mono">{c.runsNow.label}</p>
+          <p class="now__text">{c.runsNow.text}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cnext" aria-labelledby="next-title">
+    <div class="container">
+      <p class="eyebrow">Next case</p>
+      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+        <span class="cnext__kicker mono">{next.kicker}</span>
+        <span id="next-title" class="cnext__name">{next.name}</span>
+        <span class="cnext__title">{next.title}</span>
+        <span class="cnext__go" aria-hidden="true">→</span>
+      </a>
+      <p class="cnext__or">
+        Want this for your site? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
+      </p>
+    </div>
+  </section>
+
+  <FinalCta />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    padding-top: calc(var(--nav-h) + clamp(2rem, 1.5rem + 3vw, 4.5rem));
+    padding-bottom: var(--space-6);
+    background:
+      radial-gradient(52rem 32rem at 92% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 70%),
+      var(--bg);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    margin-bottom: var(--space-4);
+    color: var(--text-2);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chero__back-arrow {
+    display: inline-block;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .chero__back:hover {
+      color: var(--text);
+    }
+    .chero__back:hover .chero__back-arrow {
+      transform: translateX(-4px);
+    }
+  }
+  .chero__panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .chero__panel {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  .chero__main {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    align-content: start;
+  }
+  .chero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .chero__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .chero__name {
+    font-size: clamp(2rem, 1.2rem + 3.4vw, 4.25rem);
+    line-height: 1.04;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .chero__title {
+    font-size: clamp(1.1875rem, 1.05rem + 0.6vw, 1.625rem);
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 30ch;
+  }
+  .chero__text {
+    max-width: 60ch;
+  }
+  .chero__facts {
+    display: grid;
+    gap: var(--space-2);
+    align-content: center;
+    margin: 0;
+  }
+  .chero__facts li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    box-shadow: inset 3px 0 0 var(--accent);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .chero__fnum {
+    color: var(--accent-text);
+  }
+
+  /* ---------- content blocks ---------- */
+  .cblock__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .cblock__grid {
+      grid-template-columns: minmax(0, 0.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .cblock__grid > .eyebrow {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+      margin-top: 0.6rem;
+    }
+  }
+  .cblock__grid > div {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cblock__h2 {
+    font-size: clamp(1.625rem, 1.2rem + 1.7vw, 2.75rem);
+    max-width: 22ch;
+  }
+  .cblock--tint {
+    background:
+      radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px) 0 0 / 22px 22px,
+      var(--canvas);
+  }
+
+  /* ---------- built: numbered layers ---------- */
+  .built {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .built__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .built__num {
+    grid-row: span 2;
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-xs);
+    color: var(--accent-text);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .built__title {
+    font-size: 1.1875rem;
+  }
+  .built__text {
+    color: var(--text-2);
+  }
+
+  /* ---------- runs ---------- */
+  .runs__visual {
+    display: grid;
+    gap: var(--space-4);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .runs__visual {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .panel {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .panel__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .panel__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .panel__foot {
+    font-size: 0.8125rem;
+  }
+  .gate {
+    display: block;
+    padding: var(--space-3);
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .curves {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .curve {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .curve__plot {
+    overflow: visible;
+  }
+  .curve__grid {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  .curve__line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .curve__text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .curve__name {
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  .curve__job {
+    font-weight: 600;
+  }
+  .curve__css {
+    color: var(--text-3);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+  .map,
+  .plan {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .map li {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) auto minmax(0, 1.1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+  .map__from {
+    color: var(--text-2);
+  }
+  .map__arrow {
+    color: var(--text-3);
+  }
+  .map .cls {
+    justify-self: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .plan li {
+    display: grid;
+    gap: 6px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .plan__name {
+    font-weight: 600;
+  }
+  .plan__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .now {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .now__label {
+    color: var(--accent-inv);
+    text-transform: uppercase;
+  }
+  .now__text {
+    font-size: var(--fs-lede);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  /* ---------- next ---------- */
+  .cnext .eyebrow {
+    margin-bottom: var(--space-4);
+  }
+  .cnext__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.5rem, 1rem + 3vw, 3rem);
+    padding-right: clamp(4.5rem, 3rem + 4vw, 8rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    color: var(--text);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  /* A violet tint rises through the card on hover, slowly. */
+  .cnext__card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--accent) 9%, var(--surface-2));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 1000ms var(--ease-out-quint);
+  }
+  .cnext__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .cnext__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.625rem);
+    line-height: 1.06;
+    letter-spacing: -0.035em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .cnext__title {
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    max-width: 38ch;
+  }
+  .cnext__go {
+    position: absolute;
+    right: clamp(1.25rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-top: -26px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 1.25rem;
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .cnext__card:hover {
+      box-shadow:
+        inset 0 0 0 1.5px var(--accent),
+        var(--shadow-lift);
+    }
+    .cnext__card:hover::before {
+      transform: scaleY(1);
+    }
+    .cnext__card:hover .cnext__go {
+      transform: translateX(6px);
+    }
+  }
+  .cnext__card:focus-visible::before {
+    transform: scaleY(1);
+  }
+  .cnext__or {
+    margin-top: var(--space-5);
+    color: var(--text-2);
+  }
+</style>

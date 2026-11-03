@@ -1,0 +1,545 @@
+---
+/**
+ * Case study page: /work/<slug>/.
+ *
+ * Reading order: what it is (hero, which the home card morphs into) → the problem → what I
+ * built (a thread of steps on a curved rail) → how it runs (the real flow) → where it is now
+ * → the next case (which morphs too) → contact.
+ */
+import type { GetStaticPaths } from 'astro';
+import { Picture } from 'astro:assets';
+import leadrift from '../../../assets/funnels/leadrift.png';
+import Layout from '../../../layouts/funnels/Layout.astro';
+import Flow from '../../../components/funnels/Flow.astro';
+import AttributionRecord from '../../../components/funnels/AttributionRecord.astro';
+import FinalCta from '../../../components/funnels/FinalCta.astro';
+import { CASES, nextCase, type FunnelCase } from '../../../data/funnels/cases';
+import { assertMeta } from '../../../data/funnels/seo';
+import { abs, caseLdGraph } from '../../../lib/funnels/jsonld';
+import { caseHref, link } from '../../../lib/funnels/paths';
+import { bookingUrl } from '../../../data/funnels/site';
+
+export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: FunnelCase;
+}
+const { study: c } = Astro.props;
+assertMeta(`case ${c.id}`, c.seo);
+const next = nextCase(c.id);
+---
+
+<Layout
+  title={c.seo.title}
+  description={c.seo.description}
+  path={`/work/${c.id}/`}
+  image={abs(`og/${c.id}.png`)}
+  jsonLd={caseLdGraph(c)}
+  expect="case-title"
+>
+  <section class="chero" id="top" data-hero aria-labelledby="case-title">
+    <div class="container">
+      <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
+        <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
+      </a>
+      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+        <div class="chero__main">
+          <div class="chero__top">
+            <span class="chero__kicker mono">{c.kicker}</span>
+            {c.status && <span class="chip chip--live">{c.status}</span>}
+          </div>
+          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <p class="chero__title">{c.title}</p>
+          <p class="lede chero__text">{c.text}</p>
+          {c.pending && <span class="todo">{c.pending}</span>}
+        </div>
+        <ul class="chero__facts" role="list" data-reveal-stagger>
+          {
+            c.facts.map((f) => (
+              <li>
+                <span class="chero__fact-dot" aria-hidden="true" />
+                {f}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* Lead Drift only: Leadrift, its internal tool. A sibling of the hero, outside the view-transition panel. */}
+  {
+    c.id === 'lead-drift' && (
+      <section class="own" aria-label="Leadrift, the Lead Drift internal tool">
+        <div class="container">
+          <figure class="own__bubble" data-reveal>
+            <div class="own__shot">
+              <Picture
+                src={leadrift}
+                formats={['avif', 'webp']}
+                fallbackFormat="png"
+                quality={85}
+                widths={[480, 768, 1024, 1352]}
+                sizes="min(936px, calc(100vw - 4rem))"
+                width={1352}
+                height={888}
+                alt="Leadrift's sign-in page: the headline “Someone just posted a job. That’s your next client.”, a line on what the tool does for the Indepth Solution sales team, and a Help wanted panel of job posts."
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <figcaption class="own__cap">
+              Leadrift, the internal tool Indepth Solution’s sales team works in: hiring ads and LinkedIn &amp; Facebook research
+              turned into conversations. Screenshot of its sign-in page.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section cblock" aria-labelledby="problem-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">The problem</p>
+      <div>
+        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+        <p class="lede">{c.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="built-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">What I built</p>
+      <div>
+        <h2 id="built-title" class="cblock__h2">The build, step by step.</h2>
+        <ol class="built" role="list" data-reveal-stagger>
+          {
+            c.built.map((b) => (
+              <li class="built__item">
+                <span class="built__dot" aria-hidden="true" />
+                <h3 class="built__title">{b.title}</h3>
+                <p class="built__text">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock cblock--tint" aria-labelledby="runs-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">How it runs</p>
+      <div class="runs">
+        <h2 id="runs-title" class="cblock__h2">From first touch to the last step.</h2>
+        {/* Pipeline: flow beside the example record, then the status. Others: flow beside the status. */}
+        <div class="runs__visual">
+          <Flow steps={c.flow} label={`${c.name}, how it runs`} reveal />
+          {c.id === 'lead-pipeline' && <AttributionRecord />}
+          {
+            c.id !== 'lead-pipeline' && (
+              <div class="runs__side">
+                <div class="now">
+                  <p class="now__label mono">Where it is now</p>
+                  <p class="now__text">{c.runsNow}</p>
+                </div>
+                {c.more && (
+                  <a class="btn btn--ghost btn--side runs__more" href={c.more.href} target="_blank" rel="noopener">
+                    <span>{c.more.label}</span>
+                    <span class="btn__arrow" aria-hidden="true">↗</span>
+                    <span class="visually-hidden">(opens in a new tab)</span>
+                  </a>
+                )}
+              </div>
+            )
+          }
+        </div>
+        {
+          c.id === 'lead-pipeline' && (
+            <div class="now">
+              <p class="now__label mono">Where it is now</p>
+              <p class="now__text">{c.runsNow}</p>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section cnext" aria-labelledby="next-title">
+    <div class="container">
+      <p class="eyebrow">Next case</p>
+      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+        <span class="cnext__kicker mono">{next.kicker}</span>
+        <span id="next-title" class="cnext__name">{next.name}</span>
+        <span class="cnext__title">{next.title}</span>
+        <span class="cnext__go" aria-hidden="true">→</span>
+      </a>
+      <p class="cnext__or">
+        Want this for your pipeline? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
+      </p>
+    </div>
+  </section>
+
+  <FinalCta />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    padding-top: calc(var(--nav-h) + clamp(2.5rem, 2rem + 3vw, 5rem));
+    padding-bottom: var(--space-6);
+    background: radial-gradient(60rem 36rem at 90% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    margin-bottom: var(--space-4);
+    color: var(--text-2);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chero__back-arrow {
+    display: inline-block;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .chero__back:hover {
+      color: var(--text);
+    }
+    .chero__back:hover .chero__back-arrow {
+      transform: translateX(-4px);
+    }
+  }
+  .chero__main {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    align-content: start;
+  }
+  .chero__facts {
+    display: grid;
+    gap: var(--space-3);
+    align-content: center;
+    margin: 0;
+  }
+  .chero__facts li {
+    position: relative;
+    padding: var(--space-4) var(--space-4) var(--space-4) 48px;
+    border-radius: var(--radius-m);
+    border-bottom-left-radius: var(--radius-tail);
+    background: var(--surface-1);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .chero__fact-dot {
+    position: absolute;
+    left: 18px;
+    top: calc(var(--space-4) + 0.3em);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .chero__panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(1.5rem, 1rem + 3vw, 4.5rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .chero__panel {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  .chero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .chero__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .chero__name {
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 7rem);
+    line-height: 0.92;
+    width: fit-content;
+  }
+  .chero__title {
+    font-size: clamp(1.375rem, 1.2rem + 0.8vw, 2rem);
+    font-weight: 700;
+    line-height: 1.25;
+    max-width: 28ch;
+  }
+  .chero__text {
+    max-width: 60ch;
+  }
+
+  /* ---------- own: Leadrift, shown as a chat bubble with a tail ---------- */
+  .own {
+    padding-block: var(--space-4) var(--space-6);
+  }
+  .own__bubble {
+    display: grid;
+    gap: var(--space-3);
+    max-inline-size: 60rem;
+    margin: 0;
+    padding: 12px 12px var(--space-4);
+    border-radius: var(--radius-xl);
+    border-bottom-left-radius: var(--radius-tail);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  /* The screenshot is a cream page: a hairline keeps its edge in both themes. */
+  .own__shot {
+    overflow: hidden;
+    border-radius: var(--radius-l);
+    border-bottom-left-radius: var(--radius-tail);
+    background: #f1efe7;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .own__shot :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+  }
+  .own__cap {
+    padding-inline: var(--space-3);
+    max-inline-size: 70ch;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+
+  /* ---------- content blocks ---------- */
+  .cblock__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .cblock__grid {
+      grid-template-columns: minmax(0, 0.32fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .cblock__grid > .eyebrow {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+      margin-top: 0.6rem;
+    }
+  }
+  .cblock__grid > div {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cblock__h2 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    max-width: 18ch;
+  }
+  .cblock--tint {
+    background: var(--surface-1);
+    border-radius: var(--radius-xl);
+  }
+
+  /* ---------- built: a curved rail of steps ---------- */
+  .built {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding-left: 40px;
+  }
+  .built::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 25%, transparent));
+  }
+  .built__item {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    border-top-left-radius: var(--radius-tail);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .built__dot {
+    position: absolute;
+    left: -36px;
+    top: 22px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 3px var(--accent),
+      0 0 0 5px var(--bg);
+  }
+  .built__item:last-child .built__dot {
+    background: var(--accent);
+  }
+  .built__title {
+    font-size: 1.25rem;
+  }
+  .built__text {
+    color: var(--text-2);
+  }
+  /* Every other card steps in, but its dot stays on the rail (it moves back by the indent). */
+  @media (min-width: 720px) {
+    .built {
+      --step-in: var(--space-7);
+    }
+    .built__item:nth-child(even) {
+      margin-left: var(--step-in);
+    }
+    .built__item:nth-child(even) .built__dot {
+      left: calc(-36px - var(--step-in));
+    }
+  }
+
+  /* ---------- runs ---------- */
+  .runs__visual {
+    display: grid;
+    gap: var(--space-4);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .runs__visual {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .runs__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .runs__more {
+    justify-self: start;
+  }
+  .runs__visual :global(.flow) {
+    background: var(--bg);
+  }
+  .now {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .now__label {
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+  .now__text {
+    font-size: var(--fs-lede);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* ---------- next ---------- */
+  .cnext .eyebrow {
+    margin-bottom: var(--space-4);
+  }
+  .cnext__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+    padding-right: clamp(4rem, 3rem + 4vw, 8rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    color: var(--text);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  /* Rose blooms out of the arrow corner on hover, slowly. */
+  .cnext__card::before {
+    content: '';
+    position: absolute;
+    right: clamp(1.5rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    z-index: -1;
+    width: 56px;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    transition: transform 1100ms var(--ease-out-quint);
+  }
+  .cnext__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .cnext__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 4rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    width: fit-content;
+  }
+  .cnext__title {
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    max-width: 36ch;
+  }
+  .cnext__go {
+    position: absolute;
+    right: clamp(1.5rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 1.25rem;
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .cnext__card:hover {
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-lift);
+    }
+    .cnext__card:hover::before {
+      transform: scale(30);
+    }
+    .cnext__card:hover .cnext__go {
+      transform: translateX(6px);
+    }
+  }
+  .cnext__card:focus-visible::before {
+    transform: scale(30);
+  }
+  .cnext__or {
+    margin-top: var(--space-5);
+    color: var(--text-2);
+  }
+</style>

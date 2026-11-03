@@ -1,0 +1,163 @@
+---
+/**
+ * Theme toggle: a round "open / closed" shop sign. A half-lit disc that turns over (spring)
+ * when the theme changes. aria-label "Dark theme" + aria-pressed = dark on. Persists to
+ * localStorage('theme'); the no-flash inline script lives in the Layout <head>. The swap
+ * itself rolls the new theme down over the page like a shop shutter (in-out-quart), through
+ * the View Transitions API when present.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<button type="button" class:list={['tt', className]} aria-label="Dark theme" aria-pressed="false" data-theme-toggle>
+  <svg class="tt__disc" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+    <circle class="tt__ring" cx="12" cy="12" r="8.5"></circle>
+    <path class="tt__half" d="M12 3.5a8.5 8.5 0 0 1 0 17z"></path>
+  </svg>
+</button>
+
+<style>
+  .tt {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .tt__disc {
+    transition: transform 720ms var(--ease-spring);
+  }
+  .tt__ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+  }
+  .tt__half {
+    fill: var(--accent);
+  }
+  .tt[aria-pressed='true'] .tt__disc {
+    transform: rotate(180deg);
+  }
+  .tt:focus-visible {
+    background: var(--surface-1);
+  }
+  @media (hover: hover) {
+    .tt:hover {
+      background: var(--surface-1);
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const KEY = 'theme';
+  type Theme = 'light' | 'dark';
+  const COLORS: Record<Theme, string> = { light: '#f6f1e9', dark: '#17110e' };
+
+  let dark: MediaQueryList | null = null;
+  try {
+    dark = window.matchMedia('(prefers-color-scheme: dark)');
+  } catch {
+    dark = null;
+  }
+  const reduced = (): boolean => {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
+  };
+  const stored = (): Theme | null => {
+    try {
+      const t = localStorage.getItem(KEY);
+      return t === 'light' || t === 'dark' ? t : null;
+    } catch {
+      return null;
+    }
+  };
+  const effective = (): Theme => {
+    const t = root.dataset.theme;
+    if (t === 'light' || t === 'dark') return t;
+    return dark?.matches ? 'dark' : 'light';
+  };
+
+  function sync() {
+    const theme = effective();
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(theme === 'dark'));
+    });
+    const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    if (stored()) metas.forEach((m) => (m.content = COLORS[theme]));
+    else metas.forEach((m) => (m.content = m.media.includes('dark') ? COLORS.dark : COLORS.light));
+  }
+
+  function apply(theme: Theme) {
+    root.dataset.theme = theme;
+    try {
+      localStorage.setItem(KEY, theme);
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
+    sync();
+  }
+
+  let busy = false;
+  function toggle() {
+    if (busy) return; // a second click mid-swap would snapshot a half-drawn page
+    const next: Theme = effective() === 'dark' ? 'light' : 'dark';
+    if (reduced() || typeof document.startViewTransition !== 'function') {
+      apply(next);
+      return;
+    }
+    busy = true;
+    root.classList.add('theme-vt');
+    try {
+      const vt = document.startViewTransition(() => apply(next));
+      vt.ready
+        .then(() => {
+          // The shutter: the new theme's bottom edge travels from the top of the screen down.
+          root.animate(
+            { clipPath: ['inset(0 0 100% 0)', 'inset(0 0 0 0)'] },
+            { duration: 760, easing: 'cubic-bezier(0.76, 0, 0.24, 1)', pseudoElement: '::view-transition-new(root)' },
+          );
+        })
+        .catch(() => {});
+      vt.finished.finally(() => {
+        root.classList.remove('theme-vt');
+        busy = false;
+      });
+    } catch {
+      root.classList.remove('theme-vt');
+      busy = false;
+      apply(next);
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((btn) => {
+    btn.addEventListener('click', toggle);
+  });
+  dark?.addEventListener('change', sync);
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    else delete root.dataset.theme;
+    sync();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    sync();
+  });
+  sync();
+</script>

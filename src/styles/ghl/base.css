@@ -1,0 +1,668 @@
+/* ghl niche base: reset, typography, layout, shared hardware primitives (buttons, tape labels,
+   LEDs, jacks, chips), reveals and page transitions. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+/* The accent word in a heading: teal ink. */
+.em {
+  color: var(--accent-text);
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+}
+.link:focus-visible {
+  text-decoration-color: var(--accent);
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+
+/* Section heading block: eyebrow (a jack and a label), h2, optional lede. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    inset 0 0 0 4px var(--bg),
+    inset 0 0 0 10px var(--accent);
+}
+.head {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 60rem;
+  margin-bottom: clamp(2.5rem, 1.8rem + 3vw, 4.5rem);
+}
+.head > h2 {
+  max-width: 18ch;
+}
+.head--split {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* ---------- buttons ----------
+ * Primary: an ink plate with a teal status LED. On hover a teal signal sweeps across the
+ * plate from the LED side, slow and even (~1s out-quint); the label flips a beat (140ms)
+ * after the fill starts. Secondary: an outlined plate whose arrow travels. */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 22px 0 18px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition:
+    color 420ms var(--ease-out-quint) 140ms,
+    transform var(--dur-press) var(--ease-out-quint),
+    box-shadow var(--dur-hover) var(--ease-out-quint);
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1000ms var(--ease-out-quint);
+}
+.btn__led {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition:
+    background-color 420ms var(--ease-out-quint) 140ms,
+    box-shadow 420ms var(--ease-out-quint) 140ms;
+}
+.btn:focus-visible {
+  color: var(--on-accent);
+}
+.btn:focus-visible::before {
+  transform: scaleX(1);
+}
+.btn:focus-visible .btn__led {
+  background: var(--on-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--on-accent) 30%, transparent);
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--on-accent);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn:hover::before {
+    transform: scaleX(1);
+  }
+  .btn:hover .btn__led {
+    background: var(--on-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--on-accent) 30%, transparent);
+  }
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn--ghost {
+  padding-inline: 20px;
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  transition:
+    box-shadow var(--dur-hover) var(--ease-out-quint),
+    background-color var(--dur-hover) var(--ease-out-quint),
+    transform var(--dur-press) var(--ease-out-quint);
+}
+.btn--ghost::before {
+  display: none;
+}
+.btn__arrow {
+  display: inline-block;
+  transition: transform 520ms var(--ease-out-expo);
+}
+.btn--ghost:focus-visible {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+@media (hover: hover) {
+  .btn--ghost:hover {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+}
+.btn--ghost:hover .btn__arrow,
+.btn--ghost:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+.btn--ghost.btn--side:hover .btn__arrow,
+.btn--ghost.btn--side:focus-visible .btn__arrow {
+  transform: translateX(4px);
+}
+
+/* ---------- hardware primitives ---------- */
+/* Label-maker tape: mono caps on a strip with notched ends. */
+.tape {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 3px 12px;
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.71875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 4px) 50%, 100% 100%, 0 100%, 4px 50%);
+}
+.tape--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.tape--fault {
+  background: var(--fault-bg);
+  color: var(--fault);
+}
+/* Status LED. */
+.led {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.led--fault {
+  background: var(--fault-led);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fault-led) 28%, transparent);
+}
+.led--off {
+  background: var(--line-strong);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .led--breathe {
+    animation: led-breathe 2.6s var(--ease-in-out-sine) infinite alternate;
+  }
+}
+@keyframes led-breathe {
+  to {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+}
+
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.chip--live::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose. */
+.todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 10px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-xs);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.5;
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out-quint);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 70ms steps, capped).
+ * Script arms only what is below the fold at load, so no-JS and above-the-fold content
+ * is never hidden. A short lift + fade on out-quint. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out-quint),
+      transform var(--dur-reveal) var(--ease-out-quint);
+    transition-delay: calc(min(var(--i, 0), 7) * 70ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- page transitions (cross-document View Transitions) ----------
+ * Home ↔ case pages, like sliding a panel into a rack. All on in-out-quart over ~0.85s:
+ *  - the outgoing page slides a little the other way and dims (it is pushed back)
+ *  - the incoming page is wiped in from the right edge, a hard vertical edge like a panel
+ *    door, while it eases the last few percent into place (out-quint)
+ *  - the shared element (a case card ↔ its page hero box) morphs above both, so the eye
+ *    follows the thing you clicked
+ * Going back mirrors it: the wipe comes from the left. The nav is its own group and does
+ * not move. Browsers without support navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-push 850ms var(--ease-in-out-quart) both;
+  }
+  ::view-transition-new(root) {
+    animation:
+      vt-wipe 850ms var(--ease-in-out-quart) both,
+      vt-slide 850ms var(--ease-out-quint) both;
+  }
+  html:active-view-transition-type(back)::view-transition-old(root) {
+    animation-name: vt-push-back;
+  }
+  html:active-view-transition-type(back)::view-transition-new(root) {
+    animation-name: vt-wipe-back, vt-slide-back;
+  }
+
+  /* The nav stays exactly where it is. */
+  ::view-transition-group(site-nav),
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none;
+  }
+
+  /* A case card ↔ its page hero. The box moves and resizes on in-out-quart; the snapshots
+     are never stretched to the box (object-fit: none, pinned top-left), so text stays crisp;
+     the old one fades out early and the new one in late, so they never double into a ghost. */
+  ::view-transition-group(case-lead-pipeline),
+  ::view-transition-group(case-account-teardown) {
+    animation-duration: 850ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(case-lead-pipeline),
+  ::view-transition-image-pair(case-account-teardown) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-xl);
+  }
+  ::view-transition-old(case-lead-pipeline),
+  ::view-transition-old(case-account-teardown),
+  ::view-transition-new(case-lead-pipeline),
+  ::view-transition-new(case-account-teardown) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(case-lead-pipeline),
+  ::view-transition-old(case-account-teardown) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(case-lead-pipeline),
+  ::view-transition-new(case-account-teardown) {
+    animation: vt-fade-in 500ms var(--ease-out-quint) 300ms both;
+  }
+}
+@keyframes vt-push {
+  to {
+    opacity: 0.4;
+    transform: translateX(-3%);
+  }
+}
+@keyframes vt-push-back {
+  to {
+    opacity: 0.4;
+    transform: translateX(3%);
+  }
+}
+@keyframes vt-wipe {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vt-wipe-back {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vt-slide {
+  from {
+    transform: translateX(5%);
+  }
+}
+@keyframes vt-slide-back {
+  from {
+    transform: translateX(-5%);
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Theme swap: the new theme opens as a circle from the toggle (JS drives it). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* During a theme swap nothing is a shared element: the whole page swaps as one surface.
+   (!important in a stylesheet beats the inline view-transition-name.) */
+html.theme-vt [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Inverted cards (background --btn-bg) re-point focus so the ring stays visible. */
+.inverse {
+  --focus: var(--focus-inv);
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .chip,
+  .tape {
+    border: 1px solid CanvasText;
+  }
+  .tape {
+    clip-path: none;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

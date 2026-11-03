@@ -1,0 +1,193 @@
+---
+/**
+ * Services as a drawing's parts list: five numbered rows, each with what it is for, what you
+ * get and how it is priced ("scoped on a call": no prices anywhere, decisions › apps).
+ * A list, not a grid, so five items never leave an orphan row.
+ */
+import Arrow from './Arrow.astro';
+import { OFFERS } from '../../data/apps/content';
+import { bookingUrl } from '../../data/apps/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow"><span class="eyebrow__no">04</span>Services</p>
+      <h2 id="services-title">Five ways to work together.</h2>
+      <p class="lede">Start at the top if you have an idea; anywhere else if you already have a product. Every one is scoped on a free call.</p>
+    </div>
+
+    <div class="parts">
+      <div class="parts__head" aria-hidden="true">
+        <span class="label">Item</span>
+        <span class="label">Service</span>
+        <span class="label">You get</span>
+        <span class="label">Price</span>
+      </div>
+      <ol class="parts__list" role="list" data-reveal-stagger>
+        {
+          OFFERS.map((o, i) => (
+            <li class="part" id={`service-${o.id}`}>
+              <span class="part__no mono" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div class="part__main">
+                <h3 class="part__name">{o.name}</h3>
+                <p class="part__for">
+                  <span class="label part__k">Best for</span> {o.bestFor}
+                </p>
+                <p class="part__desc">{o.description}</p>
+              </div>
+              <ul class="part__gets" role="list" aria-label={`${o.name}: what you get`}>
+                {o.gets.map((g) => (
+                  <li>{g}</li>
+                ))}
+              </ul>
+              <div class="part__price">
+                <span class="mono">{o.priceLine}</span>
+                <a class="part__cta" href={bookingUrl(`offer-${o.id}`)}>
+                  Book a scoping call
+                  <span class="visually-hidden">about {o.name}</span>
+                  <Arrow />
+                </a>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .parts {
+    border-top: 1.5px solid var(--text);
+  }
+  .parts__head {
+    display: none;
+  }
+  .parts__list {
+    margin: 0;
+  }
+  .part {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line-strong);
+    scroll-margin-top: var(--space-4);
+  }
+  .part__gets,
+  .part__price {
+    grid-column: 2;
+  }
+  @media (min-width: 1024px) {
+    .parts__head,
+    .part {
+      grid-template-columns: 3.5rem minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.6fr);
+      gap: var(--space-6);
+    }
+    .parts__head {
+      display: grid;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--line-strong);
+      color: var(--text-3);
+    }
+    .part__gets,
+    .part__price {
+      grid-column: auto;
+    }
+    .part {
+      padding: var(--space-6) 0;
+      align-items: start;
+    }
+  }
+  .part__no {
+    color: var(--accent-text);
+    font-size: 0.9375rem;
+    padding-top: 0.45em;
+  }
+  .part__main {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .part__name {
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: 780;
+    font-stretch: 108%;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .part__for {
+    color: var(--text);
+    font-weight: 500;
+    max-width: 46ch;
+  }
+  .part__k {
+    margin-right: 6px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .part__desc {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 52ch;
+  }
+  .part__gets {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+  @media (min-width: 1024px) {
+    .part__gets {
+      padding-top: 0.5rem;
+    }
+  }
+  .part__gets li {
+    position: relative;
+    padding-left: 20px;
+  }
+  .part__gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.45em;
+    width: 9px;
+    height: 9px;
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .part__price {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+    color: var(--text-2);
+  }
+  @media (min-width: 1024px) {
+    .part__price {
+      padding-top: 0.5rem;
+    }
+  }
+  .part__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-stretch: 106%;
+    font-size: var(--fs-small);
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+  }
+  @media (hover: hover) {
+    .part__cta:hover {
+      text-decoration-color: currentColor;
+    }
+    .part__cta:hover :global(.btn__arrow) {
+      transform: translateX(4px);
+    }
+  }
+</style>

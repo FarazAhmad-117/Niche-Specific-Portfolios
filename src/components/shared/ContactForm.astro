@@ -19,6 +19,8 @@ interface Props {
   labels?: { name?: string; email?: string; message?: string };
   /** Submit button text. */
   cta?: string;
+  /** Address used by the mailto fallback; overrides PUBLIC_CONTACT_EMAIL. */
+  fallbackEmail?: string;
   /** Status / error copy. */
   messages?: {
     sending?: string;
@@ -32,7 +34,14 @@ interface Props {
   class?: string;
 }
 
-const { niche, labels = {}, cta = 'Send message', messages = {}, class: className } = Astro.props;
+const {
+  niche,
+  labels = {},
+  cta = 'Send message',
+  fallbackEmail,
+  messages = {},
+  class: className,
+} = Astro.props;
 
 const l = {
   name: 'Name',
@@ -60,6 +69,7 @@ const uid = `cf-${niche}-${Math.random().toString(36).slice(2, 8)}`;
   data-cf
   data-state="idle"
   data-config={JSON.stringify(config)}
+  data-fallback-email={fallbackEmail}
   method="post"
 >
   <input type="hidden" name="niche" value={niche} />
@@ -218,7 +228,7 @@ const uid = `cf-${niche}-${Math.random().toString(36).slice(2, 8)}`;
       const body = `${String(data.get('message') ?? '')}\n\n— ${String(data.get('name') ?? '')}`;
       const a = document.createElement('a');
       a.className = 'cf__fallback';
-      a.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      a.href = `mailto:${form.dataset.fallbackEmail || EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       a.textContent = cfg.mailtoLink;
       status.append(' ', cfg.mailtoLead, ' ', a);
     };

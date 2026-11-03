@@ -1,0 +1,712 @@
+---
+/**
+ * Hero. Left: who this is and what it does, in one look. Right: a stacked "lead card" for one
+ * example lead moving through four stages: New → Nurturing → Replied → Booked.
+ *
+ * Motion (all optional, all off under reduced motion):
+ *  - headline words rise out of their own line boxes, 70ms apart, out-quint
+ *  - a rose curve draws itself behind the page and a "lead" dot travels it on an in-out-sine
+ *    spline (SMIL animateMotion, so it scales with the viewBox); paused off screen/hidden tab
+ *  - the card changes once per stage (2.8s): the curved track fills to the next node, one
+ *    message pane crossfades in on the spring, the clock ticks over, and at "Replied" a toast
+ *    slides out of the card. Calm by design: one thing moves at a time.
+ * Without JS, or under reduced motion, the card shows its finished state (Booked).
+ */
+import { HERO, HERO_STAGES } from '../../data/funnels/content';
+import { bookingUrl } from '../../data/funnels/site';
+
+const words = HERO.headline.map((line) => line.split(' '));
+let w = 0;
+const last = HERO_STAGES.length - 1;
+// Track: 4 nodes on a gentle wave across a 300×44 box; equal segments, so stage i = i/3.
+const NODES = HERO_STAGES.map((_, i) => ({ x: 18 + i * 88, y: i % 2 ? 30 : 14 }));
+const TRACK_D = NODES.reduce((d, p, i) => {
+  if (i === 0) return `M${p.x} ${p.y}`;
+  const prev = NODES[i - 1]!;
+  const mx = (prev.x + p.x) / 2;
+  return `${d}C${mx} ${prev.y} ${mx} ${p.y} ${p.x} ${p.y}`;
+}, '');
+---
+
+<section class="hero" id="top" data-hero aria-labelledby="hero-title">
+  <svg class="hero__curve" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-hero-curve>
+    <path id="hero-path" class="hero__path" pathLength="1" d="M-40 860C320 870 640 890 880 820S1060 460 1180 330 1400 150 1500 120"></path>
+    <circle class="hero__lead" r="9">
+      <animateMotion dur="9s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.37 0 0.63 1">
+        <mpath href="#hero-path"></mpath>
+      </animateMotion>
+    </circle>
+  </svg>
+
+  <div class="hero__inner container">
+    <div class="hero__copy">
+      <p class="eyebrow">{HERO.eyebrow}</p>
+      <h1 id="hero-title" class="hero__title">
+        {
+          words.map((line, li) => (
+            <span class="hero__line">
+              {line.map((word, wi) => {
+                const i = w++;
+                const isLast = li === words.length - 1 && wi === line.length - 1;
+                return (
+                  <>
+                    <span class="hero__w" style={`--w:${i}`}>
+                      <span class:list={['hero__wi', { em: isLast }]}>
+                        {word}
+                        {isLast && (
+                          <svg class="hero__swash" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">
+                            <path pathLength="1" d="M3 14C40 6 90 4 197 9" />
+                          </svg>
+                        )}
+                      </span>
+                    </span>
+                    {wi < line.length - 1 ? ' ' : ''}
+                  </>
+                );
+              })}{' '}
+            </span>
+          ))
+        }
+      </h1>
+      <p class="lede hero__lede">{HERO.lede}</p>
+      <div class="hero__ctas">
+        <a class="btn" href={bookingUrl('hero')}>
+          <span class="btn__dot" aria-hidden="true"></span>
+          <span>{HERO.primary}</span>
+        </a>
+        <a class="btn btn--ghost" href="#follow">
+          <span>{HERO.secondary}</span>
+          <span class="btn__arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="hero__note text-3">{HERO.note}</p>
+    </div>
+
+    <figure
+      class="lc"
+      data-lc
+      data-done
+      data-clocks={HERO_STAGES.map((s) => s.clock).join('|')}
+      aria-labelledby="lc-cap"
+      style={`--stage:${last}`}
+    >
+      <div class="lc__stack" aria-hidden="true"></div>
+      <div class="lc__card">
+        <div class="lc__head">
+          <span class="lc__avatar" aria-hidden="true">S</span>
+          <span class="lc__who">
+            <strong>Sam</strong>
+            <span class="text-3">Example lead</span>
+          </span>
+          <span class="lc__source mono">google / cpc</span>
+        </div>
+
+        <div class="lc__track" aria-hidden="true">
+          <svg viewBox="0 0 300 44" preserveAspectRatio="xMidYMid meet">
+            <path class="lc__track-bg" d={TRACK_D}></path>
+            <path class="lc__track-fg" d={TRACK_D} pathLength="1"></path>
+            {NODES.map((p, i) => <circle class:list={['lc__node is-on', { 'is-current': i === last }]} cx={p.x} cy={p.y} r="6" data-lc-node={i} />)}
+          </svg>
+          <ol class="lc__labels" role="list">
+            {HERO_STAGES.map((s, i) => <li class:list={{ 'is-current': i === last }} data-lc-label={i}>{s.label}</li>)}
+          </ol>
+        </div>
+
+        <div class="lc__panes">
+          {
+            HERO_STAGES.map((s, i) => (
+              <div class:list={['lc__pane', `lc__pane--${s.kind}`, { 'is-on': i === last }]} data-lc-pane={i}>
+                <span class="lc__meta mono">{s.meta}</span>
+                {s.kind === 'win' ? (
+                  <div class="lc__booked">
+                    <span class="lc__cal" aria-hidden="true">
+                      <span class="lc__cal-m mono">THU</span>
+                      <span class="lc__cal-d">10:30</span>
+                    </span>
+                    <span>
+                      <strong>Call booked</strong>
+                      <span class="lc__booked-sub">Source kept: google / cpc / spring-audit</span>
+                    </span>
+                  </div>
+                ) : (
+                  <p class:list={[s.kind === 'event' ? 'event lc__event' : 'bubble', s.kind === 'out' && 'bubble--out', s.kind === 'in' && 'bubble--in']}>
+                    {s.text}
+                  </p>
+                )}
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="lc__foot">
+          <span class="lc__clock mono" data-lc-clock>{HERO_STAGES[last]?.clock}</span>
+          <span class="lc__status" data-lc-status>{HERO_STAGES[last]?.label}</span>
+        </div>
+      </div>
+
+      <div class="lc__toast" data-lc-toast aria-hidden="true">
+        <span class="lc__toast-dot"></span>
+        Reply detected · sequence paused
+      </div>
+      <figcaption id="lc-cap" class="lc__cap text-3">One example lead, form to booked call. Illustrative timing.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: clip;
+    padding-top: calc(var(--nav-h) + clamp(3rem, 2rem + 5vw, 7rem));
+    padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+    background:
+      radial-gradient(60rem 40rem at 88% 8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+      radial-gradient(40rem 30rem at 0% 100%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%);
+  }
+
+  /* ---------- background curve ---------- */
+  .hero__curve {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero__path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.55;
+  }
+  .hero__lead {
+    fill: var(--accent);
+    stroke: var(--bg);
+    stroke-width: 4;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__path {
+      animation: draw var(--dur-draw) var(--ease-out-quint) 300ms both;
+    }
+    .hero__lead {
+      animation: fade-in 600ms var(--ease-out-quint) 1500ms both;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__lead {
+      display: none;
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ---------- layout ---------- */
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+      min-height: min(78svh, 760px);
+    }
+  }
+  .hero__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero__title {
+    margin-top: var(--space-2);
+  }
+  .hero__line {
+    display: block;
+  }
+  /* Each word rises inside its own clipped box. The padding (cancelled by the negative margin)
+     keeps descenders and the swash inside the clip without overflow-clip-margin, which
+     Safari ignores. */
+  .hero__w {
+    display: inline-block;
+    overflow: clip;
+    padding: 0.04em 0.06em 0.2em;
+    margin: -0.04em -0.06em -0.2em;
+    vertical-align: top;
+  }
+  .hero__wi {
+    display: inline-block;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__wi {
+      animation: rise 1000ms var(--ease-out-quint) both;
+      animation-delay: calc(80ms + var(--w) * 70ms);
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translate3d(0, 108%, 0) rotate(3deg);
+    }
+  }
+  .hero__swash {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.06em;
+    width: 100%;
+    height: 0.2em;
+    overflow: visible;
+  }
+  .hero__swash path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__swash path {
+      animation: draw 900ms var(--ease-out-quint) 1000ms both;
+    }
+  }
+  .hero__lede {
+    max-width: 44ch;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero__note {
+    margin: 0;
+    font-size: var(--fs-small);
+    max-width: 44ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__lede,
+    .hero__ctas,
+    .hero__note,
+    .lc {
+      animation: lift 900ms var(--ease-out-quint) both;
+    }
+    .hero__lede {
+      animation-delay: 420ms;
+    }
+    .hero__ctas {
+      animation-delay: 520ms;
+    }
+    .hero__note {
+      animation-delay: 600ms;
+    }
+    .lc {
+      animation-delay: 380ms;
+    }
+  }
+  @keyframes lift {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+    }
+  }
+
+  /* =========================================================
+     The lead card
+     ========================================================= */
+  .lc {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    justify-self: center;
+    margin: 0;
+    padding-top: 18px;
+  }
+  @media (min-width: 1024px) {
+    .lc {
+      justify-self: end;
+    }
+  }
+  /* Two sheets behind the card give it depth: "one lead out of many". */
+  .lc__stack,
+  .lc__stack::before {
+    position: absolute;
+    inset: 18px 0 40px;
+    border-radius: var(--radius-xl);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .lc__stack {
+    transform: rotate(-4deg) translate(-10px, 6px);
+  }
+  .lc__stack::before {
+    content: '';
+    inset: 0;
+    transform: rotate(7deg) translate(18px, -4px);
+    opacity: 0.7;
+  }
+  .lc__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  .lc__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .lc__avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 800;
+  }
+  .lc__who {
+    display: grid;
+    line-height: 1.2;
+  }
+  .lc__who .text-3 {
+    font-size: 0.8125rem;
+  }
+  .lc__source {
+    margin-left: auto;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-1);
+    color: var(--text-2);
+  }
+
+  /* ---------- the stage track ---------- */
+  .lc__track {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-3) var(--space-2) var(--space-2);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+  }
+  .lc__track svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .lc__track-bg,
+  .lc__track-fg {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .lc__track-bg {
+    stroke: var(--line-strong);
+    stroke-dasharray: 2 7;
+  }
+  .lc__track-fg {
+    stroke: var(--accent);
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--stage) / 3);
+    transition: stroke-dashoffset 1100ms var(--ease-in-out-quart);
+  }
+  .lc__node {
+    fill: var(--bg);
+    stroke: var(--line-strong);
+    stroke-width: 2.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      fill 400ms var(--ease-out-quint),
+      stroke 400ms var(--ease-out-quint),
+      transform 640ms var(--ease-spring);
+  }
+  .lc__node.is-on {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+  .lc__node.is-current {
+    transform: scale(1.35);
+  }
+  .lc__labels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-3);
+    text-align: center;
+  }
+  .lc__labels li {
+    transition: color 400ms var(--ease-out-quint);
+  }
+  .lc__labels li:first-child {
+    text-align: left;
+  }
+  .lc__labels li:last-child {
+    text-align: right;
+  }
+  .lc__labels li.is-current {
+    color: var(--text);
+  }
+
+  /* ---------- message panes: one at a time, stacked in one cell ---------- */
+  .lc__panes {
+    display: grid;
+    min-height: 132px;
+    align-items: end;
+  }
+  .lc__pane {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: 6px;
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+    transition:
+      opacity 320ms var(--ease-out-quint),
+      transform 420ms var(--ease-out-quint);
+    pointer-events: none;
+  }
+  .lc__pane.is-on {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 420ms var(--ease-out-quint) 160ms,
+      transform var(--dur-bubble) var(--ease-spring) 160ms;
+  }
+  .lc__pane--out {
+    justify-items: end;
+    transform-origin: 100% 100%;
+  }
+  .lc__pane--in {
+    justify-items: start;
+    transform-origin: 0% 100%;
+  }
+  .lc__pane .bubble {
+    margin: 0;
+  }
+  .lc__meta {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  .lc__event {
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  .lc__pane--event {
+    justify-items: center;
+  }
+  .lc__booked {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .lc__booked strong {
+    display: block;
+    font-size: 1.0625rem;
+  }
+  .lc__booked-sub {
+    font-size: 0.8125rem;
+  }
+  .lc__cal {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    background: var(--on-accent);
+    color: var(--accent);
+    line-height: 1;
+  }
+  .lc__cal-m {
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    color: var(--cream-100);
+    opacity: 0.8;
+  }
+  .lc__cal-d {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.125rem;
+    color: var(--cream-100);
+  }
+  .lc__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+  }
+  .lc__clock {
+    color: var(--text-2);
+  }
+  .lc__status {
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-1);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition:
+      background-color 500ms var(--ease-out-quint),
+      color 500ms var(--ease-out-quint);
+  }
+  .lc[data-done] .lc__status {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* ---------- toast: slides out of the card at "Replied" ---------- */
+  .lc__toast {
+    position: absolute;
+    top: 0;
+    right: -12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-lift);
+    opacity: 0;
+    transform: translate3d(-12px, 18px, 0) scale(0.9);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 420ms var(--ease-out-quint);
+  }
+  .lc__toast.is-on {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 360ms var(--ease-out-quint),
+      transform 700ms var(--ease-spring);
+  }
+  .lc__toast-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  @media (max-width: 520px) {
+    .lc__toast {
+      right: 8px;
+    }
+  }
+  .lc__cap {
+    margin-top: var(--space-3);
+    padding-inline: 6px;
+    font-size: 0.8125rem;
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/funnels/base';
+
+  const curve = document.querySelector<SVGSVGElement>('[data-hero-curve]');
+  // The SMIL dot keeps ticking unless told otherwise.
+  if (curve && 'IntersectionObserver' in window) {
+    let onScreen = true;
+    const sync = () => {
+      try {
+        if (onScreen && !document.hidden) curve.unpauseAnimations();
+        else curve.pauseAnimations();
+      } catch {
+        /* no SMIL */
+      }
+    };
+    new IntersectionObserver(([e]) => {
+      if (!e) return;
+      onScreen = e.isIntersecting;
+      sync();
+    }).observe(curve);
+    document.addEventListener('visibilitychange', sync);
+  }
+
+  const card = document.querySelector<HTMLElement>('[data-lc]');
+  if (card) {
+    const panes = [...card.querySelectorAll<HTMLElement>('[data-lc-pane]')];
+    const nodes = [...card.querySelectorAll<SVGCircleElement>('[data-lc-node]')];
+    const labels = [...card.querySelectorAll<HTMLElement>('[data-lc-label]')];
+    const clock = card.querySelector<HTMLElement>('[data-lc-clock]');
+    const status = card.querySelector<HTMLElement>('[data-lc-status]');
+    const toast = card.querySelector<HTMLElement>('[data-lc-toast]');
+    const n = panes.length;
+    const last = n - 1;
+    const clocks = (card.dataset.clocks ?? '').split('|');
+    const names = labels.map((l) => l.textContent ?? '');
+
+    const show = (i: number) => {
+      card.style.setProperty('--stage', String(i));
+      panes.forEach((p, k) => p.classList.toggle('is-on', k === i));
+      nodes.forEach((c, k) => {
+        c.classList.toggle('is-on', k <= i);
+        c.classList.toggle('is-current', k === i);
+      });
+      labels.forEach((l, k) => l.classList.toggle('is-current', k === i));
+      if (clock && clocks[i]) clock.textContent = clocks[i]!;
+      if (status) status.textContent = names[i] ?? '';
+      toast?.classList.toggle('is-on', i === 2);
+      if (i === last) card.dataset.done = '';
+      else delete card.dataset.done;
+    };
+
+    // Finished state is the server render; reduced motion keeps it.
+    show(last);
+    if (!prefersReduced()) {
+      const STAGE_MS = 2800;
+      const HOLD = 2; // extra beats on "Booked" before the loop restarts
+      let beat = 0;
+      let timer: number | undefined;
+      let visible = false;
+      const tick = () => {
+        beat = (beat + 1) % (n + HOLD);
+        show(Math.min(beat, last));
+      };
+      const play = () => {
+        if (timer !== undefined || !visible || document.hidden) return;
+        timer = window.setInterval(tick, STAGE_MS);
+      };
+      const pause = () => {
+        window.clearInterval(timer);
+        timer = undefined;
+      };
+      beat = 0;
+      show(0);
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(([e]) => {
+          visible = Boolean(e?.isIntersecting);
+          if (visible) play();
+          else pause();
+        }).observe(card);
+      } else {
+        visible = true;
+        play();
+      }
+      document.addEventListener('visibilitychange', () => (document.hidden ? pause() : play()));
+    }
+  }
+</script>

@@ -1,0 +1,302 @@
+---
+/**
+ * Case studies on the home page. The lead pipeline leads (the one real GHL case); the example
+ * teardown and a visible placeholder for a client story sit beside it, so the row is full and
+ * nothing pretends to be what it isn't.
+ *
+ * Page transition: each linked card carries view-transition-name `case-<id>`; the case page
+ * hero box uses the same name, so on navigation the card morphs into the hero while the rest
+ * of the page is wiped in behind it (base.css). Only the box morphs, never the title.
+ */
+import PortList from './PortList.astro';
+import { CASES } from '../../data/ghl/cases';
+import { LIST_AFTER, LIST_BEFORE } from '../../data/ghl/switchboard';
+import { caseHref } from '../../lib/ghl/paths';
+
+const [main, teardown] = CASES;
+if (!main || !teardown) throw new Error('[ghl] expected two cases');
+const vt = (id: string) => `view-transition-name: case-${id}`;
+const faults = LIST_BEFORE.filter((w) => w.fault);
+const rewired = LIST_AFTER.slice(0, 4);
+---
+
+<section class="section cases" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Case studies</p>
+      <h2 id="work-title">Proof I can show you today.</h2>
+      <p class="lede">
+        The integration my own sites run on, a teardown of the account I’m usually called in to fix, and a slot for client work
+        once it’s cleared to publish.
+      </p>
+    </div>
+
+    {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
+        armed card is invisible at that moment. */}
+    <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
+      <div class="case__copy">
+        <div class="case__top">
+          <span class="case__kicker mono">{main.kicker}</span>
+          {main.status && <span class="chip chip--live">{main.status}</span>}
+        </div>
+        <h3 class="case__name">
+          <a class="case__link" href={caseHref(main.id)}>{main.name}</a>
+        </h3>
+        <p class="case__title">{main.title}</p>
+        <ul class="case__facts" role="list">
+          {main.facts.map((f) => <li>{f}</li>)}
+        </ul>
+        <div class="case__end">
+          <span class="case__more" aria-hidden="true">Read the case study <span class="case__arrow">→</span></span>
+          {main.pending && <span class="todo">{main.pending}</span>}
+        </div>
+      </div>
+      <div class="case__visual">
+        <PortList steps={main.flow} label={`${main.name}, the pipeline in order`} compact />
+      </div>
+    </article>
+
+    <div class="cases__pair">
+      <article class="case case--small" id={`card-${teardown.id}`} style={vt(teardown.id)}>
+        <div class="case__top">
+          <span class="tape">Example</span>
+          <span class="case__kicker mono">{teardown.kicker}</span>
+        </div>
+        <h3 class="case__name">
+          <a class="case__link" href={caseHref(teardown.id)}>{teardown.name}</a>
+        </h3>
+        <p class="case__title">{teardown.title}</p>
+        <div class="td" aria-hidden="true">
+          <div class="td__col">
+            <span class="td__label mono">Before</span>
+            {
+              faults.map((f) => (
+                <span class="tape tape--fault">
+                  <span class="led led--fault" />
+                  {f.fault}
+                </span>
+              ))
+            }
+          </div>
+          <span class="td__arrow">→</span>
+          <div class="td__col">
+            <span class="td__label mono">After</span>
+            {rewired.map((wfl) => <span class="tape tape--accent">{wfl.short}</span>)}
+          </div>
+        </div>
+        <span class="case__more" aria-hidden="true">
+          Read the teardown <span class="case__arrow">→</span>
+        </span>
+      </article>
+
+      <aside class="case case--slot" aria-label="Client story placeholder">
+        <span class="case__kicker mono">Client story · cleanup or build</span>
+        <p class="slot__title">A real client account, anonymized.</p>
+        <p class="slot__text">
+          This slot stays empty until a client clears their story and screenshots for publishing. No made-up results in the
+          meantime.
+        </p>
+        <span class="todo">TODO · Client GHL story and anonymized screenshots</span>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .case {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(1rem, 0.75rem + 1vw, 1.75rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    /* "All case studies" on a case page lands on its own card: give it air under the nav. */
+    scroll-margin-top: var(--space-4);
+  }
+  /* The title link stretches over the card: the whole card is the target, one tab stop. */
+  .case__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+  }
+  .case__link:focus-visible {
+    outline: none;
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .case:has(.case__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .case:hover .case__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .case--main {
+    gap: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .case--main {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      align-items: center;
+    }
+  }
+  .case__copy {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .case__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .case__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2.125rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .case--small .case__name {
+    font-size: clamp(1.1875rem, 1.05rem + 0.5vw, 1.5rem);
+  }
+  .case__title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+    max-width: 34ch;
+  }
+  .case--small .case__title {
+    font-size: var(--fs-small);
+    color: var(--text-2);
+  }
+  .case__facts {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+  .case__facts li {
+    position: relative;
+    padding-left: 22px;
+  }
+  .case__facts li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.45em;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .case__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+  }
+  .case__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .case__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (max-width: 719px) {
+    .case--main .case__facts {
+      display: none;
+    }
+  }
+  .cases__pair {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 900px) {
+    .cases__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .case--small {
+    gap: var(--space-3);
+    padding: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+  }
+
+  /* Teardown mini: three faults → four numbered workflows. */
+  .td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    margin-block: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .td__col {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .td__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .td__arrow {
+    color: var(--accent-text);
+    font-size: 1.25rem;
+  }
+
+  /* The client-story slot: a dashed, empty bay. Not a link. */
+  .case--slot {
+    gap: var(--space-3);
+    padding: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .slot__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+  .slot__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 44ch;
+  }
+</style>

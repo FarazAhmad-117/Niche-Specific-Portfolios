@@ -35,6 +35,10 @@ scripts/templates/              file templates used by new:niche
 public/favicon.svg               the only file in /public
 ```
 
+## Briefs and decisions
+
+Content brief + design direction per niche: `docs/brief/<slug>.md`. The owner's final choices are in **`docs/brief/DECISIONS.md`** (read this first; decided items and custom instructions override the briefs). `docs/brief/decisions.json` is the same data in machine form and `docs/brief/PREFILL-REPORT.md` records where pre-filled answers came from.
+
 ## Add a niche
 
 ```bash
@@ -83,6 +87,7 @@ The rewrite for the host already exists in `vercel.json` once the niche is enabl
   ---
   <a href={link('/about')}>About</a>
   ```
+
   Dev: `/ai/about/`. Production: `/about/`. It also applies the site-wide trailing slash.
 - **Trailing slashes: always** (`trailingSlash: 'always'` in `astro.config.mjs`, `"trailingSlash": true` in the generated `vercel.json`). Keep both in sync.
 - **Styles in niche layouts/pages are scoped** (no `is:global`). Style the shared form from a scoped parent: `.contact :global(.cf__input) { ... }`, and via the `--cf-*` custom properties documented at the top of `ContactForm.astro`.

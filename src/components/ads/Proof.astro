@@ -1,0 +1,97 @@
+---
+/**
+ * Proof strip (brief §4 item 2), as a row of ticker cells. Three cells are facts from
+ * decisions.md; the three the brief asks for (spend managed, waste cut, accounts automated) are
+ * numbers the owner hasn't supplied, so they are dashed TODO cells, never invented. 3 + 3 = two
+ * full rows of three.
+ */
+import { PROOF_FACTS, PROOF_TODOS } from '../../data/ads/content';
+import { MIN_SPEND_TODO } from '../../data/ads/site';
+---
+
+<section class="proof" id="proof" aria-labelledby="proof-title">
+  <div class="container">
+    <h2 id="proof-title" class="visually-hidden">At a glance</h2>
+    <ul class="tick" role="list" data-reveal-stagger>
+      {
+        PROOF_FACTS.map((f, i) => (
+          <li class="tick__cell">
+            <span class="tick__label mono">{f.label}</span>
+            <span class="tick__value">{f.value}</span>
+            <span class="tick__note">{f.note}</span>
+            {i === 2 && <span class="todo">{MIN_SPEND_TODO}</span>}
+          </li>
+        ))
+      }
+      {
+        PROOF_TODOS.map((t) => (
+          <li class="tick__cell tick__cell--todo">
+            <span class="tick__label mono">{t.label}</span>
+            <span class="tick__value tick__value--empty" aria-hidden="true">—</span>
+            <span class="todo">{t.todo}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .proof {
+    position: relative;
+    padding-block: var(--space-6) var(--space-4);
+  }
+  .tick {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  @media (min-width: 720px) {
+    .tick {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .tick__cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: var(--space-5) var(--space-5) var(--space-5);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  /* A tick at the top-left of each cell, as on a chart axis. */
+  .tick__cell::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    width: 1px;
+    height: 10px;
+    background: var(--text);
+  }
+  .tick__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .tick__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.875rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  .tick__value--empty {
+    color: var(--line-strong);
+  }
+  .tick__note {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 34ch;
+  }
+  .tick__cell--todo {
+    background: repeating-linear-gradient(-45deg, transparent 0 9px, color-mix(in srgb, var(--line) 45%, transparent) 9px 10px);
+  }
+</style>

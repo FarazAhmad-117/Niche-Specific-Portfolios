@@ -8,5 +8,7 @@ export default defineConfig({
   output: 'static',
   // Keep in sync with "trailingSlash" in the generated vercel.json.
   trailingSlash: 'always',
-  build: { format: 'directory' },
+  // Inline CSS: the stylesheet is a render-blocking request on the LCP path, and each
+  // niche is only a handful of pages, so there is no shared-cache benefit to lose.
+  build: { format: 'directory', inlineStylesheets: 'always' },
 });

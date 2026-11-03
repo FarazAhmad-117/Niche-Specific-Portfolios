@@ -1,0 +1,787 @@
+---
+/**
+ * Leak calculator (decisions: include, labelled as an estimate).
+ * leads/month × booking rate × (1 − speed factor × follow-up factor) ≈ calls a month slipping.
+ *
+ * Honesty: every factor is shown in "How this estimate works" and labelled as an assumption.
+ * Without JS the default result is rendered on the server, so the section still reads.
+ * Edge cases: empty / non-numeric / negative / huge input is clamped, never NaN; slider and
+ * number field stay in sync; the result is announced politely and debounced, not per keystroke.
+ */
+import { LEAK, leakEstimate } from '../../data/funnels/leak';
+import { bookingUrl } from '../../data/funnels/site';
+
+const d = LEAK.defaults;
+const factor = <T extends { id: string; factor: number }>(list: readonly T[], id: string) =>
+  list.find((x) => x.id === id)?.factor ?? 1;
+const initial = leakEstimate({
+  leads: d.leads,
+  rate: d.rate,
+  speed: factor(LEAK.speed, d.speed),
+  follow: factor(LEAK.follow, d.follow),
+});
+const fmt = (v: number) => (v > 0 && v < 1 ? 'under 1' : new Intl.NumberFormat('en').format(Math.round(v)));
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+const share = initial.possible > 0 ? initial.booked / initial.possible : 0;
+---
+
+<section class="section leak" id="leaks" aria-labelledby="leaks-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Leak estimate</p>
+      <h2 id="leaks-title">How many calls is slow follow-up costing you?</h2>
+      <p class="lede">Three questions, a rough answer. It’s an estimate built on assumptions you can see and change, not a benchmark.</p>
+    </div>
+
+    <form class="calc" data-leak novalidate onsubmit="return false">
+      <!-- Disabled until the script runs: without JS the controls would look live and do nothing. -->
+      <fieldset class="calc__inputs" disabled data-leak-inputs>
+        <legend class="visually-hidden">Your numbers</legend>
+        <noscript><p class="text-3">Turn on JavaScript to change the inputs. The result shows the defaults.</p></noscript>
+        <div class="field">
+          <label class="field__label" for="leak-leads">Leads a month</label>
+          <div class="field__row">
+            <input
+              class="calc__range"
+              id="leak-leads-range"
+              type="range"
+              min={LEAK.limits.leadsMin}
+              max={LEAK.limits.sliderMax}
+              step="1"
+              value={d.leads}
+              aria-label="Leads a month (slider)"
+              data-leads-range
+              style={`--fill:${(d.leads / LEAK.limits.sliderMax) * 100}%`}
+            />
+            <input
+              class="calc__num num"
+              id="leak-leads"
+              type="number"
+              inputmode="numeric"
+              min={LEAK.limits.leadsMin}
+              max={LEAK.limits.leadsMax}
+              step="1"
+              value={d.leads}
+              data-leads
+            />
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend class="field__label">How fast does a new lead hear back?</legend>
+          <div class="pills">
+            {
+              LEAK.speed.map((o) => (
+                <label class="pill">
+                  <input type="radio" name="speed" value={o.id} data-factor={o.factor} checked={o.id === d.speed} />
+                  <span>{o.label}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend class="field__label">Follow-ups after the first message</legend>
+          <div class="pills">
+            {
+              LEAK.follow.map((o) => (
+                <label class="pill">
+                  <input type="radio" name="follow" value={o.id} data-factor={o.factor} checked={o.id === d.follow} />
+                  <span>{o.label}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <details class="assume">
+          <summary>
+            <span>How this estimate works</span>
+            <span class="assume__plus" aria-hidden="true"></span>
+          </summary>
+          <div class="assume__body">
+            <div class="field field--inline">
+              <label class="field__label" for="leak-rate">Share of leads that would book with fast, steady follow-up</label>
+              <span class="calc__pct">
+                <input
+                  class="calc__num num"
+                  id="leak-rate"
+                  type="number"
+                  inputmode="decimal"
+                  min={LEAK.limits.rateMin}
+                  max={LEAK.limits.rateMax}
+                  step="0.5"
+                  value={d.rate}
+                  data-rate
+                />
+                <span aria-hidden="true">%</span>
+              </span>
+            </div>
+            <p class="text-2">
+              Possible calls = leads × that share. Slower replies and fewer follow-ups keep a part of them: the multipliers
+              below. They are rough working assumptions, not research figures. Put your own booking rate in and treat the
+              result as a direction, not a forecast.
+            </p>
+            <div class="assume__tables">
+              <table>
+                <caption>Reply speed</caption>
+                <tbody>
+                  {LEAK.speed.map((o) => (
+                    <tr>
+                      <th scope="row">{o.label}</th>
+                      <td class="num">× {o.factor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <table>
+                <caption>Follow-ups</caption>
+                <tbody>
+                  {LEAK.follow.map((o) => (
+                    <tr>
+                      <th scope="row">{o.label}</th>
+                      <td class="num">× {o.factor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </fieldset>
+
+      <!-- Phones only: the live result rides along at the bottom of the screen while the inputs
+           are being changed, and steps aside once the full card below is in view. -->
+      <div class="calc__mini" aria-hidden="true" data-mini>
+        <span class="calc__mini-num num" data-mini-num>{fmt(initial.lost)}</span>
+        <span class="calc__mini-text">calls a month may be slipping</span>
+        <span class="calc__mini-hint mono">Estimate ↓</span>
+      </div>
+
+      <div class="calc__out inverse" data-out>
+        <p class="calc__eyebrow mono">Estimate</p>
+        <p class="calc__result">
+          <!-- Not <output>: its implicit live region would read every frame of the count-up.
+               The one debounced announcement lives in [data-out-live]. -->
+          <span class="calc__big num" data-out-lost>{fmt(initial.lost)}</span>
+          <span class="calc__unit">calls a month may be slipping away</span>
+        </p>
+        <div class="bar" aria-hidden="true">
+          <span class="bar__kept" data-bar style={`--share:${share}`}></span>
+        </div>
+        <dl class="calc__legend">
+          <div>
+            <dt><span class="swatch swatch--kept"></span>Booked today</dt>
+            <dd class="num" data-out-booked>{fmt(initial.booked)}</dd>
+          </div>
+          <div>
+            <dt><span class="swatch swatch--lost"></span>Possible</dt>
+            <dd class="num" data-out-possible>{fmt(initial.possible)}</dd>
+          </div>
+          <div>
+            <dt>Kept</dt>
+            <dd class="num" data-out-share>{pct(share)}</dd>
+          </div>
+        </dl>
+        <p class="visually-hidden" aria-live="polite" data-out-live></p>
+        <a class="btn calc__cta" href={bookingUrl('leak-calculator')}>
+          <span class="btn__dot" aria-hidden="true"></span>
+          <span>Find my leaks on a call</span>
+        </a>
+        <p class="calc__fine text-3">Estimate only. Your real numbers come from your CRM, and an audit reads them.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<style>
+  .calc {
+    display: grid;
+    gap: var(--space-5);
+    padding: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-1);
+  }
+  @media (min-width: 1024px) {
+    .calc {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      align-items: start;
+    }
+  }
+  .calc__inputs {
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(0.5rem, 0.2rem + 1vw, 1.25rem);
+  }
+  .field {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .field__label {
+    padding: 0;
+    font-weight: 700;
+  }
+  .field__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* ---------- range ---------- */
+  .calc__range {
+    flex: 1;
+    min-width: 0;
+    height: var(--tap);
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .calc__range::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 8px;
+    background: linear-gradient(to right, var(--accent) var(--fill, 0%), var(--line-strong) var(--fill, 0%));
+  }
+  .calc__range::-moz-range-track {
+    height: 8px;
+    border-radius: 8px;
+    background: var(--line-strong);
+  }
+  .calc__range::-moz-range-progress {
+    height: 8px;
+    border-radius: 8px;
+    background: var(--accent);
+  }
+  .calc__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    margin-top: -10px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    box-shadow:
+      0 0 0 5px var(--surface-1),
+      var(--shadow-soft);
+    transition: transform 380ms var(--ease-spring);
+  }
+  .calc__range::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    box-shadow: 0 0 0 5px var(--surface-1);
+  }
+  .calc__range:active::-webkit-slider-thumb {
+    transform: scale(1.18);
+  }
+  .calc__range:focus-visible {
+    outline: none;
+  }
+  .calc__range:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .calc__range:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .calc__num {
+    width: 6.5ch;
+    min-height: var(--tap);
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    font-weight: 700;
+    text-align: right;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .calc__num::-webkit-inner-spin-button,
+  .calc__num::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .calc__num:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus);
+  }
+  #leak-leads {
+    width: 8ch;
+  }
+
+  /* ---------- pill radios ---------- */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill {
+    position: relative;
+    display: inline-flex;
+  }
+  .pill input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .pill span {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background-color 300ms var(--ease-out-quint),
+      color 300ms var(--ease-out-quint),
+      box-shadow 300ms var(--ease-out-quint),
+      transform 420ms var(--ease-spring);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .pill:hover span {
+      box-shadow: inset 0 0 0 1.5px var(--text-3);
+    }
+  }
+  .pill input:checked + span {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+    transform: scale(1.03);
+  }
+  .pill input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .calc__inputs:disabled .pill span,
+  .calc__inputs:disabled .calc__range,
+  .calc__inputs:disabled .calc__num {
+    opacity: 0.6;
+  }
+  /* High contrast drops backgrounds; keep the chosen answer visible. */
+  @media (forced-colors: active) {
+    .pill span {
+      border: 1px solid CanvasText;
+    }
+    .pill input:checked + span {
+      border: 3px solid Highlight;
+    }
+  }
+
+  /* ---------- phones: compact inputs and a riding result ---------- */
+  .calc__mini {
+    display: none;
+  }
+  @media (max-width: 1023px) {
+    .calc__inputs {
+      gap: var(--space-5);
+    }
+    /* One swipeable row per question instead of three wrapped rows. */
+    .pills {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      margin-inline: -4px;
+      padding: 4px;
+      -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+      mask-image: linear-gradient(to right, #000 85%, transparent);
+    }
+    .pills::-webkit-scrollbar {
+      display: none;
+    }
+    .pill {
+      flex: none;
+      scroll-snap-align: start;
+    }
+    .calc__mini {
+      position: sticky;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 2;
+      /* Takes no room in the flow: it only ever rides at the bottom edge, and is hidden
+         by the time its own slot (just above the full card) scrolls into view. */
+      height: 56px;
+      margin-block: calc(-1 * var(--space-5)) -56px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      box-shadow: var(--shadow-lift);
+      pointer-events: none;
+      transition:
+        opacity 360ms var(--ease-out-quint),
+        transform 520ms var(--ease-out-quint);
+    }
+    .calc__mini.is-away {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    .calc__mini-num {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.75rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--accent-inv);
+    }
+    .calc__mini-text {
+      font-weight: 600;
+      font-size: 0.875rem;
+      line-height: 1.25;
+    }
+    .calc__mini-hint {
+      margin-left: auto;
+      opacity: 0.7;
+      white-space: nowrap;
+    }
+  }
+
+  /* ---------- assumptions ---------- */
+  .assume {
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .assume summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 52px;
+    padding: 0 var(--space-4);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--radius-m);
+  }
+  .assume summary::-webkit-details-marker {
+    display: none;
+  }
+  .assume__plus {
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+  .assume__plus::before,
+  .assume__plus::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 14px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .assume__plus::after {
+    transform: rotate(90deg);
+  }
+  .assume[open] .assume__plus::after {
+    transform: rotate(0deg);
+  }
+  .assume__body {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0 var(--space-4) var(--space-4);
+    font-size: var(--fs-small);
+  }
+  .field--inline {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+  .calc__pct {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+  }
+  .assume__tables {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  }
+  .assume table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .assume caption {
+    text-align: left;
+    padding-bottom: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+  }
+  .assume th,
+  .assume td {
+    padding: 6px 0;
+    border-top: 1px solid var(--line);
+    text-align: left;
+    font-weight: 500;
+  }
+  .assume td {
+    text-align: right;
+  }
+
+  /* ---------- output ---------- */
+  .calc__out {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: clamp(1.25rem, 0.8rem + 1.6vw, 2.25rem);
+    border-radius: calc(var(--radius-xl) - 10px);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  @media (min-width: 1024px) {
+    .calc__out {
+      position: sticky;
+      top: calc(var(--nav-h) + 40px);
+    }
+  }
+  .calc__eyebrow {
+    margin: 0;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+  .calc__result {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .calc__big {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--fs-metric);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    color: var(--accent-inv);
+    overflow-wrap: anywhere;
+  }
+  .calc__unit {
+    font-size: var(--fs-lede);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .bar {
+    position: relative;
+    height: 14px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--accent) 0 6px,
+      color-mix(in srgb, var(--accent) 55%, transparent) 6px 12px
+    );
+  }
+  .bar__kept {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--btn-fg);
+    transform-origin: left;
+    transform: scaleX(var(--share, 0));
+    transition: transform 700ms var(--ease-out-quint);
+  }
+  .calc__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+  .calc__legend div {
+    display: grid;
+    gap: 2px;
+  }
+  .calc__legend dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.75;
+  }
+  .calc__legend dd {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  .swatch--kept {
+    background: var(--btn-fg);
+  }
+  .swatch--lost {
+    background: var(--accent);
+  }
+  .calc__cta {
+    justify-self: start;
+    margin-top: var(--space-2);
+    background: var(--btn-fg);
+    color: var(--btn-bg);
+  }
+  .calc__fine {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: inherit;
+    opacity: 0.66;
+  }
+</style>
+
+<script>
+  import { leakEstimate, LEAK } from '../../data/funnels/leak';
+  import { prefersReduced } from '../../lib/funnels/base';
+
+  const form = document.querySelector<HTMLFormElement>('[data-leak]');
+  if (form) {
+    const range = form.querySelector<HTMLInputElement>('[data-leads-range]')!;
+    const leadsEl = form.querySelector<HTMLInputElement>('[data-leads]')!;
+    const rateEl = form.querySelector<HTMLInputElement>('[data-rate]')!;
+    const lostEl = form.querySelector<HTMLElement>('[data-out-lost]')!;
+    const bookedEl = form.querySelector<HTMLElement>('[data-out-booked]')!;
+    const possibleEl = form.querySelector<HTMLElement>('[data-out-possible]')!;
+    const shareEl = form.querySelector<HTMLElement>('[data-out-share]')!;
+    const bar = form.querySelector<HTMLElement>('[data-bar]')!;
+    const live = form.querySelector<HTMLElement>('[data-out-live]')!;
+    const mini = form.querySelector<HTMLElement>('[data-mini]')!;
+    const miniNum = form.querySelector<HTMLElement>('[data-mini-num]')!;
+    const outCard = form.querySelector<HTMLElement>('[data-out]')!;
+    const { limits } = LEAK;
+
+    // The riding result hides once the real card is on screen (or before the form is).
+    if ('IntersectionObserver' in window) {
+      let cardVisible = false;
+      let formVisible = false;
+      const sync = () => mini.classList.toggle('is-away', cardVisible || !formVisible);
+      new IntersectionObserver(([e]) => {
+        cardVisible = Boolean(e?.isIntersecting);
+        sync();
+      }, { rootMargin: '0px 0px -40px 0px' }).observe(outCard);
+      new IntersectionObserver(([e]) => {
+        formVisible = Boolean(e?.isIntersecting);
+        sync();
+      }).observe(form.querySelector('[data-leak-inputs]')!);
+    }
+
+    const nf = new Intl.NumberFormat('en');
+    const fmt = (v: number) => (v > 0 && v < 1 ? 'under 1' : nf.format(Math.round(v)));
+    /** Parse a field; empty or junk falls back, everything is clamped. */
+    const read = (el: HTMLInputElement, min: number, max: number, fallback: number) => {
+      const v = Number.parseFloat(el.value.replace(',', '.'));
+      if (!Number.isFinite(v)) return fallback;
+      return Math.min(max, Math.max(min, v));
+    };
+    const checked = (name: string) =>
+      Number(form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.dataset.factor ?? 1);
+
+    let shown = Number.NaN;
+    let raf = 0;
+    let liveTimer: number | undefined;
+    let lastLeads: number = LEAK.defaults.leads;
+    let lastRate: number = LEAK.defaults.rate;
+
+    // Count the big number toward its target on an expo-out, so changes feel like flow.
+    const tweenTo = (target: number) => {
+      cancelAnimationFrame(raf);
+      if (!Number.isFinite(shown) || prefersReduced()) {
+        shown = target;
+        lostEl.textContent = fmt(target);
+        return;
+      }
+      const from = shown;
+      const t0 = performance.now();
+      const dur = 650;
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / dur);
+        const e = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        shown = from + (target - from) * e;
+        lostEl.textContent = fmt(t >= 1 ? target : shown);
+        if (t < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    };
+
+    /** `announce` is false for the start-up and back/forward recomputes: nobody asked yet. */
+    const update = (announce = true) => {
+      // The same limits while typing and on leave, so the result never jumps on blur.
+      const leads = read(leadsEl, limits.leadsMin, limits.leadsMax, lastLeads);
+      const rate = read(rateEl, limits.rateMin, limits.rateMax, lastRate);
+      lastLeads = leads;
+      lastRate = rate;
+      const r = leakEstimate({ leads, rate, speed: checked('speed'), follow: checked('follow') });
+      const share = r.possible > 0 ? r.booked / r.possible : 0;
+      tweenTo(r.lost);
+      miniNum.textContent = fmt(r.lost);
+      bookedEl.textContent = fmt(r.booked);
+      possibleEl.textContent = fmt(r.possible);
+      shareEl.textContent = `${Math.round(share * 100)}%`;
+      bar.style.setProperty('--share', String(share));
+      range.style.setProperty('--fill', `${(Math.min(leads, limits.sliderMax) / limits.sliderMax) * 100}%`);
+      window.clearTimeout(liveTimer);
+      if (!announce) return;
+      liveTimer = window.setTimeout(() => {
+        live.textContent = `Estimate: ${fmt(r.lost)} calls a month may be slipping away, out of about ${fmt(r.possible)} possible.`;
+      }, 600);
+    };
+
+    range.addEventListener('input', () => {
+      leadsEl.value = range.value;
+      update();
+    });
+    leadsEl.addEventListener('input', () => {
+      const v = read(leadsEl, limits.leadsMin, limits.leadsMax, Number.NaN);
+      if (Number.isFinite(v)) range.value = String(Math.min(v, limits.sliderMax));
+      update();
+    });
+    // On leave, write back the clamped value so the field never shows something the maths ignored.
+    leadsEl.addEventListener('change', () => {
+      leadsEl.value = String(Math.round(read(leadsEl, limits.leadsMin, limits.leadsMax, lastLeads)));
+      update();
+    });
+    rateEl.addEventListener('input', () => update());
+    rateEl.addEventListener('change', () => {
+      rateEl.value = String(read(rateEl, limits.rateMin, limits.rateMax, lastRate));
+      update();
+    });
+    form.addEventListener('change', (e) => {
+      if (e.target instanceof HTMLInputElement && e.target.type === 'radio') update();
+    });
+    // Browsers restore field values on back/forward; recompute from what is actually there.
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) update(false);
+    });
+    form.addEventListener('submit', (e) => e.preventDefault()); // Enter in a field must not reload
+    form.querySelector<HTMLFieldSetElement>('[data-leak-inputs]')!.disabled = false;
+    // Swipeable rows on phones: start each row with its chosen answer in view.
+    form.querySelectorAll<HTMLElement>('.pills').forEach((row) => {
+      const pill = row.querySelector<HTMLElement>('input:checked')?.closest<HTMLElement>('.pill');
+      if (pill && row.scrollWidth > row.clientWidth) row.scrollLeft = Math.max(0, pill.offsetLeft - 8);
+    });
+    update(false);
+  }
+</script>

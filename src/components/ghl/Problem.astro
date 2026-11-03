@@ -1,0 +1,211 @@
+---
+/**
+ * The problem (brief §4 item 3): the messy account. Left: the story and the fears from the
+ * brief. Right: an example workflow list, the way it looks in a tired account, with a fault
+ * tape on each row that is quietly wrong. Labelled as an example.
+ */
+import { PROBLEM } from '../../data/ghl/content';
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container problem__grid">
+    <div class="problem__copy">
+      <p class="eyebrow">The problem</p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede">{PROBLEM.body}</p>
+      <ul class="problem__fears" role="list">
+        {PROBLEM.fears.map((f) => <li>{f}</li>)}
+      </ul>
+      <p class="problem__fix">{PROBLEM.resolution}</p>
+    </div>
+
+    <figure class="wf" aria-labelledby="wf-cap" data-reveal>
+      <div class="wf__bar">
+        <span class="mono">Automation › Workflows</span>
+        <span class="tape">Example account</span>
+      </div>
+      <table class="wf__table">
+        <caption id="wf-cap" class="visually-hidden">Example workflow list from a messy account, with faults marked</caption>
+        <thead>
+          <tr>
+            <th scope="col">Workflow</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="wf__trigger">Trigger</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            PROBLEM.workflows.map((w) => (
+              <tr class:list={{ 'is-fault': w.fault }}>
+                <th scope="row">
+                  <span class="wf__name">{w.name}</span>
+                  {w.fault && (
+                    <span class="tape tape--fault wf__fault">
+                      <span class="led led--fault" aria-hidden="true" />
+                      {w.fault}
+                    </span>
+                  )}
+                </th>
+                <td>
+                  <span class:list={['wf__status', w.status === 'Draft' ? 'is-draft' : 'is-live']}>{w.status}</span>
+                </td>
+                <td class="wf__trigger mono">{w.trigger}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <figcaption class="wf__cap text-3">Illustrative. Workflow names are made up; the faults are the ones I find most.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: var(--space-8);
+    }
+  }
+  .problem__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .problem__copy h2 {
+    max-width: 14ch;
+  }
+  .problem__fears {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .problem__fears li {
+    position: relative;
+    padding-left: 22px;
+    font-weight: 500;
+  }
+  .problem__fears li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.55em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--fault-led);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fault-led) 25%, transparent);
+  }
+  .problem__fix {
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--accent);
+    background: var(--surface-1);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+  }
+
+  /* ---------- the example workflow list ---------- */
+  .wf {
+    margin: 0;
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    overflow: hidden;
+  }
+  .wf__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--line);
+    color: var(--text-3);
+  }
+  .wf__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+  .wf__table th,
+  .wf__table td {
+    padding: 12px var(--space-5);
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--line);
+  }
+  .wf__table thead th {
+    padding-block: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .wf__table tbody th {
+    font-weight: 500;
+  }
+  .wf__name {
+    display: block;
+  }
+  .wf__fault {
+    margin-top: 6px;
+  }
+  .wf__table tr.is-fault {
+    background: color-mix(in srgb, var(--fault-bg) 38%, transparent);
+  }
+  .wf__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .wf__status::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .wf__status.is-live::before {
+    background: var(--success);
+  }
+  .wf__status.is-draft {
+    color: var(--text-3);
+  }
+  .wf__status.is-draft::before {
+    border: 1.5px solid var(--text-3);
+  }
+  .wf__trigger {
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+  .wf__cap {
+    padding: var(--space-3) var(--space-5) var(--space-4);
+    font-size: 0.8125rem;
+  }
+  /* Phones: the trigger column waits; name and status are the story. */
+  @media (max-width: 560px) {
+    .wf__trigger {
+      display: none;
+    }
+    .wf__table th,
+    .wf__table td {
+      padding-inline: var(--space-4);
+    }
+    .wf__bar {
+      padding-inline: var(--space-4);
+    }
+  }
+</style>

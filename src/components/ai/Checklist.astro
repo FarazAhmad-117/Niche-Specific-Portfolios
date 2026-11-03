@@ -1,0 +1,139 @@
+---
+/**
+ * Section 07, production checklist (spec §5.7). The visible hairline grid returns here.
+ * Ticks are drawn in the markup (no-JS and reduced motion see them done); the script only
+ * arms the tick-in for visitors who can see it (spec §7.6).
+ */
+import Section from './Section.astro';
+import { CHECKLIST } from '../../data/ai/content';
+---
+
+<Section id="checklist" grid class="checklist-sec">
+  <div class="sec-head" data-reveal>
+    <h2 id="checklist-title">Every build ships with these eight things.</h2>
+    <p class="lede">Not extras. This is what "in production" means to me.</p>
+  </div>
+
+  <ul class="check plain-list" data-checklist>
+    {
+      CHECKLIST.map((item, i) => (
+        <li class="check__cell" style={`--i:${i}`}>
+          <span class="check__box" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="16" height="16" focusable="false">
+              <path d="M3.5 8.5 6.5 11.5 12.5 4.5" pathLength="100" />
+            </svg>
+          </span>
+          <p class="check__code mono-label">{item.code}</p>
+          <h3 class="check__title">{item.title}</h3>
+          <p class="check__text text-2">{item.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+</Section>
+
+<style>
+  /* Opaque cells hide the grid, so a tall bottom pad would be a band of bare lines. */
+  :global(section.checklist-sec.sec) {
+    padding-block-end: var(--space-8);
+  }
+  .check {
+    display: grid;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .check__cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-5) var(--space-5) var(--space-4);
+    /* Opaque, so the hairline grid shows in the gutters and margins but never behind text. */
+    background: var(--bg);
+    border-block-end: 1px solid var(--line-strong);
+  }
+  .check__cell > * {
+    margin: 0;
+  }
+  .check__title {
+    font-size: var(--fs-h3);
+  }
+  .check__text {
+    font-size: var(--fs-small);
+  }
+  .check__box {
+    position: absolute;
+    inset-block-start: var(--space-5);
+    inset-inline-end: var(--space-4);
+    display: grid;
+    place-items: center;
+    inline-size: 16px;
+    block-size: 16px;
+    border: 1px solid var(--accent-text);
+    transition: border-color var(--dur-reveal) var(--ease-out);
+    transition-delay: calc(var(--i) * 80ms);
+  }
+  .check__box svg {
+    inline-size: 16px;
+    block-size: 16px;
+    fill: none;
+    stroke: var(--accent-text);
+    stroke-width: 1.75;
+    stroke-linecap: square;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 400ms var(--ease-out);
+    transition-delay: calc(var(--i) * 80ms);
+  }
+  /* Armed only by the script, so with no JS the ticks are simply done. */
+  .check.is-armed:not(.is-ticked) .check__box {
+    border-color: var(--line-strong);
+  }
+  .check.is-armed:not(.is-ticked) .check__box svg {
+    stroke-dashoffset: 100;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .check__box,
+    .check__box svg {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .check {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--gutter);
+    }
+  }
+  @media (min-width: 1280px) {
+    .check {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  // Tick-in (spec §7.6): once, when the grid is 30% visible. Never for reduced motion.
+  const grid = document.querySelector<HTMLElement>('[data-checklist]');
+  let reduced = false;
+  try {
+    reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    /* treat as motion allowed */
+  }
+
+  if (grid && !reduced && 'IntersectionObserver' in window) {
+    const inView = grid.getBoundingClientRect().top < window.innerHeight * 0.7;
+    if (!inView) {
+      grid.classList.add('is-armed');
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          grid.classList.add('is-ticked');
+          io.disconnect();
+        },
+        { threshold: 0.3 },
+      );
+      io.observe(grid);
+    }
+  }
+</script>

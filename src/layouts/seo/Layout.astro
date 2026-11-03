@@ -1,81 +1,80 @@
 ---
+/**
+ * seo niche layout. Concept "SERP" (docs/brief/seo.md §6).
+ *
+ * Props
+ *   title: string, description: string       -> <SEO>
+ *   path?: string                             canonical path on the subdomain (default: current page)
+ *   image?: string | ImageMetadata            og:image
+ *   noindex?: boolean                         per-page noindex (niche-wide switch is src/niches.ts)
+ *   jsonLd?: Record<string, unknown>[]        each emitted as <script type="application/ld+json">
+ *   home?: boolean                            home page: nav/footer links are #hash
+ */
+import '../../styles/seo/tokens.css';
+import '../../styles/seo/base.css';
+import displayFontUrl from '../../assets/fonts/SchibstedGrotesk-Variable-latin.woff2?url';
 import SEO from '../../components/shared/SEO.astro';
+import Motion from '../../components/shared/Motion.astro';
+import Nav from '../../components/seo/Nav.astro';
+import Footer from '../../components/seo/Footer.astro';
+import StickyCta from '../../components/seo/StickyCta.astro';
 import { createLink } from '../../lib/link';
-import { getNiche } from '../../niches';
 
 interface Props {
   title: string;
   description: string;
-  /** Path on the subdomain; defaults to the current page. */
   path?: string;
+  image?: string | ImageMetadata;
   noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  home?: boolean;
 }
 
-const { title, description, path, noindex } = Astro.props;
+const { title, description, path, image, noindex, jsonLd = [], home = false } = Astro.props;
 
 const niche = 'seo' as const;
 const link = createLink(niche);
-const { name } = getNiche(niche);
+
+// Runs before first paint; must stay tiny. CSS follows the system when nothing is stored.
+const themeScript =
+  "try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add('js')";
+const ld = (obj: Record<string, unknown>) => JSON.stringify(obj).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <SEO niche={niche} title={title} description={description} path={path} noindex={noindex} />
+    <script is:inline set:html={themeScript} />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={displayFontUrl} />
+    <link rel="icon" href={link('/icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={link('/apple-touch-icon.png')} />
+    <SEO niche={niche} title={title} description={description} path={path} image={image} noindex={noindex} />
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={ld(obj)} />)}
   </head>
-  <body>
-    <div class="shell">
-      <header class="bar">
-        <a class="brand" href={link('/')}>{name}</a>
-      </header>
-      <main>
-        <slot />
-      </main>
-      <footer class="foot">© {new Date().getFullYear()} Faraz Ahmad</footer>
-    </div>
-    
+  <body id="top">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav home={home} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer home={home} />
+    <StickyCta />
+    <Motion />
   </body>
 </html>
 
 <style>
-  /* Placeholder tokens: replace with the real design for this niche. */
-  body {
-    margin: 0;
-    background: hsl(150 30% 8%);
-  }
-  .shell {
-    --bg: hsl(150 30% 8%);
-    --fg: hsl(150 20% 94%);
-    --muted: hsl(150 10% 70%);
-    --accent: hsl(150 85% 62%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: system-ui, sans-serif;
-    line-height: 1.5;
-  }
-  .shell :global(*) {
-    box-sizing: border-box;
-  }
   main {
-    flex: 1;
-  }
-  .bar,
-  .foot {
-    padding: 1rem clamp(1rem, 4vw, 3rem);
-  }
-  .brand {
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .foot {
-    color: var(--muted);
-    font-size: 0.875rem;
+    position: relative;
+    display: block;
   }
 </style>
+
+<script>
+  import '../../lib/seo/base';
+</script>

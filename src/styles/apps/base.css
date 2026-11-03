@@ -1,0 +1,670 @@
+/* apps niche base: reset, typography, layout, shared primitives (buttons, chips, sheets), reveals,
+   page transitions. Global: imported once by the Layout. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption,
+td,
+th {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--fs-hero);
+  font-stretch: var(--wd-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  font-weight: 760;
+  font-stretch: var(--wd-heading);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-display);
+  font-weight: 680;
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+strong {
+  font-weight: 600;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+/* Title-block label: Mona Sans at full width, uppercase. The drafting voice of the site. */
+.label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  font-weight: 620;
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+/* The accent words in a heading: ink blue with a ruled underline that draws in. */
+.em {
+  color: var(--accent-text);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 0.07em no-repeat;
+  padding-bottom: 0.04em;
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+}
+.link:focus-visible {
+  text-decoration-color: var(--accent);
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+/* A focusable dark sheet sits on the page: its ring is drawn on paper, so use the page's colour. */
+.print:focus-visible {
+  outline-color: var(--focus-outer);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+/* Drafting paper: a fine grid with a heavier line every five squares. */
+.paper {
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size:
+    calc(var(--grid-step) * 5) calc(var(--grid-step) * 5),
+    calc(var(--grid-step) * 5) calc(var(--grid-step) * 5),
+    var(--grid-step) var(--grid-step),
+    var(--grid-step) var(--grid-step);
+  background-position: -1px -1px;
+}
+
+/* Section heading block: numbered eyebrow, h2, optional lede. */
+.eyebrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  font-weight: 620;
+  font-stretch: var(--wd-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.eyebrow__no {
+  font-family: var(--font-mono);
+  font-stretch: 100%;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--accent-text);
+}
+.eyebrow__no::after {
+  content: "";
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  margin-left: 12px;
+  vertical-align: middle;
+  background: currentColor;
+}
+.head {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 62rem;
+  margin-bottom: clamp(2.5rem, 1.8rem + 3vw, 4.5rem);
+}
+.head > h2 {
+  max-width: 17ch;
+}
+.head--split {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* Crop marks at the four corners of a sheet. Put .crops on a positioned element. */
+.crops {
+  --crop: 12px;
+  --crop-c: var(--line-strong);
+  --crop-o: -7px;
+}
+.crops::after {
+  content: "";
+  position: absolute;
+  inset: var(--crop-o);
+  pointer-events: none;
+  background:
+    linear-gradient(var(--crop-c), var(--crop-c)) 0 0 / var(--crop) 1px,
+    linear-gradient(var(--crop-c), var(--crop-c)) 0 0 / 1px var(--crop),
+    linear-gradient(var(--crop-c), var(--crop-c)) 100% 0 / var(--crop) 1px,
+    linear-gradient(var(--crop-c), var(--crop-c)) 100% 0 / 1px var(--crop),
+    linear-gradient(var(--crop-c), var(--crop-c)) 0 100% / var(--crop) 1px,
+    linear-gradient(var(--crop-c), var(--crop-c)) 0 100% / 1px var(--crop),
+    linear-gradient(var(--crop-c), var(--crop-c)) 100% 100% / var(--crop) 1px,
+    linear-gradient(var(--crop-c), var(--crop-c)) 100% 100% / 1px var(--crop);
+  background-repeat: no-repeat;
+}
+
+/* ---------- buttons ----------
+ * Primary: an ink-blue block. On hover a second ink sweeps in from the left like a pen
+ * stroke (scaleX on out-quint, ~1s, slow and even), the label flips colour ~140ms later as
+ * the sweep passes under it, and crop marks appear round the button like a selection.
+ * Ghost: a ruled outline; the sweep is ink blue and the label flips to white. */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-display);
+  font-weight: 640;
+  font-stretch: 108%;
+  font-size: 1rem;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition:
+    color 420ms var(--ease-out-quint) 140ms,
+    transform var(--dur-press) var(--ease-out-quint);
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--btn-sweep);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-fill) var(--ease-out-quint);
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  --c: var(--accent);
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 8px 1.5px,
+    linear-gradient(var(--c), var(--c)) 0 0 / 1.5px 8px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 8px 1.5px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 1.5px 8px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 8px 1.5px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 1.5px 8px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 8px 1.5px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 1.5px 8px;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity 360ms var(--ease-out-quint),
+    transform 520ms var(--ease-out-expo);
+}
+.btn__arrow {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  transition: transform 520ms var(--ease-out-expo);
+}
+.btn__arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: square;
+}
+.btn:focus-visible {
+  color: var(--btn-sweep-fg);
+}
+.btn:focus-visible::before {
+  transform: scaleX(1);
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--btn-sweep-fg);
+  }
+  .btn:hover::before {
+    transform: scaleX(1);
+  }
+  .btn:hover::after {
+    opacity: 1;
+    transform: none;
+  }
+  .btn:hover .btn__arrow {
+    transform: translateX(4px);
+  }
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn--ghost {
+  --btn-sweep: var(--accent);
+  --btn-sweep-fg: var(--on-accent);
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 var(--stroke) var(--text);
+}
+.btn--ghost.btn--down:hover .btn__arrow,
+.btn--ghost.btn--down:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.2;
+}
+.chip--live::before,
+.chip--build::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--success);
+}
+.chip--build::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose. */
+.todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1.5px dashed var(--line-input);
+  border-radius: var(--radius-xs);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.5;
+}
+.todo::before {
+  content: "TODO ·";
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out-quint);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 80ms steps, capped).
+ * Script arms only what is below the fold at load, so no-JS and above-the-fold content
+ * is never hidden. Lift + fade on out-quint; long and soft, never bouncy. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out-quint),
+      transform var(--dur-reveal) var(--ease-out-quint);
+    transition-delay: calc(min(var(--i, 0), 7) * 80ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- page transitions (cross-document View Transitions) ----------
+ * Home ↔ case pages, like laying a new drawing sheet on the table. All on in-out-quart:
+ *  - the outgoing page slides a little to the left and dims (it goes under the stack)
+ *  - the incoming page is unrolled from the right edge (an inset clip) while it slides in
+ *  - the case card box ↔ the case page's hero panel morphs between its two positions above
+ *    both, so the eye follows the thing you clicked
+ * Going back plays it mirrored. The nav is its own group and does not move. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-under 900ms var(--ease-in-out-quart) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-unroll 900ms var(--ease-in-out-quart) both;
+  }
+  html:active-view-transition-type(back)::view-transition-old(root) {
+    animation-name: vt-under-back;
+  }
+  html:active-view-transition-type(back)::view-transition-new(root) {
+    animation-name: vt-unroll-back;
+  }
+
+  ::view-transition-group(site-nav),
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none;
+  }
+
+  /* A case card ↔ its page hero. The box moves and resizes; the two snapshots are never
+     stretched (object-fit: none, pinned top-left), the old one fades out early and the new
+     one in late, so text stays crisp and never doubles into a ghost. */
+  ::view-transition-group(case-solidmake),
+  ::view-transition-group(case-yard-terminal),
+  ::view-transition-group(case-farazahmad-dev) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(case-solidmake),
+  ::view-transition-image-pair(case-yard-terminal),
+  ::view-transition-image-pair(case-farazahmad-dev) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-m);
+  }
+  ::view-transition-old(case-solidmake),
+  ::view-transition-old(case-yard-terminal),
+  ::view-transition-old(case-farazahmad-dev),
+  ::view-transition-new(case-solidmake),
+  ::view-transition-new(case-yard-terminal),
+  ::view-transition-new(case-farazahmad-dev) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(case-solidmake),
+  ::view-transition-old(case-yard-terminal),
+  ::view-transition-old(case-farazahmad-dev) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(case-solidmake),
+  ::view-transition-new(case-yard-terminal),
+  ::view-transition-new(case-farazahmad-dev) {
+    animation: vt-fade-in 520ms var(--ease-out-quint) 320ms both;
+  }
+}
+@keyframes vt-under {
+  to {
+    opacity: 0.4;
+    transform: translateX(-5%) scale(0.98);
+  }
+}
+@keyframes vt-under-back {
+  to {
+    opacity: 0.4;
+    transform: translateX(5%) scale(0.98);
+  }
+}
+@keyframes vt-unroll {
+  from {
+    clip-path: inset(0 0 0 100%);
+    transform: translateX(6%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+@keyframes vt-unroll-back {
+  from {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-6%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Theme swap: the new theme is plotted across the page left to right (JS drives it). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* During a theme swap nothing is a shared element: the whole page wipes as one surface.
+   (!important in a stylesheet beats the inline view-transition-name.) */
+html.theme-vt [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .chip,
+  .todo {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

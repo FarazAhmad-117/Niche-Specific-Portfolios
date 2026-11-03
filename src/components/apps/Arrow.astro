@@ -1,0 +1,21 @@
+---
+/**
+ * A drawn arrow (the latin font subsets have no arrow glyphs). Decorative: always aria-hidden.
+ * dir: right (default), down, up-right (external), left.
+ */
+interface Props {
+  dir?: 'right' | 'down' | 'up-right' | 'left';
+  class?: string;
+}
+const { dir = 'right', class: className } = Astro.props;
+const D = {
+  right: 'M2 8h11M9 4l4 4-4 4',
+  left: 'M14 8H3M7 4L3 8l4 4',
+  down: 'M8 2v11M4 9l4 4 4-4',
+  'up-right': 'M4 12l8-8M5.5 4H12v6.5',
+} as const;
+---
+
+<svg class:list={['btn__arrow', className]} viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+  <path d={D[dir]}></path>
+</svg>

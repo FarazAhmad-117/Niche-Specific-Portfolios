@@ -15,9 +15,18 @@ export function pagePaths(globKeys: string[]): string[] {
     .sort();
 }
 
-export function sitemapResponse(slug: NicheSlug, globKeys: string[]): Response {
+/**
+ * `extraPaths` covers dynamic routes (`[slug].astro`), which the glob can't
+ * enumerate; pass their resolved paths ('/work/lead-drift/').
+ */
+export function sitemapResponse(
+  slug: NicheSlug,
+  globKeys: string[],
+  extraPaths: readonly string[] = [],
+): Response {
   const origin = nicheOrigin(slug);
-  const urls = pagePaths(globKeys)
+  const paths = [...new Set([...pagePaths(globKeys), ...extraPaths])].sort();
+  const urls = paths
     .map((p) => `  <url><loc>${origin}${p}</loc></url>`)
     .join('\n');
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;

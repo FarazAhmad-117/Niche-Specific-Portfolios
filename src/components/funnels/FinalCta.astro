@@ -1,0 +1,190 @@
+---
+/**
+ * Final CTA + the shared contact form. The form's own attribution (first-touch landing page,
+ * referrer, UTMs) is the pipeline described in the case studies.
+ */
+import ContactForm from '../shared/ContactForm.astro';
+import { CALL_PROMISE } from '../../data/funnels/content';
+import { CONTACT_EMAIL, bookingUrl } from '../../data/funnels/site';
+---
+
+<section class="section cta" id="contact" aria-labelledby="contact-title">
+  <div class="container">
+    <div class="cta__card">
+      <div class="cta__copy inverse">
+        <p class="eyebrow">Contact</p>
+        <h2 id="contact-title">Let’s find where your leads go quiet.</h2>
+        <p class="lede">Free 30-minute scoping call. {CALL_PROMISE}.</p>
+        <a class="btn cta__book" href={bookingUrl('final')}>
+          <span class="btn__dot" aria-hidden="true"></span>
+          <span>Book a scoping call</span>
+        </a>
+        <p class="cta__mail text-3">
+          Or email <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+      </div>
+
+      <div class="cta__form">
+        <p class="cta__form-title">Or write it down</p>
+        <ContactForm
+          niche="funnels"
+          cta="Send message"
+          fallbackEmail={CONTACT_EMAIL}
+          labels={{ message: 'Where do your leads come from, and where do they go quiet?' }}
+          messages={{ success: 'Thanks, it’s on its way into my CRM, source and all. I’ll reply soon.' }}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta__card {
+    display: grid;
+    gap: var(--space-7);
+    padding: clamp(1.5rem, 1rem + 3vw, 4.5rem);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(50rem 30rem at 100% 0%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%),
+      var(--btn-bg);
+    color: var(--btn-fg);
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) {
+    .cta__card {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+  .cta__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .cta__copy .eyebrow,
+  .cta__copy .lede,
+  .cta__mail {
+    color: inherit;
+  }
+  .cta__copy .lede,
+  .cta__mail {
+    opacity: 0.78;
+  }
+  .cta__copy h2 {
+    max-width: 13ch;
+  }
+  .cta__book {
+    background: var(--btn-fg);
+    color: var(--btn-bg);
+  }
+  .cta__mail {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .cta__mail .link {
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  }
+
+  /* ---------- the shared form, themed from here ---------- */
+  .cta__form {
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    color: var(--text);
+    --cf-gap: 1rem;
+    --cf-bg: var(--surface-2);
+    --cf-border: var(--line-strong);
+    --cf-radius: 14px;
+    --cf-pad: 0.8rem 1rem;
+    --cf-focus: var(--focus);
+    --cf-btn-bg: var(--btn-bg);
+    --cf-btn-color: var(--btn-fg);
+    --cf-error: var(--error);
+    --cf-success: var(--success);
+  }
+  .cta__form-title {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+  }
+  .cta__form :global(.cf__label) {
+    font-weight: 700;
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__control) {
+    min-height: 48px;
+    transition:
+      border-color var(--dur-hover) var(--ease-out-quint),
+      box-shadow var(--dur-hover) var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__control:focus-visible) {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  /* Same language as .btn: ink pill, rose dot that swells into a fill. Colours are set here
+     explicitly because the base reset (button { color: inherit }) outranks the form's
+     zero-specificity defaults. */
+  .cta__form :global(.cf__submit) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 28px 0 44px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0;
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      color 420ms var(--ease-out-quint) 140ms;
+  }
+  .cta__form :global(.cf__submit)::before {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    z-index: -1;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 1050ms var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__submit:focus-visible) {
+    color: var(--on-accent);
+  }
+  .cta__form :global(.cf__submit:focus-visible)::before {
+    transform: scale(60);
+  }
+  @media (hover: hover) {
+    .cta__form :global(.cf__submit:hover:not(:disabled)) {
+      color: var(--on-accent);
+    }
+    .cta__form :global(.cf__submit:hover:not(:disabled))::before {
+      transform: scale(60);
+    }
+  }
+  .cta__form :global(.cf__submit:disabled) {
+    opacity: 0.7;
+  }
+  .cta__form :global(.cf__submit:active) {
+    transform: scale(0.97);
+  }
+  .cta__form :global(.cf__status) {
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__fallback) {
+    color: var(--accent-text);
+    font-weight: 700;
+  }
+</style>

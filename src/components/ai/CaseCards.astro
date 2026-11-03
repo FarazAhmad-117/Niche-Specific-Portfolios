@@ -1,0 +1,40 @@
+---
+/**
+ * Case studies (home). One spec row per build, from src/data/ai/cases.ts. If any value shown
+ * here is an illustrative sample, the honest note appears under the list (and only then).
+ */
+import Section from './Section.astro';
+import CaseCard from './CaseCard.astro';
+import SampleNote from './SampleNote.astro';
+import { CASES } from '../../data/ai/cases';
+
+/** Exactly what the cards print, so the note tracks what a visitor actually sees. */
+const shown = CASES.map((c) => [c.headlineMetric, c.diagram]);
+---
+
+<Section id="work">
+  <div class="sec-head sec-head--split" data-reveal>
+    <h2 id="work-title">Four systems I've built, and what they do.</h2>
+    <p class="lede">
+      Real builds, written up the same way: the problem, what I built, how it runs and what changed.
+    </p>
+  </div>
+
+  <ul class="cases plain-list" data-reveal-stagger>
+    {CASES.map((study) => <li><CaseCard study={study} /></li>)}
+  </ul>
+  <SampleNote data={shown} class="cases__note" />
+</Section>
+
+<style>
+  .cases {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .cases > li {
+    display: grid;
+  }
+  :global(.cases__note) {
+    margin-block-start: var(--space-5) !important;
+  }
+</style>

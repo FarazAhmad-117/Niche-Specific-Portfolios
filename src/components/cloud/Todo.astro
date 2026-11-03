@@ -1,0 +1,23 @@
+---
+/**
+ * Renders a Field: a verified string as plain text, or a TODO as a visible dashed chip.
+ * Everything a chip says is listed in docs/todo/cloud.md.
+ */
+import { isTodo, type Field } from '../../data/cloud/todo';
+
+interface Props {
+  value: Field;
+  class?: string;
+}
+const { value, class: className } = Astro.props;
+---
+
+{
+  isTodo(value) ? (
+    <span class:list={['todo', className]}>
+      {value.todo.startsWith('TODO') || value.todo.includes('TODO') ? value.todo : `TODO · ${value.todo}`}
+    </span>
+  ) : (
+    <Fragment>{value}</Fragment>
+  )
+}

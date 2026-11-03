@@ -1,0 +1,133 @@
+---
+/**
+ * About. The real portrait (black and white on black) sits in a dark instrument bezel with corner
+ * ticks, in both themes; facts come from src/data/cloud/profile.ts and site.ts only.
+ */
+import { Image } from 'astro:assets';
+import { ABOUT } from '../../data/cloud/content';
+import { PROFILE, yearsBuilding } from '../../data/cloud/profile';
+import { SUPPORT_HOURS } from '../../data/cloud/site';
+
+const facts = [
+  { k: 'Based in', v: PROFILE.location },
+  { k: 'Support hours', v: `${SUPPORT_HOURS} (not on-call)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
+];
+---
+
+<section class="section about" id="about" aria-labelledby="about-title">
+  <div class="container about__grid">
+    <figure class="about__photo panel--ticks" data-reveal>
+      <div class="about__frame">
+        <Image
+          src={PROFILE.portrait.src}
+          alt={PROFILE.portrait.alt}
+          widths={[320, 480, 640, 960]}
+          sizes="(min-width: 1024px) 400px, 80vw"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <figcaption class="about__cap mono">
+        <span class="about__cap-dot" aria-hidden="true"></span>
+        {PROFILE.name} · {PROFILE.city}, {PROFILE.countryCode}
+      </figcaption>
+    </figure>
+
+    <div class="about__copy">
+      <p class="eyebrow">About</p>
+      <h2 id="about-title">{ABOUT.title}</h2>
+      {ABOUT.paragraphs.map((p, i) => <p class:list={[i === 0 ? 'lede' : 'about__p']}>{p}</p>)}
+      <dl class="about__facts">
+        {
+          facts.map((f) => (
+            <div>
+              <dt class="mono">{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    }
+  }
+  .about__photo {
+    position: relative;
+    width: min(100%, 400px);
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: var(--radius-m);
+    background: #0b1115;
+    box-shadow: var(--shadow-lift);
+  }
+  .about__photo::before,
+  .about__photo::after {
+    border-color: var(--line-strong) !important;
+  }
+  .about__frame {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-s);
+    background: #000;
+  }
+  .about__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  .about__cap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px 2px;
+    color: #aebfbc;
+    text-transform: uppercase;
+  }
+  .about__cap-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4fe3ae;
+  }
+  .about__copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .about__copy h2 {
+    max-width: 16ch;
+  }
+  .about__p {
+    color: var(--text-2);
+    max-width: var(--measure);
+  }
+  .about__facts {
+    display: grid;
+    gap: var(--space-3) var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line);
+  }
+  .about__facts dt {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .about__facts dd {
+    margin: 2px 0 0;
+    font-weight: 700;
+  }
+</style>

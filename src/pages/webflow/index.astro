@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/webflow/Layout.astro';
+import Hero from '../../components/webflow/Hero.astro';
+import Proof from '../../components/webflow/Proof.astro';
+import Problem from '../../components/webflow/Problem.astro';
+import BuildSystem from '../../components/webflow/BuildSystem.astro';
+import Gallery from '../../components/webflow/Gallery.astro';
+import Cases from '../../components/webflow/Cases.astro';
+import Offers from '../../components/webflow/Offers.astro';
+import Included from '../../components/webflow/Included.astro';
+import Process from '../../components/webflow/Process.astro';
+import About from '../../components/webflow/About.astro';
+import Faq from '../../components/webflow/Faq.astro';
+import FinalCta from '../../components/webflow/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/webflow/seo';
+import { abs, homeLd } from '../../lib/webflow/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4): what this is → facts → the site nobody can edit → watch one get
+ * built to be edited (signature) → the motion craft → proof → how to buy → what's always
+ * included → how it runs → who builds it → questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so both linked cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <BuildSystem />
+  <Gallery />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

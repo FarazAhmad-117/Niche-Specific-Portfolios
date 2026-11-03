@@ -1,0 +1,90 @@
+---
+/**
+ * What every build includes (brief §4 item 8). Six items: a full 3 × 2 grid on desktop.
+ * Icons are small inline line drawings, one per guarantee.
+ */
+import { INCLUDED } from '../../data/ads/content';
+
+const ICONS: Record<(typeof INCLUDED)[number]['icon'], string> = {
+  log: '<path d="M6 5h12M6 10h12M6 15h8"/><circle cx="18" cy="17" r="2.2"/>',
+  cap: '<path d="M4 8h16" stroke-dasharray="2.5 2.5"/><path d="M7 20v-9M12 20V8M17 20v-6"/>',
+  bell: '<path d="M7 16V11a5 5 0 0 1 10 0v5l1.5 2h-13z"/><path d="M10.5 20.5a1.6 1.6 0 0 0 3 0"/>',
+  check: '<path d="M4 18l5-6 4 3 7-9"/><path d="M16 6h4v4"/>',
+  eye: '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/>',
+  doc: '<path d="M6 3.5h8l4 4v13H6z"/><path d="M9 12h6M9 16h4"/>',
+};
+---
+
+<section class="section included" id="included" aria-labelledby="included-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow">In every build</p>
+      <h2 id="included-title">Automation you can audit.</h2>
+    </div>
+    <ul class="inc" role="list" data-reveal-stagger>
+      {
+        INCLUDED.map((it, i) => (
+          <li class="inc__item">
+            <span class="inc__num mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <svg class="inc__icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" set:html={ICONS[it.icon]} />
+            <h3 class="inc__title">{it.title}</h3>
+            <p class="inc__text">{it.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .inc {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  @media (min-width: 640px) {
+    .inc {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .inc {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .inc__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-6) var(--space-5);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .inc__num {
+    position: absolute;
+    right: var(--space-4);
+    top: var(--space-4);
+    color: var(--text-3);
+  }
+  .inc__icon {
+    grid-row: span 2;
+    fill: none;
+    stroke: var(--accent-text);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .inc__title {
+    font-size: 1.1875rem;
+    padding-right: 2rem;
+  }
+  .inc__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

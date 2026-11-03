@@ -1,0 +1,689 @@
+---
+/**
+ * Site header + mobile menu sheet (spec §4.2). Rendered once by the Layout.
+ *
+ * Props: none required.
+ *   home?: boolean  force "home" link mode (hash-only hrefs). Default: detected from the URL.
+ *
+ * Links come from NAV_LINKS (site.ts). On the home page they are "#id" anchors and the
+ * section in view gets aria-current="true"; elsewhere they point to "/#id".
+ * The sheet is a sibling of <header> so the rest of the page can be made inert while open.
+ * Emits html.menu-open while open (used by the sticky CTA) and pauses Lenis.
+ */
+import { NAV_LINKS, CONTACT_EMAIL, PERSON_NAME, bookingUrl } from '../../data/ai/site';
+import { createLink } from '../../lib/link';
+import Button from './Button.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  home?: boolean;
+}
+const link = createLink('ai');
+const homePath = link('/');
+const isHome = Astro.props.home ?? Astro.url.pathname.replace(/\/?$/, '/') === homePath;
+const href = (id: string) => (isHome ? `#${id}` : `${homePath}#${id}`);
+---
+
+<div class="nav-sentinel" data-nav-sentinel aria-hidden="true"></div>
+<header class="nav" data-nav>
+  <div class="nav__inner container">
+    <a class="brand" href={homePath}>
+      <svg class="brand__mark" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+        <rect class="brand__tile" width="32" height="32" rx="7"></rect>
+        <path d="M8 20H12L20 12H24" fill="none" stroke="#f2f1ec" stroke-width="2" stroke-linejoin="round"></path>
+        <circle cx="8" cy="20" r="3" fill="#f2f1ec"></circle>
+        <circle class="brand__live" cx="24" cy="12" r="3" fill="#d4ff3a"></circle>
+      </svg>
+      <span class="brand__name">{PERSON_NAME}</span>
+      <span class="visually-hidden">, AI and automation engineer, home</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list" data-nav-list>
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)} data-nav-link={l.id}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__actions">
+      <ThemeToggle />
+      <Button class="nav__cta" size="s" href={bookingUrl('nav')} arrow={false}>Book a call</Button>
+      <button type="button" class="nav__menu-btn" aria-expanded="false" aria-controls="menu" data-menu-open>
+        <span class="burger" aria-hidden="true"><span></span><span></span></span>
+        Menu
+      </button>
+    </div>
+  </div>
+</header>
+
+<div id="menu" class="menu theme-ink" role="dialog" aria-modal="true" aria-label="Menu" hidden data-menu>
+  <div class="menu__bar container">
+    <span class="menu__title mono-label">Menu</span>
+    <button type="button" class="menu__close" data-menu-close>
+      <span class="menu__close-icon" aria-hidden="true"></span>
+      Close
+    </button>
+  </div>
+  <nav class="menu__nav container" aria-label="Menu">
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="menu__link" href={href(l.id)} data-nav-link={l.id}>
+              <span>{l.label}</span>
+              <span class="menu__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="menu__foot container" style={`--i:${NAV_LINKS.length}`}>
+    <Button href={bookingUrl('menu')} block>Book a scoping call</Button>
+    <p class="menu__email">
+      <span class="mono-label">Or email</span>
+      <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+    </p>
+  </div>
+</div>
+
+<style>
+  .nav-sentinel {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-nav);
+    background: var(--bg);
+    border-bottom: 1px solid transparent;
+    padding-top: env(safe-area-inset-top);
+    transition:
+      background-color 240ms var(--ease-out),
+      border-color 240ms var(--ease-out);
+  }
+  /* Its own view-transition group, so page changes slide underneath a steady header.
+     Not during the theme wipe, which must sweep the header too. */
+  :global(html:not(.theme-vt)) .nav {
+    view-transition-name: site-nav;
+  }
+  .nav:global(.is-scrolled) {
+    border-bottom-color: var(--line);
+  }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav:global(.is-scrolled) {
+      background: var(--chrome-bg);
+      -webkit-backdrop-filter: var(--chrome-blur);
+      backdrop-filter: var(--chrome-blur);
+    }
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    height: var(--nav-h);
+  }
+
+  /* ---------- wordmark ---------- */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    margin-right: auto;
+    text-decoration: none;
+    color: var(--text);
+    white-space: nowrap;
+    border-radius: var(--radius-m);
+  }
+  .brand__mark {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    overflow: visible;
+  }
+  .brand__tile {
+    fill: var(--ink-950);
+    stroke: transparent;
+    stroke-width: 1;
+    transition: fill var(--dur-hover) var(--ease-out);
+  }
+  :global(:root[data-theme="dark"]) .brand__tile {
+    fill: var(--ink-850);
+    stroke: var(--ink-800);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .brand__tile {
+      fill: var(--ink-850);
+      stroke: var(--ink-800);
+    }
+  }
+  .brand__live {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 360ms var(--ease-emph);
+  }
+  .brand__name {
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+  @media (hover: hover) {
+    .brand:hover .brand__live {
+      transform: scale(1.3);
+    }
+  }
+  .brand:focus-visible .brand__live {
+    transform: scale(1.3);
+  }
+
+  /* ---------- primary links ---------- */
+  .nav__links {
+    display: none;
+  }
+  .nav__links ul {
+    --hx: 0px;
+    --hw: 0px;
+    position: relative;
+    display: flex;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* One highlight that glides between hovered links (positioned by the script below). */
+  .nav__links ul::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: var(--hw);
+    height: 34px;
+    margin-top: -17px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-1);
+    opacity: 0;
+    transform: translateX(var(--hx));
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 280ms var(--ease-emph),
+      width 280ms var(--ease-emph);
+    pointer-events: none;
+  }
+  .nav__links ul:global(.is-hovering)::before {
+    opacity: 1;
+  }
+  .nav__links ul:global(.is-entering)::before {
+    transition: opacity 180ms var(--ease-out);
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 14px;
+    border-radius: var(--radius-pill);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    color: var(--text-2);
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .nav__link:hover,
+  .nav__link:focus-visible,
+  .nav__link[aria-current="true"] {
+    color: var(--text);
+  }
+  .nav__link:focus-visible {
+    outline-offset: -4px;
+  }
+  /* Current section: a small square under the label. */
+  .nav__link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    background: var(--text);
+    opacity: 0;
+    transform: translateY(3px) scale(0.5);
+    transition:
+      opacity var(--dur-hover) var(--ease-out),
+      transform 320ms var(--ease-emph);
+  }
+  .nav__link[aria-current="true"]::after {
+    opacity: 1;
+    transform: none;
+  }
+  :global(html:not(.js)) .nav__link:hover {
+    background: var(--surface-1);
+  }
+
+  /* ---------- actions ---------- */
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .nav__actions :global(.nav__cta) {
+    display: none;
+  }
+  /* Dark theme: one lime fill per viewport (spec §1). While the hero's primary CTA is on
+     screen the nav button is outlined; it turns lime once the hero has scrolled away. */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"]):not(.past-hero)) .nav__actions :global(.nav__cta) {
+      --btn-primary-bg: transparent;
+      --btn-primary-fg: var(--text);
+      --btn-primary-bg-hover: var(--surface-1);
+      --btn-primary-bg-active: var(--surface-2);
+      border-color: var(--line-strong);
+      box-shadow: none;
+    }
+  }
+  :global(:root[data-theme="dark"]:not(.past-hero)) .nav__actions :global(.nav__cta) {
+    --btn-primary-bg: transparent;
+    --btn-primary-fg: var(--text);
+    --btn-primary-bg-hover: var(--surface-1);
+    --btn-primary-bg-active: var(--surface-2);
+    border-color: var(--line-strong);
+    box-shadow: none;
+  }
+  .nav__menu-btn,
+  .menu__close {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    min-width: var(--tap);
+    padding-inline: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .burger {
+    display: grid;
+    gap: 5px;
+    width: 16px;
+  }
+  .burger span {
+    display: block;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 1px;
+    transition: width 280ms var(--ease-emph);
+  }
+  .burger span:last-child {
+    width: 10px;
+  }
+  .menu__close-icon {
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+  .menu__close-icon::before,
+  .menu__close-icon::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 14px;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background: currentColor;
+    border-radius: 1px;
+    transform: rotate(45deg);
+  }
+  .menu__close-icon::after {
+    transform: rotate(-45deg);
+  }
+  .nav__menu-btn:focus-visible,
+  .menu__close:focus-visible {
+    background: var(--surface-1);
+    border-color: var(--line-strong);
+  }
+  .nav__menu-btn:focus-visible .burger span:last-child {
+    width: 16px;
+  }
+  @media (hover: hover) {
+    .nav__menu-btn:hover,
+    .menu__close:hover {
+      background: var(--surface-1);
+      border-color: var(--line-strong);
+    }
+    .nav__menu-btn:hover .burger span:last-child {
+      width: 16px;
+    }
+  }
+  .nav__menu-btn:active,
+  .menu__close:active {
+    transform: scale(0.97);
+  }
+
+  @media (min-width: 1024px) {
+    .nav__links {
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .nav__inner {
+      position: relative;
+    }
+    .nav__actions :global(.nav__cta) {
+      display: inline-flex;
+      margin-left: var(--space-2);
+    }
+    .nav__menu-btn {
+      display: none;
+    }
+  }
+
+  /* ---------- menu sheet ---------- */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-menu);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 220ms var(--ease-in);
+  }
+  .menu:global(.is-open) {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 460ms var(--ease-emph);
+  }
+  .menu__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--nav-h);
+    border-bottom: 1px solid var(--line);
+  }
+  .menu__title {
+    color: var(--text-3);
+  }
+  .menu__nav {
+    flex: 1;
+    padding-block: var(--space-4);
+  }
+  .menu__nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .menu__nav li,
+  .menu__foot {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+  .menu:global(.is-open) li,
+  .menu:global(.is-open) .menu__foot {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 560ms var(--ease-emph);
+    transition-delay: calc(90ms + var(--i) * 45ms);
+  }
+  .menu__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 64px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-display-m);
+    line-height: 1.1;
+    letter-spacing: var(--tr-heading);
+    text-decoration: none;
+    color: var(--text);
+  }
+  .menu__arrow {
+    font-family: var(--font-body);
+    font-size: 1.25rem;
+    color: var(--text-3);
+    transition:
+      transform 280ms var(--ease-emph),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .menu__link[aria-current="true"] .menu__arrow,
+  .menu__link:focus-visible .menu__arrow,
+  .menu__link:active .menu__arrow {
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+  .menu__link:focus-visible {
+    outline-offset: -2px;
+  }
+  .menu__foot {
+    display: grid;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+  }
+  .menu__email {
+    display: grid;
+    gap: 2px;
+    color: var(--text-2);
+    overflow-wrap: anywhere;
+  }
+  .menu__email a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    justify-self: start;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu__nav li,
+    .menu__foot {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (min-width: 1024px) {
+    .menu {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const root = document.documentElement;
+  const header = document.querySelector<HTMLElement>('[data-nav]');
+  const sentinel = document.querySelector('[data-nav-sentinel]');
+
+  // Glass + hairline after 8px of scroll.
+  if (header && sentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => header.classList.toggle('is-scrolled', !e?.isIntersecting)).observe(sentinel);
+  }
+
+  // Hover highlight that glides between links. Entering the list from outside places it
+  // without sliding; moving between links slides it.
+  const list = document.querySelector<HTMLElement>('[data-nav-list]');
+  if (list) {
+    const place = (a: HTMLElement) => {
+      list.style.setProperty('--hx', `${a.offsetLeft}px`);
+      list.style.setProperty('--hw', `${a.offsetWidth}px`);
+    };
+    list.querySelectorAll<HTMLAnchorElement>('.nav__link').forEach((a) => {
+      a.addEventListener('pointerenter', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        if (!list.classList.contains('is-hovering')) {
+          list.classList.add('is-entering');
+          place(a);
+          void list.offsetWidth;
+          list.classList.remove('is-entering');
+          list.classList.add('is-hovering');
+        } else place(a);
+      });
+    });
+    list.addEventListener('pointerleave', () => list.classList.remove('is-hovering'));
+  }
+
+  // Active section link (home only: hash-only hrefs).
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('a[data-nav-link]')].filter((a) =>
+    a.getAttribute('href')?.startsWith('#'),
+  );
+  const ids = [...new Set(links.map((a) => a.dataset.navLink ?? ''))];
+  const sections = ids.map((id) => document.getElementById(id)).filter((s): s is HTMLElement => !!s);
+  if (sections.length && 'IntersectionObserver' in window) {
+    const visible = new Set<string>();
+    const setCurrent = () => {
+      const current = ids.find((id) => visible.has(id)); // first in page order
+      links.forEach((a) => {
+        if (a.dataset.navLink === current) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      });
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+        setCurrent();
+      },
+      { rootMargin: '-35% 0px -60% 0px' },
+    );
+    sections.forEach((s) => io.observe(s));
+  }
+
+  // ---------- mobile menu ----------
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+  let isOpen = false;
+  let hideTimer = 0;
+  let inerted: HTMLElement[] = [];
+
+  const focusables = () =>
+    menu
+      ? [...menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
+          (el) => el.offsetParent !== null || el === document.activeElement,
+        )
+      : [];
+
+  function setInert(on: boolean) {
+    if (on) {
+      inerted = [...document.body.children].filter(
+        (el): el is HTMLElement => el instanceof HTMLElement && el !== menu && !el.inert && el.tagName !== 'SCRIPT',
+      );
+      inerted.forEach((el) => (el.inert = true));
+    } else {
+      inerted.forEach((el) => (el.inert = false));
+      inerted = [];
+    }
+  }
+
+  function open() {
+    if (!menu || !openBtn || isOpen) return;
+    isOpen = true;
+    window.clearTimeout(hideTimer);
+    menu.hidden = false;
+    void menu.offsetHeight; // commit the closed state before transitioning
+    menu.classList.add('is-open');
+    openBtn.setAttribute('aria-expanded', 'true');
+    root.classList.add('menu-open');
+    setInert(true);
+    getActiveMotion()?.stop();
+    closeBtn?.focus();
+  }
+
+  function close(returnFocus = true) {
+    if (!menu || !openBtn || !isOpen) return;
+    isOpen = false;
+    menu.classList.remove('is-open');
+    openBtn.setAttribute('aria-expanded', 'false');
+    root.classList.remove('menu-open');
+    setInert(false);
+    getActiveMotion()?.start();
+    hideTimer = window.setTimeout(() => {
+      if (!isOpen) menu.hidden = true;
+    }, 240);
+    if (returnFocus) openBtn.focus();
+  }
+
+  openBtn?.addEventListener('click', () => (isOpen ? close() : open()));
+  closeBtn?.addEventListener('click', () => close());
+  menu?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const f = focusables();
+    const first = f[0];
+    const last = f[f.length - 1];
+    if (!first || !last) return;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+  menu?.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const hash = a.hash;
+      close(false);
+      // Without Lenis the browser does the jump; move focus to the target for AT users.
+      if (hash && !getActiveMotion()) {
+        window.setTimeout(() => {
+          let target: HTMLElement | null = null;
+          try {
+            target = document.getElementById(decodeURIComponent(hash.slice(1)));
+          } catch {
+            target = null;
+          }
+          if (!target) return;
+          if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+          target.focus({ preventScroll: true });
+        }, 0);
+      }
+    });
+  });
+  try {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) close(false);
+    });
+  } catch {
+    /* no matchMedia: the sheet is hidden by CSS at desktop widths anyway */
+  }
+  window.addEventListener('pagehide', () => close(false));
+</script>

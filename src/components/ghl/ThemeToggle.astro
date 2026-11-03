@@ -1,0 +1,181 @@
+---
+/**
+ * Theme toggle, drawn as a small hardware switch: a knob that slides along a track (spring).
+ * aria-label "Dark theme" + aria-pressed = dark on. Persists to localStorage('theme'); the
+ * no-flash inline script lives in the Layout <head>. The swap itself opens the new theme as a
+ * circle from the switch (in-out-quart), through the View Transitions API when present.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<button type="button" class:list={['tt', className]} aria-label="Dark theme" aria-pressed="false" data-theme-toggle>
+  <span class="tt__track" aria-hidden="true">
+    <span class="tt__knob"></span>
+  </span>
+</button>
+
+<style>
+  .tt {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--text);
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .tt__track {
+    position: relative;
+    display: block;
+    width: 30px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    transition:
+      background-color 420ms var(--ease-out-quint),
+      box-shadow 420ms var(--ease-out-quint);
+  }
+  .tt__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--text);
+    transition: transform 560ms var(--ease-spring);
+  }
+  .tt[aria-pressed='true'] .tt__track {
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .tt[aria-pressed='true'] .tt__knob {
+    transform: translateX(14px);
+    background: var(--accent);
+  }
+  .tt:focus-visible {
+    background: var(--surface-1);
+  }
+  @media (hover: hover) {
+    .tt:hover {
+      background: var(--surface-1);
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const KEY = 'theme';
+  type Theme = 'light' | 'dark';
+  const COLORS: Record<Theme, string> = { light: '#f4f2ec', dark: '#0b1312' };
+
+  let dark: MediaQueryList | null = null;
+  try {
+    dark = window.matchMedia('(prefers-color-scheme: dark)');
+  } catch {
+    dark = null;
+  }
+  const reduced = (): boolean => {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
+  };
+  const stored = (): Theme | null => {
+    try {
+      const t = localStorage.getItem(KEY);
+      return t === 'light' || t === 'dark' ? t : null;
+    } catch {
+      return null;
+    }
+  };
+  const effective = (): Theme => {
+    const t = root.dataset.theme;
+    if (t === 'light' || t === 'dark') return t;
+    return dark?.matches ? 'dark' : 'light';
+  };
+
+  function sync() {
+    const theme = effective();
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(theme === 'dark'));
+    });
+    const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    if (stored()) metas.forEach((m) => (m.content = COLORS[theme]));
+    else metas.forEach((m) => (m.content = m.media.includes('dark') ? COLORS.dark : COLORS.light));
+  }
+
+  function apply(theme: Theme) {
+    root.dataset.theme = theme;
+    try {
+      localStorage.setItem(KEY, theme);
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
+    sync();
+  }
+
+  let busy = false;
+  function toggle(this: HTMLButtonElement) {
+    if (busy) return; // a second click mid-swap would snapshot a half-drawn page
+    const next: Theme = effective() === 'dark' ? 'light' : 'dark';
+    if (reduced() || typeof document.startViewTransition !== 'function') {
+      apply(next);
+      return;
+    }
+    // The circle opens from the switch and grows to the farthest corner.
+    const r = this.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    busy = true;
+    root.classList.add('theme-vt');
+    try {
+      const vt = document.startViewTransition(() => apply(next));
+      vt.ready
+        .then(() => {
+          root.animate(
+            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
+            { duration: 720, easing: 'cubic-bezier(0.76, 0, 0.24, 1)', pseudoElement: '::view-transition-new(root)' },
+          );
+        })
+        .catch(() => {});
+      vt.finished.finally(() => {
+        root.classList.remove('theme-vt');
+        busy = false;
+      });
+    } catch {
+      root.classList.remove('theme-vt');
+      busy = false;
+      apply(next);
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((btn) => {
+    btn.addEventListener('click', toggle);
+  });
+  dark?.addEventListener('change', sync);
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    else delete root.dataset.theme;
+    sync();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    const t = stored();
+    if (t) root.dataset.theme = t;
+    sync();
+  });
+  sync();
+</script>

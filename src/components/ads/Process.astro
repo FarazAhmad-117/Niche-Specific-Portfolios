@@ -1,0 +1,131 @@
+---
+/**
+ * Process (brief §4 item 9): Audit → Fix tracking → Automate → Report, drawn along a time
+ * axis. Each step is a tick on the axis; what it leaves you with sits under it.
+ */
+import { PROCESS } from '../../data/ads/content';
+---
+
+<section class="section process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">Tracking first. Then the rules.</h2>
+      <p class="lede">Rules are only as good as the conversions they read, so the order never changes.</p>
+    </div>
+    <ol class="axis" role="list" data-reveal-stagger>
+      {
+        PROCESS.map((p, i) => (
+          <li class="axis__step">
+            <span class="axis__tick" aria-hidden="true" />
+            <span class="axis__num mono">Step {i + 1}</span>
+            <h3 class="axis__title">{p.title}</h3>
+            <p class="axis__text">{p.text}</p>
+            <p class="axis__leaves">
+              <span class="mono">You leave with</span>
+              {p.leaves}
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .axis {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .axis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-5);
+      padding-top: var(--space-5);
+      border-top: 2px solid var(--line-strong);
+    }
+  }
+  .axis__step {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding-left: var(--space-5);
+    border-left: 2px solid var(--line-strong);
+  }
+  /* Side by side, every step shares the same four rows (label, title, text, "You leave with"),
+     so the boxes line up on one top edge however long the text above them runs. Without
+     subgrid, the columns stretch and the box is pushed to the bottom. */
+  @media (min-width: 900px) {
+    .axis {
+      grid-template-rows: auto auto 1fr auto;
+    }
+    .axis__step {
+      grid-row: span 4;
+      grid-template-rows: auto auto 1fr auto;
+      padding-left: 0;
+      border-left: 0;
+    }
+    .axis__leaves {
+      align-self: start;
+    }
+    @supports (grid-template-rows: subgrid) {
+      .axis__step {
+        grid-template-rows: subgrid;
+        row-gap: var(--space-2);
+      }
+    }
+  }
+  .axis__tick {
+    position: absolute;
+    left: -7px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  @media (min-width: 900px) {
+    .axis__tick {
+      left: 0;
+      top: calc(-1 * var(--space-5) - 7px);
+    }
+  }
+  .axis__num {
+    color: var(--accent-text);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .axis__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+  .axis__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 34ch;
+  }
+  .axis__leaves {
+    display: grid;
+    gap: 2px;
+    margin-top: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    font-weight: 650;
+    font-size: var(--fs-small);
+  }
+  .axis__leaves .mono {
+    color: var(--text-3);
+    font-weight: 400;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+</style>

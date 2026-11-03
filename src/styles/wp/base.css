@@ -1,0 +1,730 @@
+/* wp niche base: reset, typography, layout, editorial primitives (rules, folios, section marks,
+   buttons, labels, chips), reveals and page transitions. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-head);
+  text-wrap: balance;
+  font-kerning: normal;
+  font-feature-settings: "kern", "liga";
+}
+h1 {
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.55;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+/* The accent word in a headline: ultramarine italic, the way a magazine sets an emphasis. */
+.em {
+  font-style: italic;
+  color: var(--accent-text);
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+}
+.link:focus-visible {
+  text-decoration-color: var(--accent);
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+
+/*
+ * Section head, set like a newspaper section front: a double rule (thick over thin) draws in
+ * from the left, then a folio line (section number, name) and the headline.
+ */
+.head {
+  display: grid;
+  gap: var(--space-5);
+  margin-bottom: clamp(2.25rem, 1.6rem + 2.8vw, 4rem);
+}
+.head > h2 {
+  max-width: 22ch;
+}
+.folio {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  padding-top: 14px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.folio::before,
+.folio::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--text);
+  transform-origin: left center;
+}
+.folio::before {
+  top: 0;
+  height: 3px;
+}
+.folio::after {
+  top: 6px;
+  height: 1px;
+}
+.folio__no {
+  color: var(--accent-text);
+}
+.folio__name {
+  margin-right: auto;
+  color: var(--text-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .head.is-armed .folio::before,
+  .head.is-armed .folio::after {
+    transform: scaleX(0);
+  }
+  .head.is-armed.is-revealed .folio::before,
+  .head.is-armed.is-revealed .folio::after {
+    transform: none;
+    transition: transform var(--dur-draw) var(--ease-out-quint);
+  }
+  .head.is-armed.is-revealed .folio::after {
+    transition-delay: 120ms;
+  }
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .folio {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* ---------- buttons ----------
+ * Primary: an ink plate. On hover an ultramarine fill rises from the baseline like ink
+ * soaking up the paper, slow and even (~1s out-quint); the label flips 140ms later.
+ * Secondary: a ruled plate whose arrow travels. */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition:
+    color 420ms var(--ease-out-quint) 140ms,
+    transform var(--dur-press) var(--ease-out-quint),
+    box-shadow var(--dur-hover) var(--ease-out-quint);
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center bottom;
+  transition: transform 1000ms var(--ease-out-quint);
+}
+.btn__mark {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  color: var(--on-accent);
+}
+.btn:focus-visible::before {
+  transform: none;
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--on-accent);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn:hover::before {
+    transform: none;
+  }
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  transition:
+    box-shadow var(--dur-hover) var(--ease-out-quint),
+    background-color var(--dur-hover) var(--ease-out-quint),
+    transform var(--dur-press) var(--ease-out-quint);
+}
+.btn--ghost::before {
+  display: none;
+}
+.btn__arrow {
+  display: inline-block;
+  transition: transform 520ms var(--ease-out-expo);
+}
+.btn--ghost:focus-visible {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+@media (hover: hover) {
+  .btn--ghost:hover {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+}
+.btn--ghost:hover .btn__arrow,
+.btn--ghost:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+.btn--side:hover .btn__arrow,
+.btn--side:focus-visible .btn__arrow {
+  transform: translateX(4px);
+}
+
+/* ---------- labels ---------- */
+/* A small-caps kicker, like a newspaper section tag. */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+/* "Example" / "Illustrative": a boxed stamp, never mistaken for a result. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-xs);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.stamp--accent {
+  color: var(--accent-text);
+}
+.stamp--fault {
+  color: var(--fault);
+}
+
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.chip--live::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose. */
+.todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 10px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-xs);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out-quint);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 70ms steps, capped). The script
+ * arms only what is below the fold at load, so no-JS and above-the-fold content is never
+ * hidden, and never anything that carries a view-transition-name. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out-quint),
+      transform var(--dur-reveal) var(--ease-out-quint);
+    transition-delay: calc(min(var(--i, 0), 7) * 70ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- page transitions (cross-document View Transitions) ----------
+ * Home ↔ case pages, like a page being set in three newspaper columns. On in-out-quart:
+ *  - the outgoing page settles back a touch and dims, as if a new sheet were laid over it
+ *  - the incoming page is set column by column, left to right, each column inking down from
+ *    the top a beat after the one before (three mask layers, staggered in the keyframes)
+ *  - the shared element (a case card ↔ its page hero box) morphs above both
+ * Going back mirrors it: columns run right to left and ink upward from the foot. The nav is its
+ * own group and does not move. Browsers without support navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-settle 900ms var(--ease-in-out-quart) both;
+  }
+  ::view-transition-new(root) {
+    -webkit-mask-image: linear-gradient(#000 50%, transparent 50%), linear-gradient(#000 50%, transparent 50%),
+      linear-gradient(#000 50%, transparent 50%);
+    mask-image: linear-gradient(#000 50%, transparent 50%), linear-gradient(#000 50%, transparent 50%),
+      linear-gradient(#000 50%, transparent 50%);
+    -webkit-mask-size: 33.6% 200%;
+    mask-size: 33.6% 200%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: vt-columns 900ms linear both;
+  }
+  html:active-view-transition-type(back)::view-transition-new(root) {
+    -webkit-mask-image: linear-gradient(transparent 50%, #000 50%), linear-gradient(transparent 50%, #000 50%),
+      linear-gradient(transparent 50%, #000 50%);
+    mask-image: linear-gradient(transparent 50%, #000 50%), linear-gradient(transparent 50%, #000 50%),
+      linear-gradient(transparent 50%, #000 50%);
+    animation-name: vt-columns-back;
+  }
+
+  /* The nav stays exactly where it is. */
+  ::view-transition-group(site-nav),
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none;
+  }
+
+  /* A case card ↔ its page hero. The box moves and resizes on in-out-quart; the snapshots are
+     never stretched (object-fit: none, pinned top-left), so text stays crisp; the old one fades
+     out early and the new one in late, so they never double into a ghost. */
+  ::view-transition-group(case-ai-seo-automator),
+  ::view-transition-group(case-plugin-heavy-teardown) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(case-ai-seo-automator),
+  ::view-transition-image-pair(case-plugin-heavy-teardown) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-l);
+  }
+  ::view-transition-old(case-ai-seo-automator),
+  ::view-transition-old(case-plugin-heavy-teardown),
+  ::view-transition-new(case-ai-seo-automator),
+  ::view-transition-new(case-plugin-heavy-teardown) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(case-ai-seo-automator),
+  ::view-transition-old(case-plugin-heavy-teardown) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(case-ai-seo-automator),
+  ::view-transition-new(case-plugin-heavy-teardown) {
+    animation: vt-fade-in 500ms var(--ease-out-quint) 320ms both;
+  }
+}
+@keyframes vt-settle {
+  to {
+    opacity: 0.5;
+    transform: scale(0.985);
+  }
+}
+/* Generated: three columns, each eased in-out-cubic over 70% of the run, 15% apart. */
+@keyframes vt-columns {
+  0% {
+    -webkit-mask-position: 0% 100%, 50% 100%, 100% 100%;
+    mask-position: 0% 100%, 50% 100%, 100% 100%;
+  }
+  10% {
+    -webkit-mask-position: 0% 98.8%, 50% 100%, 100% 100%;
+    mask-position: 0% 98.8%, 50% 100%, 100% 100%;
+  }
+  20% {
+    -webkit-mask-position: 0% 90.7%, 50% 99.9%, 100% 100%;
+    mask-position: 0% 90.7%, 50% 99.9%, 100% 100%;
+  }
+  30% {
+    -webkit-mask-position: 0% 68.5%, 50% 96.1%, 100% 100%;
+    mask-position: 0% 68.5%, 50% 96.1%, 100% 100%;
+  }
+  40% {
+    -webkit-mask-position: 0% 31.5%, 50% 81.8%, 100% 98.8%;
+    mask-position: 0% 31.5%, 50% 81.8%, 100% 98.8%;
+  }
+  50% {
+    -webkit-mask-position: 0% 9.3%, 50% 50%, 100% 90.7%;
+    mask-position: 0% 9.3%, 50% 50%, 100% 90.7%;
+  }
+  60% {
+    -webkit-mask-position: 0% 1.2%, 50% 18.2%, 100% 68.5%;
+    mask-position: 0% 1.2%, 50% 18.2%, 100% 68.5%;
+  }
+  70% {
+    -webkit-mask-position: 0% 0%, 50% 3.9%, 100% 31.5%;
+    mask-position: 0% 0%, 50% 3.9%, 100% 31.5%;
+  }
+  80% {
+    -webkit-mask-position: 0% 0%, 50% 0.1%, 100% 9.3%;
+    mask-position: 0% 0%, 50% 0.1%, 100% 9.3%;
+  }
+  90% {
+    -webkit-mask-position: 0% 0%, 50% 0%, 100% 1.2%;
+    mask-position: 0% 0%, 50% 0%, 100% 1.2%;
+  }
+  100% {
+    -webkit-mask-position: 0% 0%, 50% 0%, 100% 0%;
+    mask-position: 0% 0%, 50% 0%, 100% 0%;
+  }
+}
+@keyframes vt-columns-back {
+  0% {
+    -webkit-mask-position: 0% 0%, 50% 0%, 100% 0%;
+    mask-position: 0% 0%, 50% 0%, 100% 0%;
+  }
+  10% {
+    -webkit-mask-position: 0% 0%, 50% 0%, 100% 1.2%;
+    mask-position: 0% 0%, 50% 0%, 100% 1.2%;
+  }
+  20% {
+    -webkit-mask-position: 0% 0%, 50% 0.1%, 100% 9.3%;
+    mask-position: 0% 0%, 50% 0.1%, 100% 9.3%;
+  }
+  30% {
+    -webkit-mask-position: 0% 0%, 50% 3.9%, 100% 31.5%;
+    mask-position: 0% 0%, 50% 3.9%, 100% 31.5%;
+  }
+  40% {
+    -webkit-mask-position: 0% 1.2%, 50% 18.2%, 100% 68.5%;
+    mask-position: 0% 1.2%, 50% 18.2%, 100% 68.5%;
+  }
+  50% {
+    -webkit-mask-position: 0% 9.3%, 50% 50%, 100% 90.7%;
+    mask-position: 0% 9.3%, 50% 50%, 100% 90.7%;
+  }
+  60% {
+    -webkit-mask-position: 0% 31.5%, 50% 81.8%, 100% 98.8%;
+    mask-position: 0% 31.5%, 50% 81.8%, 100% 98.8%;
+  }
+  70% {
+    -webkit-mask-position: 0% 68.5%, 50% 96.1%, 100% 100%;
+    mask-position: 0% 68.5%, 50% 96.1%, 100% 100%;
+  }
+  80% {
+    -webkit-mask-position: 0% 90.7%, 50% 99.9%, 100% 100%;
+    mask-position: 0% 90.7%, 50% 99.9%, 100% 100%;
+  }
+  90% {
+    -webkit-mask-position: 0% 98.8%, 50% 100%, 100% 100%;
+    mask-position: 0% 98.8%, 50% 100%, 100% 100%;
+  }
+  100% {
+    -webkit-mask-position: 0% 100%, 50% 100%, 100% 100%;
+    mask-position: 0% 100%, 50% 100%, 100% 100%;
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Theme swap: the new theme is laid down top to bottom like a fresh sheet (JS drives it). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+/* During a theme swap nothing is a shared element: the whole page swaps as one surface.
+   (!important in a stylesheet beats the inline view-transition-name.) */
+html.theme-vt [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Inverted panels (background --btn-bg) re-point focus so the ring stays visible. */
+.inverse {
+  --focus: var(--focus-inv);
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .chip,
+  .stamp {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

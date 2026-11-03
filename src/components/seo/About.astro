@@ -1,0 +1,152 @@
+---
+/**
+ * About, set as a "knowledge panel": the real portrait, a name line, facts from
+ * src/data/seo/profile.ts only, then three plain paragraphs in first person.
+ */
+import { Image } from 'astro:assets';
+import { ABOUT } from '../../data/seo/content';
+import { PROFILE, yearsBuilding } from '../../data/seo/profile';
+import { MAIN_SITE_URL } from '../../data/seo/site';
+
+const facts = [
+  { k: 'Based in', v: PROFILE.location },
+  { k: 'Time zone', v: PROFILE.timeZone },
+  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
+  { k: 'Doesn’t do', v: 'Link building, ranking promises' },
+];
+---
+
+<section class="section section--rule about" id="about" aria-labelledby="about-title">
+  <div class="container about__grid">
+    <div class="about__copy">
+      <p class="eyebrow">About</p>
+      <h2 id="about-title">{ABOUT.title}</h2>
+      {ABOUT.paragraphs.map((p, i) => <p class:list={[i === 0 ? 'lede' : 'about__p']}>{p}</p>)}
+    </div>
+
+    <aside class="kp" aria-label={`${PROFILE.name} at a glance`} data-reveal>
+      <div class="kp__photo">
+        <Image
+          src={PROFILE.portrait.src}
+          alt={PROFILE.portrait.alt}
+          widths={[320, 480, 640, 800]}
+          sizes="(min-width: 1024px) 400px, 90vw"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="kp__body">
+        <p class="kp__name">{PROFILE.name}</p>
+        <p class="kp__role">Full-stack engineer · technical SEO</p>
+        <dl class="kp__facts">
+          {
+            facts.map((f) => (
+              <div>
+                <dt>{f.k}</dt>
+                <dd>{f.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <a class="kp__link link" href={MAIN_SITE_URL} target="_blank" rel="noopener">
+          farazahmad.dev <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab)</span>
+        </a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: start;
+      column-gap: var(--space-9);
+    }
+  }
+  .about__copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .about__copy h2 {
+    max-width: 16ch;
+  }
+  .about__p {
+    max-width: var(--measure);
+    color: var(--text-2);
+  }
+
+  .kp {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .kp__photo {
+    aspect-ratio: 4 / 3;
+    background: #0b0b0c;
+    overflow: hidden;
+  }
+  .kp__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 25%;
+  }
+  .kp__body {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+  }
+  .kp__name {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: 1.75rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .kp__role {
+    color: var(--text-3);
+    font-size: var(--fs-small);
+  }
+  .kp__facts {
+    display: grid;
+    margin: var(--space-3) 0 var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+  .kp__facts div {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-small);
+  }
+  .kp__facts dt {
+    font-weight: 600;
+  }
+  .kp__facts dd {
+    margin: 0;
+    color: var(--text-2);
+  }
+  @media (max-width: 400px) {
+    .kp__facts div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+  .kp__link {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--link);
+    font-weight: 500;
+  }
+</style>

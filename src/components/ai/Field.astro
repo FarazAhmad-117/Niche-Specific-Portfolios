@@ -1,0 +1,34 @@
+---
+/**
+ * Renders a content Field (src/data/ai/todo.ts): real text as-is, a SampleField as its
+ * illustrative value (plain text; the page notes that figures are illustrative), a TodoField
+ * as the shared <Todo> placeholder. The only bridge from data to the placeholder UI.
+ *
+ * Props
+ *   value: Field                 string | SampleField | TodoField
+ *   variant?: 'chip' | 'metric'  how a TODO renders (default chip)
+ *   size?: 'metric' | 'm'        metric slot height for a TODO (variant="metric")
+ *   class?: string               passed to the TODO placeholder only
+ */
+import Todo from './Todo.astro';
+import { isSample, isTodo, type Field } from '../../data/ai/todo';
+
+interface Props {
+  value: Field;
+  variant?: 'chip' | 'metric';
+  size?: 'metric' | 'm';
+  class?: string;
+}
+
+const { value, variant = 'chip', size = 'metric', class: className } = Astro.props;
+---
+
+{
+  isTodo(value) ? (
+    <Todo id={value.id} label={value.label} variant={variant} size={size} class={className} />
+  ) : isSample(value) ? (
+    <span data-sample={value.id}>{value.value}</span>
+  ) : (
+    value
+  )
+}

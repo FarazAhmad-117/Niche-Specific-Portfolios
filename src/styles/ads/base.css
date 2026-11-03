@@ -1,0 +1,947 @@
+/* ads niche base: reset, typography, layout, shared chart primitives (buttons, threshold
+   lines, rule syntax, hatching, chips, TODO and example labels), reveals and page transitions. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-body);
+  font-weight: 650;
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+/* The accent word in a heading: amber ink (the deep amber on light paper). */
+.em {
+  color: var(--accent-text);
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+}
+.link:focus-visible {
+  text-decoration-color: var(--accent-line);
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+
+/* Section heading block: eyebrow (a dashed threshold and a label), h2, optional lede. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 22px;
+  height: 0;
+  border-top: 2px dashed var(--accent-line);
+}
+.head {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 60rem;
+  margin-bottom: clamp(2.5rem, 1.8rem + 3vw, 4.5rem);
+}
+.head > h2 {
+  max-width: 17ch;
+}
+.head--split {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* ---------- buttons ----------
+ * Primary: an amber plate with three small bars. On hover a graphite bar rises through the
+ * plate from the bottom edge, slow and even (~1s out-quint), like a bar filling on a chart;
+ * the label flips a beat (140ms) after the fill starts. Secondary: an outlined plate whose
+ * arrow travels. */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 22px 0 18px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 650;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-decoration: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition:
+    color 420ms var(--ease-out-quint) 140ms,
+    transform var(--dur-press) var(--ease-out-quint),
+    box-shadow var(--dur-hover) var(--ease-out-quint);
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--btn-rise);
+  transform: scaleY(0);
+  transform-origin: center bottom;
+  transition: transform 1000ms var(--ease-out-quint);
+}
+/* Three bars: the middle one steps over the threshold. */
+.btn__bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  flex: none;
+  height: 14px;
+}
+.btn__bars i {
+  display: block;
+  width: 3px;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: bottom;
+  transition: transform 620ms var(--ease-spring);
+}
+.btn__bars i:nth-child(1) {
+  height: 45%;
+}
+.btn__bars i:nth-child(2) {
+  height: 100%;
+}
+.btn__bars i:nth-child(3) {
+  height: 70%;
+}
+.btn:focus-visible {
+  color: var(--btn-rise-fg);
+}
+.btn:focus-visible::before {
+  transform: scaleY(1);
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--btn-rise-fg);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn:hover::before {
+    transform: scaleY(1);
+  }
+  .btn:hover .btn__bars i:nth-child(2) {
+    transform: scaleY(0.7);
+  }
+  .btn:hover .btn__bars i:nth-child(3) {
+    transform: scaleY(1.3);
+    transition-delay: 60ms;
+  }
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn--ghost {
+  padding-inline: 20px;
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  transition:
+    box-shadow var(--dur-hover) var(--ease-out-quint),
+    background-color var(--dur-hover) var(--ease-out-quint),
+    transform var(--dur-press) var(--ease-out-quint);
+}
+.btn--ghost::before {
+  display: none;
+}
+.btn__arrow {
+  display: inline-block;
+  transition: transform 520ms var(--ease-out-expo);
+}
+.btn--ghost:focus-visible {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+@media (hover: hover) {
+  .btn--ghost:hover {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+}
+.btn--ghost:hover .btn__arrow,
+.btn--ghost:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+.btn--ghost.btn--side:hover .btn__arrow,
+.btn--ghost.btn--side:focus-visible .btn__arrow {
+  transform: translateX(4px);
+}
+
+/* ---------- chart primitives ---------- */
+/* A threshold: the dashed amber line every rule is measured against. */
+.threshold {
+  display: block;
+  height: 0;
+  border-top: 2px dashed var(--accent-line);
+}
+/* Guardrail hatching, for anything a rule stopped or capped. */
+.hatch {
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 3px, transparent 3px 7px);
+}
+/* Rule syntax: IF / FOR / THEN keywords and their condition chips. */
+.kw {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent-text);
+}
+.cond {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 1px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.cond--act {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+/* Status pip: amber = watching, red = waste, green = saved. */
+.pip {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.pip--waste {
+  background: var(--waste);
+}
+.pip--saved {
+  background: var(--saved);
+}
+.pip--off {
+  background: var(--line-strong);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pip--watch {
+    animation: pip-watch 2.4s var(--ease-in-out-sine) infinite alternate;
+  }
+}
+@keyframes pip-watch {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+/* ---------- chips and labels ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 550;
+  line-height: 1.2;
+}
+/* "Example" / "Illustrative": a label with a guardrail-hatched tab, so shape-only visuals
+   and made-up accounts are never mistaken for results. */
+.ex {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 2px 10px 2px 0;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ex::before {
+  content: "";
+  align-self: stretch;
+  width: 10px;
+  border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 2px, transparent 2px 4px);
+}
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose. */
+.todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 10px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-xs);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 650;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out-quint);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Terminal panels (background --inv-bg) re-point focus so the ring stays visible. */
+.inverse {
+  --focus: var(--focus-inv);
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 70ms steps, capped).
+ * Script arms only what is below the fold at load, so no-JS and above-the-fold content
+ * is never hidden. A short rise + fade on out-quint. Never on an element with a
+ * view-transition-name. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out-quint),
+      transform var(--dur-reveal) var(--ease-out-quint);
+    transition-delay: calc(min(var(--i, 0), 7) * 70ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- page transitions (cross-document View Transitions) ----------
+ * Home ↔ case pages, drawn like a bar chart filling in. All on in-out-quart over ~0.9s:
+ *  - the incoming page is revealed through six columns that rise from the bottom edge,
+ *    staggered left to right, as if the page were a chart's bars growing to full height
+ *    (each column eases on its own in-out-quart; the keyframes are sampled so the stagger
+ *    never stutters)
+ *  - an amber strip rides on top of each column (the old page is clipped a step ahead of the
+ *    new one, and the gap shows the primary), and the outgoing page dims (the old reading)
+ *  - the shared element (a case card ↔ its page hero box) morphs above both
+ * Going back the columns rise right to left. The nav is its own group and does not move.
+ * Browsers without support navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  /* The strips: the old page is clipped just ahead of the new page's columns, and the gap
+     between the two edges shows this amber backing (the primary, the same in both themes). */
+  html:not(.theme-vt)::view-transition-image-pair(root) {
+    background: var(--accent);
+  }
+  ::view-transition-old(root) {
+    animation:
+      vt-lead 900ms linear both,
+      vt-settle 900ms var(--ease-in-out-quart) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-bars 900ms linear both;
+  }
+  html:active-view-transition-type(back)::view-transition-old(root) {
+    animation-name: vt-lead-back, vt-settle;
+  }
+  html:active-view-transition-type(back)::view-transition-new(root) {
+    animation-name: vt-bars-back;
+  }
+
+  /* The nav stays exactly where it is. */
+  ::view-transition-group(site-nav),
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none;
+  }
+
+  /* A case card ↔ its page hero. The box moves and resizes on in-out-quart; the snapshots are
+     never stretched (object-fit: none, pinned top-left), so text stays crisp; the old one
+     fades out early and the new one in late, so they never double into a ghost. */
+  ::view-transition-group(case-offline-conversions),
+  ::view-transition-group(case-six-rules) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(case-offline-conversions),
+  ::view-transition-image-pair(case-six-rules) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-xl);
+  }
+  ::view-transition-old(case-offline-conversions),
+  ::view-transition-old(case-six-rules),
+  ::view-transition-new(case-offline-conversions),
+  ::view-transition-new(case-six-rules) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(case-offline-conversions),
+  ::view-transition-old(case-six-rules) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(case-offline-conversions),
+  ::view-transition-new(case-six-rules) {
+    animation: vt-fade-in 520ms var(--ease-out-quint) 320ms both;
+  }
+}
+/* The old reading dims as it is replaced. No opacity or movement: either would let the amber
+   backing show through the whole old page instead of only in the strips. */
+@keyframes vt-settle {
+  to {
+    filter: brightness(0.62) saturate(0.7);
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Theme swap: the new theme drops in from the top like a threshold line sweeping down the
+   chart (JS drives it). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* During a theme swap nothing is a shared element: the whole page swaps as one surface.
+   (!important in a stylesheet beats the inline view-transition-name.) */
+html.theme-vt [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .chip,
+  .cond,
+  .ex {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* ---------- generated: page-transition columns (scratch script vtbars.mjs: 6 columns,
+   70ms stagger, in-out-quart per column, old-page edge leads by 3.5%, 20 samples) ---------- */
+@keyframes vt-bars {
+  0% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  5% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  10% {
+    clip-path: polygon(0% 100%, 0% 99.4%, 16.7% 99.4%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  15% {
+    clip-path: polygon(0% 100%, 0% 97.2%, 16.7% 97.2%, 16.7% 99.8%, 33.3% 99.8%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  20% {
+    clip-path: polygon(0% 100%, 0% 91.1%, 16.7% 91.1%, 16.7% 98.4%, 33.3% 98.4%, 33.3% 99.9%, 50% 99.9%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  25% {
+    clip-path: polygon(0% 100%, 0% 78.2%, 16.7% 78.2%, 16.7% 94.1%, 33.3% 94.1%, 33.3% 99.2%, 50% 99.2%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  30% {
+    clip-path: polygon(0% 100%, 0% 54.7%, 16.7% 54.7%, 16.7% 84.4%, 33.3% 84.4%, 33.3% 96.3%, 50% 96.3%, 50% 99.6%, 66.7% 99.6%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  35% {
+    clip-path: polygon(0% 100%, 0% 27.6%, 16.7% 27.6%, 16.7% 65.6%, 33.3% 65.6%, 33.3% 89.1%, 50% 89.1%, 50% 97.9%, 66.7% 97.9%, 66.7% 99.9%, 83.3% 99.9%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  40% {
+    clip-path: polygon(0% 100%, 0% 11.9%, 16.7% 11.9%, 16.7% 36.9%, 33.3% 36.9%, 33.3% 74.4%, 50% 74.4%, 50% 92.7%, 66.7% 92.7%, 66.7% 98.8%, 83.3% 98.8%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  45% {
+    clip-path: polygon(0% 100%, 0% 4.1%, 16.7% 4.1%, 16.7% 17.1%, 33.3% 17.1%, 33.3% 48.4%, 50% 48.4%, 50% 81.4%, 66.7% 81.4%, 66.7% 95.3%, 83.3% 95.3%, 83.3% 99.4%, 100% 99.4%, 100% 100%);
+  }
+  50% {
+    clip-path: polygon(0% 100%, 0% 1%, 16.7% 1%, 16.7% 6.6%, 33.3% 6.6%, 33.3% 23.6%, 50% 23.6%, 50% 60.4%, 66.7% 60.4%, 66.7% 86.9%, 83.3% 86.9%, 83.3% 97.2%, 100% 97.2%, 100% 100%);
+  }
+  55% {
+    clip-path: polygon(0% 100%, 0% 0.1%, 16.7% 0.1%, 16.7% 1.9%, 33.3% 1.9%, 33.3% 9.9%, 50% 9.9%, 50% 32%, 66.7% 32%, 66.7% 70.3%, 83.3% 70.3%, 83.3% 91.1%, 100% 91.1%, 100% 100%);
+  }
+  60% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0.3%, 33.3% 0.3%, 33.3% 3.2%, 50% 3.2%, 50% 14.3%, 66.7% 14.3%, 66.7% 42.4%, 83.3% 42.4%, 83.3% 78.2%, 100% 78.2%, 100% 100%);
+  }
+  65% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0.7%, 50% 0.7%, 50% 5.2%, 66.7% 5.2%, 66.7% 20.1%, 83.3% 20.1%, 83.3% 54.7%, 100% 54.7%, 100% 100%);
+  }
+  70% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0.1%, 50% 0.1%, 50% 1.4%, 66.7% 1.4%, 66.7% 8.1%, 83.3% 8.1%, 83.3% 27.6%, 100% 27.6%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0.2%, 66.7% 0.2%, 66.7% 2.5%, 83.3% 2.5%, 83.3% 11.9%, 100% 11.9%, 100% 100%);
+  }
+  80% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0.5%, 83.3% 0.5%, 83.3% 4.1%, 100% 4.1%, 100% 100%);
+  }
+  85% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 1%, 100% 1%, 100% 100%);
+  }
+  90% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0.1%, 100% 0.1%, 100% 100%);
+  }
+  95% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+}
+@keyframes vt-bars-back {
+  0% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  5% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 100%, 100% 100%, 100% 100%);
+  }
+  10% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 100%, 83.3% 100%, 83.3% 99.4%, 100% 99.4%, 100% 100%);
+  }
+  15% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 100%, 66.7% 100%, 66.7% 99.8%, 83.3% 99.8%, 83.3% 97.2%, 100% 97.2%, 100% 100%);
+  }
+  20% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 99.9%, 66.7% 99.9%, 66.7% 98.4%, 83.3% 98.4%, 83.3% 91.1%, 100% 91.1%, 100% 100%);
+  }
+  25% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 100%, 50% 100%, 50% 99.2%, 66.7% 99.2%, 66.7% 94.1%, 83.3% 94.1%, 83.3% 78.2%, 100% 78.2%, 100% 100%);
+  }
+  30% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 100%, 33.3% 100%, 33.3% 99.6%, 50% 99.6%, 50% 96.3%, 66.7% 96.3%, 66.7% 84.4%, 83.3% 84.4%, 83.3% 54.7%, 100% 54.7%, 100% 100%);
+  }
+  35% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 99.9%, 33.3% 99.9%, 33.3% 97.9%, 50% 97.9%, 50% 89.1%, 66.7% 89.1%, 66.7% 65.6%, 83.3% 65.6%, 83.3% 27.6%, 100% 27.6%, 100% 100%);
+  }
+  40% {
+    clip-path: polygon(0% 100%, 0% 100%, 16.7% 100%, 16.7% 98.8%, 33.3% 98.8%, 33.3% 92.7%, 50% 92.7%, 50% 74.4%, 66.7% 74.4%, 66.7% 36.9%, 83.3% 36.9%, 83.3% 11.9%, 100% 11.9%, 100% 100%);
+  }
+  45% {
+    clip-path: polygon(0% 100%, 0% 99.4%, 16.7% 99.4%, 16.7% 95.3%, 33.3% 95.3%, 33.3% 81.4%, 50% 81.4%, 50% 48.4%, 66.7% 48.4%, 66.7% 17.1%, 83.3% 17.1%, 83.3% 4.1%, 100% 4.1%, 100% 100%);
+  }
+  50% {
+    clip-path: polygon(0% 100%, 0% 97.2%, 16.7% 97.2%, 16.7% 86.9%, 33.3% 86.9%, 33.3% 60.4%, 50% 60.4%, 50% 23.6%, 66.7% 23.6%, 66.7% 6.6%, 83.3% 6.6%, 83.3% 1%, 100% 1%, 100% 100%);
+  }
+  55% {
+    clip-path: polygon(0% 100%, 0% 91.1%, 16.7% 91.1%, 16.7% 70.3%, 33.3% 70.3%, 33.3% 32%, 50% 32%, 50% 9.9%, 66.7% 9.9%, 66.7% 1.9%, 83.3% 1.9%, 83.3% 0.1%, 100% 0.1%, 100% 100%);
+  }
+  60% {
+    clip-path: polygon(0% 100%, 0% 78.2%, 16.7% 78.2%, 16.7% 42.4%, 33.3% 42.4%, 33.3% 14.3%, 50% 14.3%, 50% 3.2%, 66.7% 3.2%, 66.7% 0.3%, 83.3% 0.3%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  65% {
+    clip-path: polygon(0% 100%, 0% 54.7%, 16.7% 54.7%, 16.7% 20.1%, 33.3% 20.1%, 33.3% 5.2%, 50% 5.2%, 50% 0.7%, 66.7% 0.7%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  70% {
+    clip-path: polygon(0% 100%, 0% 27.6%, 16.7% 27.6%, 16.7% 8.1%, 33.3% 8.1%, 33.3% 1.4%, 50% 1.4%, 50% 0.1%, 66.7% 0.1%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(0% 100%, 0% 11.9%, 16.7% 11.9%, 16.7% 2.5%, 33.3% 2.5%, 33.3% 0.2%, 50% 0.2%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  80% {
+    clip-path: polygon(0% 100%, 0% 4.1%, 16.7% 4.1%, 16.7% 0.5%, 33.3% 0.5%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  85% {
+    clip-path: polygon(0% 100%, 0% 1%, 16.7% 1%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  90% {
+    clip-path: polygon(0% 100%, 0% 0.1%, 16.7% 0.1%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  95% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 100%, 0% 0%, 16.7% 0%, 16.7% 0%, 33.3% 0%, 33.3% 0%, 50% 0%, 50% 0%, 66.7% 0%, 66.7% 0%, 83.3% 0%, 83.3% 0%, 100% 0%, 100% 100%);
+  }
+}
+@keyframes vt-lead {
+  0% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  5% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 99.7%, 0% 99.7%);
+  }
+  10% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 99.9%, 16.7% 99.9%, 16.7% 98.1%, 0% 98.1%);
+  }
+  15% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 99%, 16.7% 99%, 16.7% 93.4%, 0% 93.4%);
+  }
+  20% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 99.5%, 33.3% 99.5%, 33.3% 95.9%, 16.7% 95.9%, 16.7% 82.9%, 0% 82.9%);
+  }
+  25% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 99.8%, 50% 99.8%, 50% 97.5%, 33.3% 97.5%, 33.3% 88.1%, 16.7% 88.1%, 16.7% 63.1%, 0% 63.1%);
+  }
+  30% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 99.9%, 66.7% 99.9%, 66.7% 98.6%, 50% 98.6%, 50% 91.9%, 33.3% 91.9%, 33.3% 72.4%, 16.7% 72.4%, 16.7% 34.4%, 0% 34.4%);
+  }
+  35% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 99.3%, 66.7% 99.3%, 66.7% 94.8%, 50% 94.8%, 50% 79.9%, 33.3% 79.9%, 33.3% 45.3%, 16.7% 45.3%, 16.7% 15.6%, 0% 15.6%);
+  }
+  40% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 99.7%, 83.3% 99.7%, 83.3% 96.8%, 66.7% 96.8%, 66.7% 85.7%, 50% 85.7%, 50% 57.6%, 33.3% 57.6%, 33.3% 21.8%, 16.7% 21.8%, 16.7% 5.9%, 0% 5.9%);
+  }
+  45% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 98.1%, 83.3% 98.1%, 83.3% 90.1%, 66.7% 90.1%, 66.7% 68%, 50% 68%, 50% 29.7%, 33.3% 29.7%, 33.3% 8.9%, 16.7% 8.9%, 16.7% 1.6%, 0% 1.6%);
+  }
+  50% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 93.4%, 83.3% 93.4%, 83.3% 76.4%, 66.7% 76.4%, 66.7% 39.6%, 50% 39.6%, 50% 13.1%, 33.3% 13.1%, 33.3% 2.8%, 16.7% 2.8%, 16.7% 0.2%, 0% 0.2%);
+  }
+  55% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 82.9%, 83.3% 82.9%, 83.3% 51.6%, 66.7% 51.6%, 66.7% 18.6%, 50% 18.6%, 50% 4.7%, 33.3% 4.7%, 33.3% 0.6%, 16.7% 0.6%, 16.7% 0%, 0% 0%);
+  }
+  60% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 63.1%, 83.3% 63.1%, 83.3% 25.6%, 66.7% 25.6%, 66.7% 7.3%, 50% 7.3%, 50% 1.2%, 33.3% 1.2%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  65% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 34.4%, 83.3% 34.4%, 83.3% 10.9%, 66.7% 10.9%, 66.7% 2.1%, 50% 2.1%, 50% 0.1%, 33.3% 0.1%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  70% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 15.6%, 83.3% 15.6%, 83.3% 3.7%, 66.7% 3.7%, 66.7% 0.4%, 50% 0.4%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  75% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 5.9%, 83.3% 5.9%, 83.3% 0.8%, 66.7% 0.8%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  80% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 1.6%, 83.3% 1.6%, 83.3% 0.1%, 66.7% 0.1%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  85% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0.2%, 83.3% 0.2%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  90% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  95% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+}
+@keyframes vt-lead-back {
+  0% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 83.3% 100%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  5% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 99.7%, 83.3% 99.7%, 83.3% 100%, 66.7% 100%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  10% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 98.1%, 83.3% 98.1%, 83.3% 99.9%, 66.7% 99.9%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  15% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 93.4%, 83.3% 93.4%, 83.3% 99%, 66.7% 99%, 66.7% 100%, 50% 100%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  20% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 82.9%, 83.3% 82.9%, 83.3% 95.9%, 66.7% 95.9%, 66.7% 99.5%, 50% 99.5%, 50% 100%, 33.3% 100%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  25% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 63.1%, 83.3% 63.1%, 83.3% 88.1%, 66.7% 88.1%, 66.7% 97.5%, 50% 97.5%, 50% 99.8%, 33.3% 99.8%, 33.3% 100%, 16.7% 100%, 16.7% 100%, 0% 100%);
+  }
+  30% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 34.4%, 83.3% 34.4%, 83.3% 72.4%, 66.7% 72.4%, 66.7% 91.9%, 50% 91.9%, 50% 98.6%, 33.3% 98.6%, 33.3% 99.9%, 16.7% 99.9%, 16.7% 100%, 0% 100%);
+  }
+  35% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 15.6%, 83.3% 15.6%, 83.3% 45.3%, 66.7% 45.3%, 66.7% 79.9%, 50% 79.9%, 50% 94.8%, 33.3% 94.8%, 33.3% 99.3%, 16.7% 99.3%, 16.7% 100%, 0% 100%);
+  }
+  40% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 5.9%, 83.3% 5.9%, 83.3% 21.8%, 66.7% 21.8%, 66.7% 57.6%, 50% 57.6%, 50% 85.7%, 33.3% 85.7%, 33.3% 96.8%, 16.7% 96.8%, 16.7% 99.7%, 0% 99.7%);
+  }
+  45% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 1.6%, 83.3% 1.6%, 83.3% 8.9%, 66.7% 8.9%, 66.7% 29.7%, 50% 29.7%, 50% 68%, 33.3% 68%, 33.3% 90.1%, 16.7% 90.1%, 16.7% 98.1%, 0% 98.1%);
+  }
+  50% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0.2%, 83.3% 0.2%, 83.3% 2.8%, 66.7% 2.8%, 66.7% 13.1%, 50% 13.1%, 50% 39.6%, 33.3% 39.6%, 33.3% 76.4%, 16.7% 76.4%, 16.7% 93.4%, 0% 93.4%);
+  }
+  55% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0.6%, 66.7% 0.6%, 66.7% 4.7%, 50% 4.7%, 50% 18.6%, 33.3% 18.6%, 33.3% 51.6%, 16.7% 51.6%, 16.7% 82.9%, 0% 82.9%);
+  }
+  60% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 1.2%, 50% 1.2%, 50% 7.3%, 33.3% 7.3%, 33.3% 25.6%, 16.7% 25.6%, 16.7% 63.1%, 0% 63.1%);
+  }
+  65% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0.1%, 50% 0.1%, 50% 2.1%, 33.3% 2.1%, 33.3% 10.9%, 16.7% 10.9%, 16.7% 34.4%, 0% 34.4%);
+  }
+  70% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0.4%, 33.3% 0.4%, 33.3% 3.7%, 16.7% 3.7%, 16.7% 15.6%, 0% 15.6%);
+  }
+  75% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0.8%, 16.7% 0.8%, 16.7% 5.9%, 0% 5.9%);
+  }
+  80% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0.1%, 16.7% 0.1%, 16.7% 1.6%, 0% 1.6%);
+  }
+  85% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0.2%, 0% 0.2%);
+  }
+  90% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  95% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+  100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 83.3% 0%, 83.3% 0%, 66.7% 0%, 66.7% 0%, 50% 0%, 50% 0%, 33.3% 0%, 33.3% 0%, 16.7% 0%, 16.7% 0%, 0% 0%);
+  }
+}

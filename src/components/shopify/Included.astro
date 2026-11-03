@@ -1,0 +1,105 @@
+---
+/**
+ * "What every build includes" (brief §4 item 8). Six swing tags hanging from one rail, 3×2 on
+ * desktop (a full grid), 2×3 on tablets, one column on phones.
+ */
+import { INCLUDED } from '../../data/shopify/content';
+
+type Icon = (typeof INCLUDED)[number]['icon'];
+const ICONS: Record<Icon, string> = {
+  blocks: '<rect x="4" y="4" width="16" height="5" rx="1.5"/><rect x="4" y="11" width="7" height="9" rx="1.5"/><rect x="13" y="11" width="7" height="9" rx="1.5"/>',
+  minus: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12h7"/>',
+  gauge: '<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  branch: '<circle cx="7" cy="6" r="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="9" r="2"/><path d="M7 8v8M17 11c0 3-4 3-8.5 5.5"/>',
+  play: '<rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M10.5 9.5v5l4-2.5z"/>',
+};
+---
+
+<section class="section inc" id="included" aria-labelledby="included-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow">In every build</p>
+      <h2 id="included-title">What comes with the work, every time.</h2>
+    </div>
+    <ul class="inc__grid" role="list" data-reveal-stagger>
+      {
+        INCLUDED.map((it) => (
+          <li class="it">
+            <span class="it__hole" aria-hidden="true" />
+            <svg class="it__icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" set:html={ICONS[it.icon]} />
+            <h3 class="it__title">{it.title}</h3>
+            <p class="it__text">{it.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .inc__grid {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 640px) {
+    .inc__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .inc__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  /* A large swing tag: a punched hole at the top, hung from its centre. */
+  .it {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: calc(var(--space-6) + 10px) var(--space-5) var(--space-5);
+    border-radius: 4px 4px var(--radius-l) var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transform-origin: 50% 20px;
+    transition:
+      rotate 700ms var(--ease-out-expo),
+      translate 700ms var(--ease-out-expo);
+  }
+  .it__hole {
+    position: absolute;
+    left: 50%;
+    top: 14px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  @media (hover: hover) {
+    /* Individual transform properties, so they never fight the reveal's transform. */
+    .it:hover {
+      rotate: -1.2deg;
+      translate: 0 -3px;
+    }
+  }
+  .it__icon {
+    fill: none;
+    stroke: var(--accent-text);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .it__title {
+    font-size: 1.25rem;
+  }
+  .it__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

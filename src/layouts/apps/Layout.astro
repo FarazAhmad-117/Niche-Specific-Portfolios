@@ -1,0 +1,116 @@
+---
+/**
+ * apps niche layout. Concept "Blueprint" (docs/brief/apps.md §6, decisions › apps).
+ *
+ * Props
+ *   title: string, description: string       -> <SEO>
+ *   path?: string                             canonical path on the subdomain (default: current page)
+ *   image?: string | ImageMetadata            og:image
+ *   noindex?: boolean                         per-page noindex (niche-wide switch is src/niches.ts)
+ *   jsonLd?: Record<string, unknown>[]        each emitted as <script type="application/ld+json">
+ *   expect?: string                           id of an element the first render must wait for, so a
+ *                                             page transition never snapshots the page before its
+ *                                             shared element exists (<link rel="expect">)
+ */
+import '../../styles/apps/tokens.css';
+import '../../styles/apps/base.css';
+import monaUrl from '../../assets/fonts/MonaSans-Variable-latin.woff2?url';
+import SEO from '../../components/shared/SEO.astro';
+import Motion from '../../components/shared/Motion.astro';
+import Nav from '../../components/apps/Nav.astro';
+import Footer from '../../components/apps/Footer.astro';
+import StickyCta from '../../components/apps/StickyCta.astro';
+import { createLink } from '../../lib/link';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  image?: string | ImageMetadata;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  expect?: string;
+}
+
+const { title, description, path, image, noindex, jsonLd = [], expect } = Astro.props;
+
+const niche = 'apps' as const;
+const link = createLink(niche);
+
+// Runs before first paint; must stay tiny. CSS follows the system when nothing is stored.
+const themeScript =
+  "try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add('js')";
+const ld = (obj: Record<string, unknown>) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
+/*
+ * Page-transition direction. Both documents tag the same transition: the old one on
+ * `pageswap`, the new one on `pagereveal` (which must be registered before first render, so
+ * this is inline in <head>). "back" = a history traversal to an earlier entry, or going up
+ * from a case page to the home page; CSS plays the transition mirrored for it.
+ */
+/*
+ * Shared element: exactly one case box per side. Every candidate carries data-vt-case="<slug>"
+ * (home cards, the case hero, the "next case" card). For each navigation the script picks the
+ * one case it is about and clears the name on every other candidate, on both documents:
+ *   home → case s, case s → home: s
+ *   case s → case n: n going forward (the next card ↔ its hero), s going back
+ *   case s → home by the nav brand or a section link (not /#card-s, not history): none, because
+ *   the home card would be off screen and the hero would fly away to it
+ * Without this, a case page's "next case" card would pair with that case's home card too.
+ * Candidates carry no name at rest: names exist only for the transition in flight and are
+ * cleared when it finishes, and on pageshow (bfcache) so a later navigation starts clean.
+ */
+const vtScript = `(function(){
+function path(u){try{return new URL(u).pathname}catch(e){return ''}}
+function slug(u){var m=/\\/work\\/([^/]+)\\/?$/.exec(path(u));return m?m[1]:null}
+function up(f,t){return !!slug(f)&&!slug(t)}
+function back(type,fi,ti,f,t){return (type==='traverse'&&fi>-1&&ti>-1&&ti<fi)||up(f,t)}
+function hash(u){try{return new URL(u).hash}catch(e){return ''}}
+function pick(f,t,isBack,type){var a=slug(f),b=slug(t);if(a&&b)return isBack?a:b;if(a&&!b&&type!=='traverse'&&hash(t)!=='#card-'+a)return null;return b||a}
+function scope(s){document.querySelectorAll('[data-vt-case]').forEach(function(el){el.style.viewTransitionName=el.getAttribute('data-vt-case')===s?'case-'+s:'none'})}
+function reset(){document.querySelectorAll('[data-vt-case]').forEach(function(el){el.style.viewTransitionName=''})}
+addEventListener('pageswap',function(e){var v=e.viewTransition,a=e.activation;if(!v||!a||!a.entry)return;var c=window.navigation&&navigation.currentEntry;var b=back(a.navigationType,c?c.index:-1,a.entry.index,location.href,a.entry.url);if(b)v.types.add('back');scope(pick(location.href,a.entry.url,b,a.navigationType))});
+addEventListener('pagereveal',function(e){var v=e.viewTransition,a=window.navigation&&navigation.activation;if(!v||!a||!a.from||!a.entry)return;var b=back(a.navigationType,a.from.index,a.entry.index,a.from.url,a.entry.url);if(b)v.types.add('back');scope(pick(a.from.url,a.entry.url,b,a.navigationType));v.finished.then(reset,reset)});
+addEventListener('pageshow',function(e){if(e.persisted)reset()});
+})()`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline set:html={themeScript} />
+    <script is:inline set:html={vtScript} />
+    {expect && <link rel="expect" href={`#${expect}`} blocking="render" />}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f3f1ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0f11" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={monaUrl} />
+    <link rel="icon" href={link('/icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={link('/apple-touch-icon.png')} />
+    <SEO niche={niche} title={title} description={description} path={path} image={image} noindex={noindex} />
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={ld(obj)} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <StickyCta />
+    <Motion />
+  </body>
+</html>
+
+<style>
+  main {
+    position: relative;
+    display: block;
+  }
+</style>
+
+<script>
+  import '../../lib/apps/base';
+</script>
