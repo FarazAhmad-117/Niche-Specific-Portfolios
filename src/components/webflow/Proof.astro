@@ -1,0 +1,91 @@
+---
+/**
+ * Proof strip (brief §4 item 2): four cells measured off a ruler. One is a fact today (the
+ * motion on these sites); the other three are owner inputs shown as dashed TODO chips, never
+ * invented numbers.
+ */
+import { PROOF } from '../../data/webflow/content';
+---
+
+<section class="proof" id="proof" aria-label="Proof">
+  <div class="container">
+    <ul class="proof__row" role="list" data-reveal-stagger>
+      {
+        PROOF.map((p, i) => (
+          <li class="proof__cell">
+            <span class="proof__idx mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {p.value ? <span class="proof__value">{p.value}</span> : <span class="todo proof__todo">{p.todo}</span>}
+            <span class="proof__label">{p.label}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .proof {
+    position: relative;
+    padding-block: var(--space-5) var(--space-7);
+  }
+  .proof__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 1000px) {
+    .proof__row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 520px) {
+    .proof__row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .proof__cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-4) var(--space-4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  /* Ruler ticks along the top of each cell, a taller tick where the cell starts. */
+  .proof__cell::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 6px;
+    background:
+      linear-gradient(var(--line-strong), var(--line-strong)) left top / 1px 10px no-repeat,
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--line-strong) 50%, transparent) 0 1px, transparent 1px 12px) left top / 100%
+        5px no-repeat;
+  }
+  .proof__idx {
+    color: var(--text-3);
+    font-size: 0.75rem;
+  }
+  .proof__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--accent-text);
+  }
+  .proof__todo {
+    margin-block: 6px 4px;
+  }
+  .proof__label {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    max-width: 30ch;
+  }
+</style>

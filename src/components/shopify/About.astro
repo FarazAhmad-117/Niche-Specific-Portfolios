@@ -1,0 +1,198 @@
+---
+/**
+ * About. The real portrait (black and white on black) mounted like a product shot on a
+ * display card with a swing tag; facts come from src/data/shopify/profile.ts only.
+ */
+import { Image } from 'astro:assets';
+import { ABOUT } from '../../data/shopify/content';
+import { PROFILE, yearsBuilding } from '../../data/shopify/profile';
+import { STACK, YARD_TERMINAL_URL } from '../../data/shopify/site';
+
+const facts = [
+  { k: 'Based in', v: PROFILE.location },
+  { k: 'Time zone', v: PROFILE.timeZone },
+  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
+];
+---
+
+<section class="section about" id="about" aria-labelledby="about-title">
+  <div class="container about__grid">
+    <figure class="about__photo" data-reveal>
+      <div class="about__card">
+        <div class="about__frame">
+          <Image
+            src={PROFILE.portrait.src}
+            alt={PROFILE.portrait.alt}
+            widths={[320, 480, 640, 960]}
+            sizes="(min-width: 1024px) 420px, 80vw"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <figcaption class="about__cap leader mono">
+          <span>{PROFILE.name}</span>
+          <span>{PROFILE.city}</span>
+        </figcaption>
+      </div>
+      <span class="about__hang" aria-hidden="true">
+        <span class="about__string"></span>
+        <span class="tag tag--accent">Builds the integration too</span>
+      </span>
+    </figure>
+
+    <div class="about__copy">
+      <p class="eyebrow">About</p>
+      <h2 id="about-title">{ABOUT.title}</h2>
+      {ABOUT.paragraphs.map((p, i) => <p class:list={[i === 0 ? 'lede' : 'about__p']}>{p}</p>)}
+      <dl class="about__facts">
+        {
+          facts.map((f) => (
+            <div class="leader">
+              <dt class="mono">{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <div class="about__stack">
+        <p class="mono about__stack-label">Works with</p>
+        <ul role="list">
+          {STACK.map((s) => <li>{s}</li>)}
+        </ul>
+      </div>
+      <p class="about__links">
+        <a class="link" href={YARD_TERMINAL_URL} target="_blank" rel="noopener">
+          yardterminal.com<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+        <a class="link" href={PROFILE.github} target="_blank" rel="noopener">
+          GitHub<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+  }
+  .about__photo {
+    position: relative;
+    width: 100%;
+    /* Room for the card's tilt, so its corners never pass the viewport edge on phones. */
+    max-width: min(440px, calc(100% - 20px));
+    margin: 0 auto;
+    padding-top: 30px;
+  }
+  .about__card {
+    padding: var(--space-3) var(--space-3) var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    transform: rotate(-1.4deg);
+  }
+  .about__frame {
+    overflow: hidden;
+    border-radius: var(--radius-m);
+    background: #000;
+    aspect-ratio: 4 / 5;
+  }
+  .about__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .about__cap {
+    margin-top: var(--space-3);
+    padding-inline: 4px;
+    color: var(--text-2);
+  }
+  .about__hang {
+    position: absolute;
+    top: 0;
+    right: 12%;
+    display: grid;
+    justify-items: end;
+    transform-origin: calc(100% - 6px) 0;
+    rotate: 4deg;
+  }
+  .about__string {
+    width: 1.5px;
+    height: 38px;
+    margin-right: 6px;
+    background: var(--line-strong);
+  }
+  .about__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .about__copy h2 {
+    max-width: 18ch;
+  }
+  .about__p {
+    max-width: 60ch;
+    color: var(--text-2);
+  }
+  .about__facts {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    max-width: 36rem;
+    margin: 0;
+  }
+  .about__facts div {
+    padding: 10px 0;
+  }
+  .about__facts dt {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .about__facts dd {
+    margin: 0;
+    font-weight: 500;
+    text-align: right;
+  }
+  .about__stack {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .about__stack-label {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .about__stack ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .about__stack li {
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-1);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .about__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    font-weight: 600;
+  }
+  .about__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+</style>

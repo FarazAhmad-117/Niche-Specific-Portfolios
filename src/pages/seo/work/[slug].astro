@@ -1,0 +1,738 @@
+---
+/**
+ * Case-study page (/work/<slug>/), one per entry in src/data/seo/cases.ts.
+ *
+ * Reads like a results page drilled into: breadcrumb → title (morphs from the home result
+ * card) and an "at a glance" panel → the measured scorecard (where there is one) → the problem
+ * → what I built → how it runs → what changed (facts, or TODO chips) → the lesson → next case
+ * → call.
+ *
+ * Honesty: values render through <Todo> (text or a dashed chip). Meta, OG and JSON-LD only
+ * use the seo/og strings, never a placeholder.
+ */
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../../layouts/seo/Layout.astro';
+import Todo from '../../../components/seo/Todo.astro';
+import FinalCta from '../../../components/seo/FinalCta.astro';
+import { CASES, nextCase, type CaseStudy } from '../../../data/seo/cases';
+import { assertMeta } from '../../../data/seo/seo';
+import { abs, caseLd } from '../../../lib/seo/jsonld';
+import { createLink } from '../../../lib/link';
+
+export const getStaticPaths = (() =>
+  CASES.map((study) => ({ params: { slug: study.slug }, props: { study } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+const next = nextCase(study.slug);
+const link = createLink('seo');
+assertMeta(study.slug, study.seo);
+
+/** Lighthouse colours its gauges by band; every measured score here is in the top band. */
+const band = (v: number) => (v >= 90 ? 'good' : v >= 50 ? 'mid' : 'poor');
+---
+
+<Layout
+  title={study.seo.title}
+  description={study.seo.description}
+  path={`/work/${study.slug}/`}
+  image={abs(`og/${study.slug}.png`)}
+  jsonLd={caseLd(study)}
+>
+  <!-- ============ hero ============ -->
+  <header class="chero" data-hero>
+    <div class="container">
+      <nav class="crumbs mono" aria-label="Breadcrumb">
+        <ol role="list">
+          <li><a class="link" href={link('/')}>seo.farazahmad.dev</a></li>
+          <li><a class="link" href={`${link('/')}#work`}>work</a></li>
+          <li aria-current="page">{study.slug}</li>
+        </ol>
+      </nav>
+
+      <div class="chero__grid">
+        <div class="chero__copy">
+          <p class="eyebrow">Case study · {study.role}</p>
+          <h1 class="chero__title case-vt" style={`--vt: case-${study.slug}`}>{study.h1}</h1>
+          <p class="lede">{study.summary}</p>
+          <div class="chero__actions">
+            <a class="btn btn--ghost btn--down" href="#built">
+              <span>See what I built</span>
+              <span class="btn__arrow" aria-hidden="true">↓</span>
+            </a>
+            {
+              study.link && (
+                <a class="btn btn--ghost" href={study.link.href} target="_blank" rel="noopener">
+                  <span>Visit {study.link.label}</span>
+                  <span class="btn__arrow" aria-hidden="true">↗</span>
+                  <span class="visually-hidden"> (opens in a new tab)</span>
+                </a>
+              )
+            }
+          </div>
+        </div>
+
+        <aside class="glance" aria-label={`${study.name} at a glance`}>
+          <p class="glance__head">
+            <span class="glance__name">{study.name}</span>
+            <span class="glance__client">{study.client}</span>
+          </p>
+          <dl class="glance__list">
+            {
+              study.glance.map((g) => (
+                <div>
+                  <dt>{g.label}</dt>
+                  <dd>
+                    <Todo value={g.value} />
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ scorecard (measured only) ============ -->
+  {
+    study.scores && (
+      <section class="section section--sunk scores" id="scores" aria-labelledby="scores-title">
+        <div class="container">
+          <div class="head head--split">
+            <p class="eyebrow">Measured</p>
+            <h2 id="scores-title">{study.scores.title}</h2>
+            <p class="lede">{study.scores.note}</p>
+          </div>
+
+          <ul class="rings rings--pages" role="list" data-reveal-stagger>
+            {study.scores.pages.map((pg) => (
+              <li class="ring-card">
+                <svg class={`ring ring--${band(pg.seo)}`} viewBox="0 0 100 100" aria-hidden="true">
+                  <circle class="ring__track" cx="50" cy="50" r="42" />
+                  <circle class="ring__arc" cx="50" cy="50" r="42" pathLength="100" style={`--v: ${pg.seo}`} />
+                  <text class="ring__num" x="50" y="58" text-anchor="middle">
+                    {pg.seo}
+                  </text>
+                </svg>
+                <p class="ring-card__path mono">{pg.path}</p>
+                <p class="visually-hidden">
+                  Lighthouse SEO score {pg.seo} on {pg.path}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          <h3 class="scores__sub">Home page, all categories</h3>
+          <ul class="rings rings--home" role="list" data-reveal-stagger>
+            {study.scores.home.map((s) => (
+              <li class="ring-card">
+                <svg class={`ring ring--${band(s.value)}`} viewBox="0 0 100 100" aria-hidden="true">
+                  <circle class="ring__track" cx="50" cy="50" r="42" />
+                  <circle class="ring__arc" cx="50" cy="50" r="42" pathLength="100" style={`--v: ${s.value}`} />
+                  <text class:list={['ring__num', { 'ring__num--sm': (s.display ?? '').length > 3 }]} x="50" y="58" text-anchor="middle">
+                    {s.display ?? s.value}
+                  </text>
+                </svg>
+                <p class="ring-card__label">{s.label}</p>
+                <p class="visually-hidden">
+                  {s.label}: {s.display ?? s.value}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ problem ============ -->
+  <section class="section section--rule csec" id="problem" aria-labelledby="problem-title">
+    <div class="container csec__grid">
+      <p class="eyebrow">The problem</p>
+      <div class="csec__body">
+        <h2 id="problem-title" class="csec__h2">{study.problem.title}</h2>
+        <p class="lede">{study.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ what I built ============ -->
+  <section class="section section--rule csec" id="built" aria-labelledby="built-title">
+    <div class="container">
+      <div class="head">
+        <p class="eyebrow">What I built</p>
+        <h2 id="built-title" class="csec__h2">The parts that do the work.</h2>
+      </div>
+      <ol class="built" role="list" data-reveal-stagger>
+        {
+          study.built.map((b, i) => (
+            <li class="built__item">
+              <p class="built__top">
+                <span class="built__n mono">{String(i + 1).padStart(2, '0')}</span>
+                <code class="built__code">{b.code}</code>
+              </p>
+              <h3 class="built__title">{b.title}</h3>
+              <p class="built__text">{b.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ how it runs ============ -->
+  <section class="section section--sunk csec" id="flow" aria-labelledby="flow-title">
+    <div class="container">
+      <div class="head">
+        <p class="eyebrow">How it runs</p>
+        <h2 id="flow-title" class="csec__h2">From start to finish.</h2>
+      </div>
+      <ol class="flow" role="list" data-reveal-stagger style={`--n: ${study.flow.length}`}>
+        {
+          study.flow.map((f, i) => (
+            <li class:list={['flow__node', { 'flow__node--last': i === study.flow.length - 1 }]}>
+              <span class="flow__n mono">{String(i + 1).padStart(2, '0')}</span>
+              <span class="flow__t">{f}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ results ============ -->
+  <section class="section section--rule csec" id="results" aria-labelledby="results-title">
+    <div class="container">
+      <div class="head">
+        <p class="eyebrow">What changed</p>
+        <h2 id="results-title" class="csec__h2">Results, as far as they’re measured.</h2>
+      </div>
+      <div class="results" data-reveal>
+        <table class="results__table">
+          <thead>
+            <tr>
+              <th scope="col">Metric</th>
+              <th scope="col">Result</th>
+              <th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              study.results.map((r) => (
+                <tr>
+                  <th scope="row">{r.label}</th>
+                  <td>
+                    <Todo value={r.value} />
+                  </td>
+                  <td class="results__src mono">{r.source ?? '—'}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <blockquote class="lesson" data-reveal>
+        <p class="lesson__title mono">{study.lesson.title}</p>
+        <p class="lesson__text">{study.lesson.text}</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ============ next case ============ -->
+  <section class="section section--rule next" aria-labelledby="next-title">
+    <div class="container">
+      <p class="eyebrow">Next case study</p>
+      <a class="next__card" href={link(`/work/${next.slug}/`)}>
+        <span class="serp-site">
+          <span class="serp-fav" aria-hidden="true"><span class="next__fav">{next.name.charAt(0).toUpperCase()}</span></span>
+          <span class="serp-name">{next.name}</span>
+          <span class="serp-url">seo.farazahmad.dev › work › {next.slug}</span>
+        </span>
+        <span id="next-title" class="next__title serp-title case-vt" style={`--vt: case-${next.slug}`}>{next.cardTitle}</span>
+        <span class="next__snippet">{next.angle}</span>
+      </a>
+    </div>
+  </section>
+
+  <FinalCta />
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .chero {
+    padding-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+    padding-bottom: var(--space-section);
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    margin: 0 0 var(--space-7);
+    color: var(--text-2);
+  }
+  .crumbs li {
+    display: inline-flex;
+    align-items: center;
+  }
+  .crumbs li + li::before {
+    content: '›';
+    padding-inline: 10px;
+    color: var(--text-3);
+  }
+  .crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+  .crumbs [aria-current] {
+    color: var(--text);
+  }
+  .chero__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .chero__grid {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+  }
+  .chero__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .chero__title {
+    font-size: clamp(2.5rem, 1.6rem + 3.8vw, 5.25rem);
+    line-height: 0.96;
+    letter-spacing: -0.034em;
+    max-width: 16ch;
+    view-transition-name: var(--vt);
+  }
+  .chero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .glance {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .glance__head {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-5);
+    border-bottom: 4px solid var(--accent);
+  }
+  .glance__name {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+  .glance__client {
+    color: var(--text-3);
+    font-size: var(--fs-small);
+  }
+  .glance__list {
+    display: grid;
+    padding: var(--space-2) var(--space-5) var(--space-4);
+  }
+  .glance__list div {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-small);
+  }
+  .glance__list div:last-child {
+    border-bottom: 0;
+  }
+  .glance__list dt {
+    font-weight: 600;
+  }
+  .glance__list dd {
+    margin: 0;
+    color: var(--text-2);
+    min-width: 0;
+  }
+  @media (max-width: 400px) {
+    .glance__list div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+
+  /* ---------- scorecard ---------- */
+  .rings {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .rings--pages {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .rings--home {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (min-width: 900px) {
+    .rings--home {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+  .ring-card {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    text-align: center;
+    min-width: 0;
+  }
+  .ring {
+    width: min(100%, 104px);
+    height: auto;
+  }
+  .ring__track {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 8;
+  }
+  .ring__arc {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: var(--v) 100;
+    transform: rotate(-90deg);
+    transform-origin: 50px 50px;
+  }
+  .ring--good .ring__arc {
+    stroke: var(--success);
+  }
+  .ring--mid .ring__arc {
+    stroke: var(--accent-text);
+  }
+  .ring--poor .ring__arc {
+    stroke: var(--error);
+  }
+  .ring__num {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: 26px;
+    letter-spacing: -0.04em;
+    fill: var(--text);
+  }
+  .ring__num--sm {
+    font-size: 19px;
+  }
+  .ring-card__path {
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .ring-card__label {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--text-2);
+  }
+  .scores__sub {
+    margin: var(--space-7) 0 var(--space-4);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .rings.is-armed.is-revealed .ring__arc {
+      animation: ring-draw var(--dur-draw) var(--ease-draw) both;
+      animation-delay: calc(min(var(--i, 0), 7) * 70ms + 200ms);
+    }
+  }
+  @keyframes ring-draw {
+    from {
+      stroke-dasharray: 0 100;
+    }
+  }
+  @media (max-width: 479px) {
+    .rings--pages .ring-card {
+      padding-inline: 2px;
+    }
+    .ring__num {
+      font-size: 30px;
+    }
+    .rings--pages .ring-card__path {
+      font-size: 0.6875rem;
+      letter-spacing: 0;
+    }
+  }
+
+  /* ---------- case sections ---------- */
+  .csec__grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 960px) {
+    .csec__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+    .csec__grid > .eyebrow {
+      padding-top: 0.6em;
+    }
+  }
+  .csec__body {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .csec__h2 {
+    max-width: 20ch;
+  }
+
+  .built {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  @media (min-width: 720px) {
+    .built {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1100px) {
+    .built {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .built__item {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    min-width: 0;
+  }
+  .built__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .built__n {
+    color: var(--text-3);
+  }
+  .built__code {
+    min-width: 0;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+  .built__title {
+    font-size: 1.25rem;
+  }
+  .built__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+
+  .flow {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .flow__node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 64px;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    font-weight: 500;
+  }
+  .flow__n {
+    color: var(--text-3);
+  }
+  .flow__node--last {
+    border-color: var(--text);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .flow__node--last .flow__n {
+    color: inherit;
+    opacity: 0.7;
+  }
+  /* Connectors: down on phones, across on desktop. */
+  .flow__node:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 28px;
+    bottom: -13px;
+    width: 2px;
+    height: 12px;
+    background: var(--line-strong);
+  }
+  @media (min-width: 960px) {
+    .flow {
+      grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    }
+    .flow__node {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 120px;
+    }
+    .flow__node:not(:last-child)::after {
+      left: auto;
+      right: -13px;
+      top: 50%;
+      bottom: auto;
+      width: 12px;
+      height: 2px;
+    }
+  }
+
+  .results {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+  }
+  .results__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+  .results__table th,
+  .results__table td {
+    padding: 14px var(--space-5);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  .results__table tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .results__table thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    background: var(--surface-1);
+  }
+  .results__table tbody th {
+    font-weight: 600;
+  }
+  .results__src {
+    color: var(--text-3);
+  }
+  /* Phones: each row becomes a small card instead of a squeezed table. */
+  @media (max-width: 639px) {
+    .results__table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .results__table,
+    .results__table tbody,
+    .results__table tr,
+    .results__table th,
+    .results__table td {
+      display: block;
+    }
+    .results__table tr {
+      padding: var(--space-4) var(--space-4);
+      border-bottom: 1px solid var(--line);
+    }
+    .results__table tbody tr:last-child {
+      border-bottom: 0;
+    }
+    .results__table th,
+    .results__table td {
+      padding: 2px 0;
+      border: 0;
+    }
+  }
+
+  .lesson {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-7) 0 0;
+    padding: var(--space-5) var(--space-6);
+    border-left: 6px solid var(--accent);
+    background: var(--surface-1);
+    border-radius: 0 var(--radius-m) var(--radius-m) 0;
+  }
+  .lesson__title {
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .lesson__text {
+    max-width: 60ch;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  .next__card {
+    display: grid;
+    gap: 8px;
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    text-decoration: none;
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      transform 420ms var(--ease-out);
+  }
+  @media (hover: hover) {
+    .next__card:hover {
+      border-color: var(--text);
+      transform: translateY(-2px);
+    }
+    .next__card:hover .next__title {
+      text-decoration: underline 1.5px;
+      text-underline-offset: 0.18em;
+    }
+  }
+  .next__fav {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8125rem;
+  }
+  .next__title {
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+    line-height: 1.2;
+    view-transition-name: var(--vt);
+  }
+  .next__snippet {
+    max-width: 62ch;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

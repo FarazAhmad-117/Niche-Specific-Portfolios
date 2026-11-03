@@ -1,0 +1,145 @@
+---
+/**
+ * Process (brief §4 item 8): Audit → Plan → Build → Handover. Four jacks on one cable; each
+ * step says what it leaves you with. The cable draws itself when the row reveals.
+ */
+import { PROCESS } from '../../data/ghl/content';
+import { bookingUrl } from '../../data/ghl/site';
+---
+
+<section class="section process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">Four steps, nothing switched off blind.</h2>
+      <p class="lede">
+        Every step ends with something you keep. <a class="link" href={bookingUrl('process')}>The first one is a free call.</a>
+      </p>
+    </div>
+    <ol class="proc" role="list" data-reveal>
+      {
+        PROCESS.map((p, i) => (
+          <li class="proc__step" style={`--i:${i}`}>
+            <span class="proc__jack" aria-hidden="true" />
+            <span class="proc__num mono">Step {String(i + 1).padStart(2, '0')}</span>
+            <h3 class="proc__title">{p.title}</h3>
+            <p class="proc__text">{p.text}</p>
+            <p class="proc__leaves">
+              <span class="tape">You keep</span>
+              <span>{p.leaves}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .proc {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding-left: 34px;
+  }
+  /* The cable: vertical on phones, horizontal across the jacks on wide screens. */
+  .proc::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: var(--accent);
+    transform-origin: top;
+  }
+  @media (min-width: 960px) {
+    .proc {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-5);
+      padding-left: 0;
+      padding-top: 40px;
+    }
+    .proc::before {
+      left: 12px;
+      right: 12px;
+      top: 11px;
+      bottom: auto;
+      width: auto;
+      height: 2px;
+      transform-origin: left;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .proc.is-armed::before {
+      transform: scale(0);
+    }
+    .proc.is-armed.is-revealed::before {
+      transform: none;
+      transition: transform 1400ms var(--ease-in-out-quart);
+    }
+    .proc.is-armed .proc__jack {
+      transform: scale(0);
+    }
+    .proc.is-armed.is-revealed .proc__jack {
+      transform: none;
+      transition: transform var(--dur-seat) var(--ease-spring);
+      transition-delay: calc(200ms + var(--i) * 300ms);
+    }
+    /* The row itself must not fade: base.css arms [data-reveal] as a whole block. */
+    .proc.is-armed {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .proc__step {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .proc__jack {
+    position: absolute;
+    left: -34px;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 6px var(--bg),
+      inset 0 0 0 11px var(--accent);
+  }
+  @media (min-width: 960px) {
+    .proc__jack {
+      left: 0;
+      top: -40px;
+    }
+  }
+  .proc__num {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .proc__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+    letter-spacing: -0.045em;
+  }
+  .proc__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 34ch;
+  }
+  .proc__leaves {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-2);
+    font-weight: 600;
+    font-size: var(--fs-small);
+  }
+</style>

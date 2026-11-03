@@ -1,0 +1,460 @@
+---
+/**
+ * Nav: a rack rail across the top, with a screw at each end. Tucks away while you scroll down
+ * and slides back the moment you scroll up (out-quint), and never hides while it holds
+ * keyboard focus or its menu is open.
+ * Phone: brand, theme switch, and a menu button that drops a panel with the links and the CTA.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_LINKS, PERSON_NAME, bookingUrl } from '../../data/ghl/site';
+import { CABLE_D, JACKS } from '../../lib/ghl/brand-mark';
+import { isHome, link, sectionHref } from '../../lib/ghl/paths';
+
+const href = (id: string) => sectionHref(Astro.url, id);
+const brandHref = isHome(Astro.url) ? '#top' : link('/');
+---
+
+<header class="nav" data-nav style="view-transition-name: site-nav">
+  <div class="nav__bar">
+    <span class="nav__screw nav__screw--l" aria-hidden="true"></span>
+    <a class="nav__brand" href={brandHref} aria-label={`${PERSON_NAME}, GoHighLevel developer: home`}>
+      <svg class="nav__mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="currentColor"></rect>
+        <path class="nav__cable" d={CABLE_D} fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" pathLength="1"></path>
+        {
+          JACKS.map((j) => (
+            <>
+              <circle cx={j.cx} cy={j.cy} r="4" fill="var(--bg)" />
+              <circle cx={j.cx} cy={j.cy} r="1.7" fill="currentColor" />
+            </>
+          ))
+        }
+      </svg>
+      <span class="nav__name">{PERSON_NAME}</span>
+      <span class="nav__tag tape">GoHighLevel</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <ThemeToggle />
+      <a class="btn nav__cta" href={bookingUrl('nav')}>
+        <span class="btn__led" aria-hidden="true"></span>
+        <span>Book a call</span>
+      </a>
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-btn>
+        <span class="visually-hidden">Menu</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+    <span class="nav__screw nav__screw--r" aria-hidden="true"></span>
+  </div>
+
+  <div class="nav__sheet" id="nav-sheet" data-menu hidden>
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="nav__sheet-link" href={href(l.id)} data-menu-link>
+              <span class="nav__sheet-num mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
+      <span class="btn__led" aria-hidden="true"></span>
+      <span>Book a scoping call</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: 50%;
+    z-index: var(--z-nav);
+    width: min(100% - 20px, 1180px);
+    transform: translate3d(-50%, 0, 0);
+    transition: transform 560ms var(--ease-out-quint);
+  }
+  .nav.is-tucked {
+    transform: translate3d(-50%, calc(-100% - 24px), 0);
+  }
+  .nav__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--nav-h);
+    padding: 8px 10px;
+    border-radius: var(--radius-l);
+    background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+    -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    backdrop-filter: saturate(1.4) blur(16px);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--line-strong) 45%, transparent),
+      var(--shadow-soft);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav__bar {
+      background: var(--surface-2);
+    }
+  }
+  /* Rack screws: a ring with a slot. */
+  .nav__screw {
+    display: none;
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, transparent 42%, var(--line-strong) 42% 58%, transparent 58%), var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  @media (min-width: 900px) {
+    .nav__screw {
+      display: block;
+    }
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: var(--radius-s);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__mark {
+    flex: none;
+  }
+  .nav__cable {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 900ms var(--ease-in-out-quart);
+  }
+  @media (hover: hover) {
+    /* The cable re-patches itself on hover: unplug, then draw back in. */
+    .nav__brand:hover .nav__cable {
+      animation: repatch 1100ms var(--ease-in-out-quart);
+    }
+  }
+  @keyframes repatch {
+    45% {
+      stroke-dashoffset: 1;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+  .nav__name {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .nav__tag {
+    display: none;
+  }
+  @media (min-width: 1180px) {
+    .nav__tag {
+      display: inline-flex;
+    }
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 2px;
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 14px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    font-weight: 500;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition:
+      color var(--dur-hover) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .nav__link:focus-visible,
+  .nav__link[aria-current='location'] {
+    color: var(--text);
+  }
+  /* Current section: a lit LED under the label. */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    width: 14px;
+    height: 3px;
+    margin-left: -7px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .nav__link[aria-current='location']::after {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .nav__link:hover {
+      color: var(--text);
+      background: var(--surface-1);
+    }
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .nav__cta {
+    display: none;
+    min-height: 46px;
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 900px) {
+    .nav__links,
+    .nav__cta {
+      display: flex;
+    }
+    .nav__links {
+      display: block;
+    }
+    .nav__end {
+      margin-left: 0;
+    }
+    .nav__menu-btn {
+      display: none !important;
+    }
+  }
+
+  .nav__menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    touch-action: manipulation;
+  }
+  .nav__burger {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+  .nav__burger span {
+    display: block;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* Without JS the menu button and theme switch cannot work: hide them and show the CTA.
+     The footer's "On this page" links stay as the way around. */
+  :global(html:not(.js)) .nav__menu-btn,
+  :global(html:not(.js)) .nav :global(.tt) {
+    display: none;
+  }
+  :global(html:not(.js)) .nav__cta {
+    display: inline-flex;
+  }
+  @media (forced-colors: active) {
+    .nav__link::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
+  }
+
+  /* ---------- phone panel ---------- */
+  .nav__sheet {
+    /* A short landscape screen must still reach the last link and the CTA. */
+    max-height: calc(100dvh - var(--nav-h) - 36px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-top: 8px;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    transform-origin: top center;
+  }
+  .nav__sheet ul {
+    display: grid;
+    margin: 0 0 var(--space-4);
+  }
+  .nav__sheet-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 56px;
+    padding-inline: var(--space-2);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__sheet-num {
+    color: var(--accent-text);
+  }
+  .nav__sheet-cta {
+    width: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav__sheet.is-open {
+      animation: sheet-in 460ms var(--ease-out-quint) both;
+    }
+    .nav__sheet.is-open li {
+      animation: sheet-item 520ms var(--ease-out-quint) both;
+      animation-delay: calc(60ms + var(--i) * 45ms);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scaleY(0.96);
+    }
+  }
+  @keyframes sheet-item {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const btn = nav?.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const sheet = nav?.querySelector<HTMLElement>('[data-menu]');
+
+  if (nav && btn && sheet) {
+    let open = false;
+    const desktop = window.matchMedia('(min-width: 900px)');
+
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      if (open === next) return;
+      open = next;
+      btn.setAttribute('aria-expanded', String(next));
+      btn.querySelector('.visually-hidden')!.textContent = next ? 'Close menu' : 'Menu';
+      sheet.hidden = !next;
+      sheet.classList.toggle('is-open', next);
+      nav.classList.remove('is-tucked');
+      document.documentElement.classList.toggle('menu-open', next);
+      const m = getActiveMotion();
+      if (next) m?.stop();
+      else m?.start();
+      if (!next && restoreFocus) btn.focus();
+    };
+
+    btn.addEventListener('click', () => setOpen(!open));
+    sheet.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (open && e.key === 'Escape') setOpen(false, true);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !nav.contains(e.target)) setOpen(false);
+    });
+    nav.addEventListener('focusout', (e) => {
+      if (open && e.relatedTarget instanceof Node && !nav.contains(e.relatedTarget)) setOpen(false);
+    });
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Tuck on scroll down, return on scroll up. Small jitters (< 6px) are ignored.
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) < 6) return;
+        // Only keyboard focus pins the nav: a mouse click leaves focus on the link it clicked.
+        let keyboardFocus = false;
+        try {
+          keyboardFocus = nav.matches(':has(:focus-visible)');
+        } catch {
+          keyboardFocus = false;
+        }
+        const keep = open || keyboardFocus || y < 120;
+        nav.classList.toggle('is-tucked', !keep && dy > 0);
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    nav.addEventListener('focusin', () => {
+      try {
+        if (nav.matches(':has(:focus-visible)')) nav.classList.remove('is-tucked');
+      } catch {
+        nav.classList.remove('is-tucked');
+      }
+    });
+
+    // Current-section LED on desktop links.
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')];
+    const targets = links
+      .map((a) => document.getElementById(a.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    if ('IntersectionObserver' in window && targets.length) {
+      const visible = new Set<string>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+          const current = targets.find((t) => visible.has(t.id))?.id;
+          links.forEach((a) => {
+            if (a.hash.slice(1) === current) a.setAttribute('aria-current', 'location');
+            else a.removeAttribute('aria-current');
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

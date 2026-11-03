@@ -1,0 +1,628 @@
+/* seo niche base: reset, typography, layout, shared primitives (buttons, marker, chips, SERP bits), reveals. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* A #hash jump lands --anchor-gap under the sticky nav. Sections cancel their own top
+     padding with a negative scroll-margin (.section), so the heading lands there. */
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 750;
+  text-wrap: balance;
+  font-variation-settings: "wdth" 100;
+}
+h1 {
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: 0.02em;
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out);
+}
+.link:focus-visible {
+  text-decoration-color: currentColor;
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- the marker ----------
+ * A signal-yellow highlighter stroke behind a phrase, as if marking a result. Without JS (or
+ * above the fold) it is simply on. base.ts arms [data-mark] below the fold and sweeps it in
+ * when it scrolls into view. Text on yellow is always --on-accent ink (AA in both themes). */
+.mark {
+  padding: 0 0.1em;
+  margin: 0 0.02em;
+  background-image: linear-gradient(
+    176deg,
+    transparent 10%,
+    var(--accent) 10%,
+    var(--accent) 90%,
+    transparent 90%
+  );
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  color: var(--on-accent);
+  border-radius: 0.08em 0.18em 0.12em 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mark.is-armed {
+    background-size: 0% 100%;
+    color: inherit;
+  }
+  .mark.is-armed.is-on {
+    background-size: 100% 100%;
+    color: var(--on-accent);
+    transition:
+      background-size var(--dur-marker) var(--ease-marker),
+      color calc(var(--dur-marker) * 0.6) var(--ease-marker) calc(var(--dur-marker) * 0.25);
+  }
+}
+@media (forced-colors: active) {
+  .mark {
+    forced-color-adjust: none;
+    background: Mark;
+    color: MarkText;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+.section--rule {
+  border-top: 1px solid var(--line);
+}
+.section--sunk {
+  background: var(--surface-1);
+}
+
+/* Section heading block: a mono "result count" eyebrow, the h2, an optional lede. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.eyebrow::before {
+  content: "";
+  width: 14px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.head {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 62rem;
+  margin-bottom: clamp(2.25rem, 1.6rem + 3vw, 4.5rem);
+}
+.head > h2 {
+  max-width: 18ch;
+}
+.head--split {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* ---------- buttons ----------
+ * Primary: an ink slab. On hover a yellow marker stroke sweeps across it left to right
+ * (--ease-marker) and the label turns ink. Secondary: a hairline outline whose arrow nudges. */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition:
+    color 320ms var(--ease-marker) 60ms,
+    transform var(--dur-press) var(--ease-out),
+    box-shadow var(--dur-hover) var(--ease-out);
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 520ms var(--ease-marker);
+}
+.btn__arrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  transition: transform 420ms var(--ease-snap);
+}
+.btn:focus-visible {
+  color: var(--on-accent);
+}
+.btn:focus-visible::before {
+  transform: scaleX(1);
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--on-accent);
+    box-shadow: var(--shadow-card);
+  }
+  .btn:hover::before {
+    transform: scaleX(1);
+  }
+  .btn:hover .btn__arrow {
+    transform: translateX(4px);
+  }
+}
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+}
+.btn--ghost::before {
+  display: none;
+}
+.btn--ghost:focus-visible {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+@media (hover: hover) {
+  .btn--ghost:hover {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+}
+.btn--down:hover .btn__arrow,
+.btn--down:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.chip--ok::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+.chip--marker {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+/* "Illustration" label on shape-only visuals. Visible on purpose. */
+.illus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose, never animated. */
+.todo {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-xs);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent) 0 6px, transparent 6px 12px);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+.todo::before {
+  content: "TODO · ";
+  color: var(--text-3);
+}
+
+/* ---------- SERP primitives (hero lab, case results, next-case) ---------- */
+.serp-site {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 10px;
+}
+.serp-fav {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.serp-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}
+.serp-url {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.serp-title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--link);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 70ms steps, capped).
+ * Script arms only what is below the fold at load, so no-JS and above-the-fold content is
+ * never hidden. A short lift + fade on --ease-out: data settling into place, never bouncy. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out),
+      transform var(--dur-reveal) var(--ease-out);
+    transition-delay: calc(min(var(--i, 0), 7) * 70ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .mark.is-armed {
+    background-size: 100% 100% !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- cross-document view transitions (home <-> case pages) ----------
+ * The incoming page is "marked in": it wipes across left to right like the highlighter,
+ * on --ease-swap, while the old page dims back a touch. The nav is its own group with no
+ * animation, so pages change underneath a steady header. The case title morphs from the
+ * search-result title on the card into the case page h1 (shared view-transition-name). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: seo-vt-out 420ms var(--ease-swap) both;
+  }
+  ::view-transition-new(root) {
+    animation: seo-vt-in 620ms var(--ease-swap) both;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 560ms;
+    animation-timing-function: var(--ease-swap);
+  }
+  ::view-transition-group(seo-nav),
+  ::view-transition-group(seo-progress) {
+    animation: none;
+  }
+  ::view-transition-old(seo-nav),
+  ::view-transition-new(seo-nav) {
+    animation: none;
+  }
+}
+@keyframes seo-vt-out {
+  to {
+    opacity: 0.4;
+    transform: translateX(-24px);
+  }
+}
+@keyframes seo-vt-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* Case title morph: the two titles differ in size, so drop the old snapshot and let the
+   group carry the new title from the old box into the new one. */
+.case-vt {
+  view-transition-class: case-title;
+}
+::view-transition-old(*.case-title) {
+  display: none;
+}
+::view-transition-new(*.case-title) {
+  animation: none;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
+}
+
+/* Theme swap: JS animates the new snapshot; the old one stays put. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Inverted blocks (background --btn-bg) re-point focus so the ring stays visible. */
+.inverse {
+  --focus: var(--focus-inv);
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .chip,
+  .todo,
+  .illus {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

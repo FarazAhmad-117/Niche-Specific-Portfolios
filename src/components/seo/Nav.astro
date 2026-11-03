@@ -1,0 +1,449 @@
+---
+/**
+ * Sticky top bar, like a results page header: brand left, section links, theme, CTA.
+ * A hairline under it fills with signal yellow as you read (a CSS scroll-driven animation
+ * where supported; nothing otherwise). It is its own view-transition group, so pages change
+ * underneath a steady header.
+ * Phone: brand, theme, and a menu button that drops a sheet with the links and the CTA.
+ *
+ * Props
+ *   home?: boolean   true on the home page (links are #hash); case pages link back to /#id
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_LINKS, PERSON_NAME, bookingUrl } from '../../data/seo/site';
+import { MARK_SHAPES } from '../../lib/seo/brand-mark';
+import { createLink } from '../../lib/link';
+
+interface Props {
+  home?: boolean;
+}
+const { home = false } = Astro.props;
+const link = createLink('seo');
+const href = (id: string) => (home ? `#${id}` : `${link('/')}#${id}`);
+const brandHref = home ? '#top' : link('/');
+---
+
+<header class="nav" data-nav>
+  <div class="nav__bar container">
+    <a class="nav__brand" href={brandHref} aria-label={`${PERSON_NAME}, technical SEO: ${home ? 'back to top' : 'home'}`}>
+      <svg class="nav__mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="currentColor"></rect>
+        {MARK_SHAPES.lines.map((l) => <rect x={l.x} y={l.y} width={l.w} height={l.h} rx="1.5" fill="var(--bg)" />)}
+        <rect
+          class="nav__mark-bar"
+          x={MARK_SHAPES.mark.x}
+          y={MARK_SHAPES.mark.y}
+          width={MARK_SHAPES.mark.w}
+          height={MARK_SHAPES.mark.h}
+          rx="1.2"
+          fill="var(--accent)"></rect>
+      </svg>
+      <span class="nav__name">{PERSON_NAME}</span>
+      <span class="nav__tag mono">technical seo</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <ThemeToggle />
+      <a class="btn nav__cta" href={bookingUrl('nav')}>
+        <span>Book a call</span>
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-btn>
+        <span class="visually-hidden">Menu</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+  <span class="nav__progress" aria-hidden="true"></span>
+
+  <div class="nav__sheet" id="nav-sheet" data-menu hidden>
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="nav__sheet-link" href={href(l.id)} data-menu-link>
+              <span class="nav__sheet-n mono">{String(i + 1).padStart(2, '0')}</span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
+      <span>Book a scoping call</span>
+      <span class="btn__arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-nav);
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    backdrop-filter: saturate(1.4) blur(16px);
+    border-bottom: 1px solid var(--line);
+    view-transition-name: seo-nav;
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav {
+      background: var(--bg);
+    }
+  }
+  .nav__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: var(--nav-h);
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: var(--radius-s);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__mark {
+    flex: none;
+  }
+  .nav__mark-bar {
+    transform-box: fill-box;
+    transform-origin: left center;
+    transition: transform 520ms var(--ease-marker);
+  }
+  @media (hover: hover) {
+    .nav__brand:hover .nav__mark-bar {
+      animation: nav-mark 620ms var(--ease-marker);
+    }
+  }
+  @keyframes nav-mark {
+    0% {
+      transform: scaleX(0);
+    }
+    100% {
+      transform: scaleX(1);
+    }
+  }
+  .nav__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .nav__tag {
+    display: none;
+    padding: 2px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  @media (min-width: 1200px) {
+    .nav__tag {
+      display: inline-block;
+    }
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 2px;
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 12px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    font-weight: 500;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  /* Current section: a small marker stroke under the label, drawn left to right. */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 8px;
+    height: 4px;
+    border-radius: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 420ms var(--ease-marker);
+  }
+  .nav__link:focus-visible,
+  .nav__link[aria-current='location'] {
+    color: var(--text);
+  }
+  .nav__link[aria-current='location']::after {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .nav__link:hover {
+      color: var(--text);
+    }
+    .nav__link:hover::after {
+      transform: scaleX(1);
+    }
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .nav__cta {
+    display: none;
+    min-height: 44px;
+    padding-inline: 16px;
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 960px) {
+    .nav__links {
+      display: block;
+    }
+    .nav__cta {
+      display: inline-flex;
+    }
+    .nav__end {
+      margin-left: 0;
+    }
+    .nav__menu-btn {
+      display: none !important;
+    }
+  }
+
+  .nav__menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    touch-action: manipulation;
+  }
+  .nav__burger {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+  .nav__burger span {
+    display: block;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-snap);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* Reading progress: the hairline under the bar fills with yellow as you scroll. */
+  .nav__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    pointer-events: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .nav__progress {
+        animation: nav-progress linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+  @keyframes nav-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Without JS the menu button and theme toggle cannot work: hide them and show the CTA.
+     The footer's "On this page" links stay as the way around. */
+  :global(html:not(.js)) .nav__menu-btn,
+  :global(html:not(.js)) .nav :global(.tt) {
+    display: none;
+  }
+  :global(html:not(.js)) .nav__cta {
+    display: inline-flex;
+  }
+  @media (forced-colors: active) {
+    .nav__link::after,
+    .nav__progress {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
+  }
+
+  /* ---------- phone sheet ---------- */
+  .nav__sheet {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: calc(100dvh - var(--nav-h) - 12px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-3) var(--margin) var(--space-5);
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    box-shadow: var(--shadow-lift);
+    transform-origin: top center;
+  }
+  .nav__sheet ul {
+    display: grid;
+    margin: 0 0 var(--space-4);
+  }
+  .nav__sheet-link {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-height: 58px;
+    padding-top: 14px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__sheet-n {
+    color: var(--text-3);
+  }
+  .nav__sheet-cta {
+    width: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav__sheet.is-open {
+      animation: sheet-in 420ms var(--ease-out) both;
+    }
+    .nav__sheet.is-open li {
+      animation: sheet-item 480ms var(--ease-out) both;
+      animation-delay: calc(50ms + var(--i) * 40ms);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes sheet-item {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const btn = nav?.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const sheet = nav?.querySelector<HTMLElement>('[data-menu]');
+
+  if (nav && btn && sheet) {
+    let open = false;
+    const desktop = window.matchMedia('(min-width: 960px)');
+
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      if (open === next) return;
+      open = next;
+      btn.setAttribute('aria-expanded', String(next));
+      btn.querySelector('.visually-hidden')!.textContent = next ? 'Close menu' : 'Menu';
+      sheet.hidden = !next;
+      sheet.classList.toggle('is-open', next);
+      document.documentElement.classList.toggle('menu-open', next);
+      const m = getActiveMotion();
+      if (next) m?.stop();
+      else m?.start();
+      if (!next && restoreFocus) btn.focus();
+    };
+
+    btn.addEventListener('click', () => setOpen(!open));
+    sheet.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (open && e.key === 'Escape') setOpen(false, true);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !nav.contains(e.target)) setOpen(false);
+    });
+    nav.addEventListener('focusout', (e) => {
+      if (open && e.relatedTarget instanceof Node && !nav.contains(e.relatedTarget)) setOpen(false);
+    });
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Current-section marker on desktop links (home page only: case pages link elsewhere).
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')].filter(
+      (a) => a.getAttribute('href')?.startsWith('#'),
+    );
+    const targets = links
+      .map((a) => document.getElementById(a.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    if ('IntersectionObserver' in window && targets.length) {
+      const visible = new Set<string>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+          const current = targets.find((t) => visible.has(t.id))?.id;
+          links.forEach((a) => {
+            if (a.hash.slice(1) === current) a.setAttribute('aria-current', 'location');
+            else a.removeAttribute('aria-current');
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

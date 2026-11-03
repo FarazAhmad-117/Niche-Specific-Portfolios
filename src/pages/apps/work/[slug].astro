@@ -1,0 +1,663 @@
+---
+/**
+ * Case study page: /work/<slug>/.
+ *
+ * Reading order: what it is (the hero sheet, which the home card morphs into) → how it fits
+ * together (the architecture drawing, on a dark blueprint section) → the problem → what I
+ * built → stack and timeline → the result → the next case (which morphs too) → contact.
+ * Anything not yet verified is a visible TODO chip; nothing is estimated.
+ */
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import Layout from '../../../layouts/apps/Layout.astro';
+import Diagram from '../../../components/apps/Diagram.astro';
+import Arrow from '../../../components/apps/Arrow.astro';
+import FinalCta from '../../../components/apps/FinalCta.astro';
+import { CASES, isTodo, nextCase, type AppCase } from '../../../data/apps/cases';
+import { assertMeta } from '../../../data/apps/seo';
+import { PERSON_NAME, bookingUrl } from '../../../data/apps/site';
+import { abs, caseLdGraph } from '../../../lib/apps/jsonld';
+import { caseHref, link } from '../../../lib/apps/paths';
+
+export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: AppCase;
+}
+const { study: c } = Astro.props;
+assertMeta(`case ${c.id}`, c.seo);
+const next = nextCase(c.id);
+const fig = String(CASES.findIndex((x) => x.id === c.id) + 1).padStart(2, '0');
+---
+
+<Layout
+  title={c.seo.title}
+  description={c.seo.description}
+  path={`/work/${c.id}/`}
+  image={abs(`og/${c.id}.png`)}
+  jsonLd={caseLdGraph(c)}
+  expect="next-title"
+>
+  <section class="chero paper" id="top" data-hero aria-labelledby="case-title">
+    <div class="container">
+      <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
+        <Arrow dir="left" class="chero__back-arrow" /> All case studies
+      </a>
+      <div class="chero__panel print" data-vt-case={c.id}>
+        <div class="chero__main">
+          <div class="chero__top">
+            <span class="mono chero__fig">FIG. {fig}</span>
+            <span class="label chero__kicker">{c.kicker}</span>
+          </div>
+          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <p class="chero__title">{c.title}</p>
+          <p class="lede chero__text">{c.text}</p>
+          {
+            c.pending.length > 0 && (
+              <p class="chero__pending">
+                {c.pending.map((p) => (
+                  <span class="todo">{p}</span>
+                ))}
+              </p>
+            )
+          }
+        </div>
+        <dl class="tb">
+          <div><dt class="label">Case</dt><dd>{c.name}</dd></div>
+          <div><dt class="label">Sheet</dt><dd>{c.sheet}</dd></div>
+          <div>
+            <dt class="label">Status</dt>
+            <dd><span class:list={['chip', c.status.live ? 'chip--live' : 'chip--build']}>{c.status.label}</span></dd>
+          </div>
+          <div><dt class="label">Drawn by</dt><dd>{PERSON_NAME}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="section arch print paper" aria-labelledby="arch-title">
+    <div class="container">
+      <div class="head head--split">
+        <p class="eyebrow"><span class="eyebrow__no">A</span>Architecture</p>
+        <h2 id="arch-title">How it fits together.</h2>
+        <p class="lede">The main path through the system, left to right. Dashed lines run in the background.</p>
+      </div>
+      <div class="arch__sheet">
+        <Diagram diagram={c.diagram} label={`${c.name}, simplified architecture`} draw rowH="8rem" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="problem-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow"><span class="eyebrow__no">B</span>The problem</p>
+      <div>
+        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+        <p class="lede">{c.problem.text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="built-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow"><span class="eyebrow__no">C</span>What I built</p>
+      <div>
+        <h2 id="built-title" class="cblock__h2">The build, part by part.</h2>
+        <ol class="built" role="list" data-reveal-stagger>
+          {
+            c.built.map((b, i) => (
+              <li class="built__item">
+                <span class="built__no mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="built__title">{b.title}</h3>
+                <p class="built__text">{b.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock cblock--paper paper" aria-labelledby="stack-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow"><span class="eyebrow__no">D</span>Stack and timeline</p>
+      <div class="st">
+        <div class="st__col">
+          <h2 id="stack-title" class="cblock__h3">Stack</h2>
+          <ul class="stack" role="list">
+            {
+              c.stack.map((s) => (
+                <li class="stack__item">
+                  <span class="stack__name">{s.name}</span>
+                  {s.note && <span class="stack__note">{s.note}</span>}
+                </li>
+              ))
+            }
+          </ul>
+          {c.stackTodo && <p><span class="todo">{c.stackTodo}</span></p>}
+        </div>
+        <div class="st__col">
+          <h2 class="cblock__h3">Timeline</h2>
+          <ol class="tl" role="list">
+            {
+              c.timeline.map((t) => (
+                <li class="tl__item">
+                  <span class="tl__when mono">{isTodo(t.when) ? <span class="todo">{t.when.todo}</span> : t.when}</span>
+                  <span class="tl__what">{t.what}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cblock" aria-labelledby="result-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow"><span class="eyebrow__no">E</span>Result</p>
+      <div>
+        <h2 id="result-title" class="cblock__h2">Where it stands.</h2>
+        <table class="res" role="table">
+          <caption class="visually-hidden">{c.name}: results</caption>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader" class="label">Measure</th>
+              <th scope="col" role="columnheader" class="label">Value</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {
+              c.results.map((r) => (
+                <tr role="row">
+                  <th scope="row" role="rowheader">{r.label}</th>
+                  <td role="cell">
+                    <span class="res__cell">
+                      {isTodo(r.value) ? <span class="todo">{r.value.todo}</span> : <span class="res__v">{r.value}</span>}
+                      {r.note && <span class="res__note mono">{r.note}</span>}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        {
+          c.screenshot && (
+            <figure class="shot">
+              <Image
+                src={c.screenshot.src}
+                alt={c.screenshot.alt}
+                widths={[480, 800, 1200, 1440]}
+                sizes="(min-width: 1024px) 860px, 92vw"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption class="mono">{c.screenshot.caption}</figcaption>
+            </figure>
+          )
+        }
+        {
+          c.link && (
+            <a class="btn btn--ghost res__link" href={c.link.href} target="_blank" rel="noopener">
+              <span>{c.link.label}</span>
+              <Arrow dir="up-right" />
+              <span class="visually-hidden">(opens in a new tab)</span>
+            </a>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section cnext" aria-labelledby="next-title">
+    <div class="container">
+      <h2 id="next-title" class="eyebrow">Next case</h2>
+      <a class="cnext__card print paper" href={caseHref(next.id)} data-vt-case={next.id}>
+        <span class="cnext__kicker label">{next.kicker}</span>
+        <span class="cnext__name">{next.name}</span>
+        <span class="cnext__title">{next.title}</span>
+        <span class="cnext__go" aria-hidden="true"><Arrow /></span>
+      </a>
+      <p class="cnext__or">
+        Building something like this? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
+      </p>
+    </div>
+  </section>
+
+  <FinalCta no="F" />
+</Layout>
+
+<style>
+  /* ---------- hero sheet ---------- */
+  .chero {
+    padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(1.5rem, 1rem + 2.5vw, 3.5rem));
+    padding-bottom: var(--space-6);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    margin-bottom: var(--space-4);
+    color: var(--text-2);
+    font-family: var(--font-display);
+    font-weight: 620;
+    font-stretch: 108%;
+    text-decoration: none;
+  }
+  .chero__back :global(.chero__back-arrow) {
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .chero__back:hover {
+      color: var(--text);
+    }
+    .chero__back:hover :global(.chero__back-arrow) {
+      transform: translateX(-4px);
+    }
+  }
+  .chero__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+    border-radius: var(--radius-m);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .chero__panel {
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.75fr);
+      align-items: end;
+    }
+  }
+  .chero__main {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .chero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+  }
+  .chero__fig {
+    color: var(--accent-text);
+  }
+  .chero__kicker {
+    color: var(--text-3);
+  }
+  .chero__name {
+    font-size: clamp(2.25rem, 1.2rem + 5.2vw, 6.5rem);
+    line-height: 0.92;
+    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .chero__title {
+    font-family: var(--font-display);
+    font-weight: 680;
+    font-stretch: 104%;
+    font-size: clamp(1.3125rem, 1.15rem + 0.8vw, 1.875rem);
+    line-height: 1.2;
+    max-width: 30ch;
+  }
+  .chero__text {
+    max-width: 60ch;
+  }
+  .chero__pending {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  /* The drawing's title block. */
+  .tb {
+    margin: 0;
+    border-top: 1.5px solid var(--text);
+    border-left: 1px solid var(--line-strong);
+  }
+  .tb > div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    border-bottom: 1px solid var(--line-strong);
+    border-right: 1px solid var(--line-strong);
+  }
+  .tb dt,
+  .tb dd {
+    padding: 10px 12px;
+  }
+  .tb dt {
+    border-right: 1px solid var(--line-strong);
+    color: var(--text-3);
+  }
+  .tb dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    align-self: center;
+  }
+
+  /* ---------- architecture ---------- */
+  .arch {
+    border-block: 1px solid var(--line);
+  }
+  .arch__sheet {
+    padding: clamp(1rem, 0.6rem + 2vw, 2.5rem);
+    border-radius: var(--radius-s);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+
+  /* ---------- content blocks ---------- */
+  .cblock__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .cblock__grid {
+      grid-template-columns: minmax(0, 0.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .cblock__grid > .eyebrow {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+      margin-top: 0.6rem;
+    }
+  }
+  .cblock__grid > div {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .cblock__h2 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    max-width: 18ch;
+  }
+  .cblock__h3 {
+    font-size: var(--fs-h3);
+    font-weight: 720;
+    font-stretch: 106%;
+    letter-spacing: -0.02em;
+  }
+  .cblock--paper {
+    border-block: 1px solid var(--line);
+  }
+
+  .built {
+    margin: 0;
+    border-top: 1.5px solid var(--text);
+  }
+  .built__item {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .built__no {
+    grid-row: span 2;
+    color: var(--accent-text);
+    padding-top: 0.3em;
+  }
+  .built__title {
+    font-size: 1.3125rem;
+  }
+  .built__text {
+    color: var(--text-2);
+    max-width: 60ch;
+  }
+
+  /* ---------- stack and timeline ---------- */
+  .st {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 900px) {
+    .st {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+  .st__col {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+  }
+  .stack__item {
+    display: grid;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .stack__name {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .stack__note {
+    color: var(--text-3);
+    font-size: 0.8125rem;
+  }
+  .tl {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding-left: 24px;
+  }
+  .tl::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 1.5px;
+    background: var(--text);
+  }
+  .tl__item {
+    position: relative;
+    display: grid;
+    gap: 2px;
+  }
+  .tl__item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 5px;
+    width: 11px;
+    height: 11px;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+  .tl__item:last-child::before {
+    background: var(--accent);
+    box-shadow: none;
+  }
+  .tl__when {
+    color: var(--accent-text);
+  }
+  .tl__what {
+    color: var(--text);
+  }
+
+  /* ---------- result ---------- */
+  .res {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1.5px solid var(--text);
+  }
+  .res th,
+  .res td {
+    padding: var(--space-3) var(--space-3) var(--space-3) 0;
+    border-bottom: 1px solid var(--line-strong);
+    text-align: left;
+    vertical-align: top;
+  }
+  .res thead th {
+    color: var(--text-3);
+  }
+  .res tbody th {
+    width: 42%;
+    color: var(--text-2);
+    font-weight: 400;
+  }
+  .res__cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px var(--space-3);
+  }
+  .res__v {
+    font-family: var(--font-display);
+    font-weight: 720;
+    font-stretch: 106%;
+    font-size: 1.125rem;
+  }
+  .res__note {
+    color: var(--text-3);
+  }
+  @media (max-width: 559px) {
+    .res thead {
+      display: none;
+    }
+    .res tr,
+    .res th,
+    .res td {
+      display: block;
+      width: 100% !important;
+    }
+    .res tr {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .res th,
+    .res td {
+      border: 0;
+      padding: 0;
+    }
+    .res td {
+      margin-top: 4px;
+    }
+  }
+  .res__link {
+    justify-self: start;
+  }
+  .shot {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .shot :global(img) {
+    width: 100%;
+    border-radius: var(--radius-s);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-sheet);
+  }
+  .shot figcaption {
+    color: var(--text-3);
+  }
+
+  /* ---------- next ---------- */
+  .cnext .eyebrow {
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-label);
+    line-height: 1.3;
+    letter-spacing: var(--tr-label);
+  }
+  /* The card is dark on paper: its outer focus ring uses the page's colour, not the sheet's. */
+  .cnext__card:focus-visible {
+    outline-color: var(--focus-outer);
+  }
+  .cnext__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    padding-right: clamp(4.5rem, 3rem + 4vw, 8rem);
+    border-radius: var(--radius-m);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-sheet);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  /* Ink blue sweeps in from the left on hover, slowly. */
+  .cnext__card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent-soft);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 1100ms var(--ease-out-quint);
+  }
+  .cnext__kicker {
+    color: var(--text-3);
+  }
+  .cnext__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 110%;
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 4rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .cnext__title {
+    color: var(--text-2);
+    font-size: var(--fs-lede);
+    max-width: 36ch;
+  }
+  .cnext__go {
+    position: absolute;
+    right: clamp(1.5rem, 1rem + 2vw, 3rem);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .cnext__card:hover {
+      box-shadow:
+        inset 0 0 0 1px var(--accent),
+        var(--shadow-lift);
+    }
+    .cnext__card:hover::before {
+      transform: scaleX(1);
+    }
+    .cnext__card:hover .cnext__go {
+      transform: translateX(6px);
+    }
+  }
+  .cnext__card:focus-visible::before {
+    transform: scaleX(1);
+  }
+  .cnext__or {
+    margin-top: var(--space-5);
+    color: var(--text-2);
+  }
+</style>

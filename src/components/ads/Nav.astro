@@ -1,0 +1,470 @@
+---
+/**
+ * Nav: a full-width terminal bar whose bottom edge is a chart axis (a hairline with ticks).
+ * Tucks away while you scroll down and slides back the moment you scroll up (out-quint), and
+ * never hides while it holds keyboard focus or its menu is open. The current section gets a
+ * dashed amber threshold under its label.
+ * Phone: brand, theme dial, and a menu button that drops a panel with the links and the CTA.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_LINKS, PERSON_NAME, bookingUrl } from '../../data/ads/site';
+import { DOT, LINE_D, THRESHOLD_D } from '../../lib/ads/brand-mark';
+import { isHome, link, sectionHref } from '../../lib/ads/paths';
+
+const href = (id: string) => sectionHref(Astro.url, id);
+const brandHref = isHome(Astro.url) ? '#top' : link('/');
+---
+
+<header class="nav" data-nav style="view-transition-name: site-nav">
+  <div class="nav__bar">
+    <a class="nav__brand" href={brandHref} aria-label={`${PERSON_NAME}, paid ads automation: home`}>
+      <svg class="nav__mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#141414"></rect>
+        <path d={THRESHOLD_D} stroke="#ededE7" stroke-opacity="0.55" stroke-width="1.6" stroke-dasharray="2.2 2.2" stroke-linecap="round"></path>
+        <path class="nav__line" d={LINE_D} fill="none" stroke="#ffb020" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" pathLength="1"></path>
+        <circle cx={DOT.cx} cy={DOT.cy} r="2.6" fill="#ffb020" stroke="#141414" stroke-width="1.4"></circle>
+      </svg>
+      <span class="nav__name">{PERSON_NAME}</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <ThemeToggle />
+      <a class="btn nav__cta" href={bookingUrl('nav')}>
+        <span class="btn__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>Book a call</span>
+      </a>
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-btn>
+        <span class="visually-hidden">Menu</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__sheet" id="nav-sheet" data-menu hidden>
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="nav__sheet-link" href={href(l.id)} data-menu-link>
+              <span class="nav__sheet-num mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
+      <span class="btn__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Book a scoping call</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-nav);
+    padding-top: env(safe-area-inset-top, 0px);
+    transition: transform 560ms var(--ease-out-quint);
+  }
+  .nav.is-tucked {
+    transform: translate3d(0, calc(-100% - 4px), 0);
+  }
+  .nav__bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--nav-h);
+    padding: 8px var(--margin);
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    -webkit-backdrop-filter: saturate(1.3) blur(14px);
+    backdrop-filter: saturate(1.3) blur(14px);
+  }
+  /* The bottom edge is an x-axis: a hairline with a tick every 48px. */
+  .nav__bar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background:
+      linear-gradient(var(--line), var(--line)) left bottom / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 48px) left bottom / 100% 5px no-repeat;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav__bar {
+      background: var(--bg);
+    }
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: var(--radius-s);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__mark {
+    flex: none;
+    border-radius: 7px;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .nav__line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    /* The line redraws on hover: it climbs again and meets the threshold. */
+    .nav__brand:hover .nav__line {
+      animation: redraw 1100ms var(--ease-in-out-quart);
+    }
+  }
+  @keyframes redraw {
+    0% {
+      stroke-dashoffset: 1;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+  .nav__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.125rem;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 2px;
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 13px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    font-weight: 550;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition:
+      color var(--dur-hover) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .nav__link:focus-visible,
+  .nav__link[aria-current='location'] {
+    color: var(--text);
+  }
+  /* Current section: a dashed threshold under the label, drawn in from the left. */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    right: 13px;
+    bottom: 6px;
+    border-top: 2px dashed var(--accent-line);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .nav__link[aria-current='location']::after {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .nav__link:hover {
+      color: var(--text);
+      background: var(--surface-1);
+    }
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .nav__cta {
+    display: none;
+    min-height: 44px;
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 960px) {
+    .nav__links {
+      display: block;
+    }
+    .nav__cta {
+      display: inline-flex;
+    }
+    .nav__end {
+      margin-left: 0;
+    }
+    .nav__menu-btn {
+      display: none !important;
+    }
+  }
+
+  .nav__menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--text);
+    color: var(--bg);
+    touch-action: manipulation;
+  }
+  /* Three bars of a chart that fold into a cross. */
+  .nav__burger {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    width: 18px;
+    height: 16px;
+    position: relative;
+  }
+  .nav__burger span {
+    display: block;
+    width: 4px;
+    border-radius: 1px;
+    background: currentColor;
+    transition:
+      transform 460ms var(--ease-out-expo),
+      height 460ms var(--ease-out-expo),
+      opacity 200ms var(--ease-out-quint);
+  }
+  .nav__burger span:nth-child(1) {
+    height: 9px;
+  }
+  .nav__burger span:nth-child(2) {
+    height: 16px;
+  }
+  .nav__burger span:nth-child(3) {
+    height: 12px;
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2px;
+    height: 18px;
+    margin: -9px 0 0 -1px;
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:nth-child(1) {
+    transform: rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:nth-child(3) {
+    transform: rotate(-45deg);
+  }
+
+  /* Without JS the menu button and theme dial cannot work: hide them and show the CTA.
+     The footer's "On this page" links stay as the way around. */
+  :global(html:not(.js)) .nav__menu-btn,
+  :global(html:not(.js)) .nav :global(.tt) {
+    display: none;
+  }
+  :global(html:not(.js)) .nav__cta {
+    display: inline-flex;
+  }
+  @media (max-width: 420px) {
+    :global(html:not(.js)) .nav__cta {
+      padding-inline: 12px;
+    }
+  }
+  @media (forced-colors: active) {
+    .nav__link::after {
+      border-color: CanvasText;
+    }
+  }
+
+  /* ---------- phone panel ---------- */
+  .nav__sheet {
+    max-height: calc(100dvh - var(--nav-h) - 24px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 8px 10px 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    transform-origin: top center;
+  }
+  .nav__sheet ul {
+    display: grid;
+    margin: 0 0 var(--space-4);
+  }
+  .nav__sheet-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 56px;
+    padding-inline: var(--space-2);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__sheet-num {
+    color: var(--accent-text);
+  }
+  .nav__sheet-cta {
+    width: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav__sheet.is-open {
+      animation: sheet-in 460ms var(--ease-out-quint) both;
+    }
+    .nav__sheet.is-open li {
+      animation: sheet-item 520ms var(--ease-out-quint) both;
+      animation-delay: calc(60ms + var(--i) * 45ms);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scaleY(0.96);
+    }
+  }
+  @keyframes sheet-item {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const btn = nav?.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const sheet = nav?.querySelector<HTMLElement>('[data-menu]');
+
+  if (nav && btn && sheet) {
+    let open = false;
+    const desktop = window.matchMedia('(min-width: 960px)');
+
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      if (open === next) return;
+      open = next;
+      btn.setAttribute('aria-expanded', String(next));
+      btn.querySelector('.visually-hidden')!.textContent = next ? 'Close menu' : 'Menu';
+      sheet.hidden = !next;
+      sheet.classList.toggle('is-open', next);
+      nav.classList.remove('is-tucked');
+      document.documentElement.classList.toggle('menu-open', next);
+      const m = getActiveMotion();
+      if (next) m?.stop();
+      else m?.start();
+      if (!next && restoreFocus) btn.focus();
+    };
+
+    btn.addEventListener('click', () => setOpen(!open));
+    sheet.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (open && e.key === 'Escape') setOpen(false, true);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !nav.contains(e.target)) setOpen(false);
+    });
+    nav.addEventListener('focusout', (e) => {
+      if (open && e.relatedTarget instanceof Node && !nav.contains(e.relatedTarget)) setOpen(false);
+    });
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Tuck on scroll down, return on scroll up. Small jitters (< 6px) are ignored.
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) < 6) return;
+        let keyboardFocus = false;
+        try {
+          keyboardFocus = nav.matches(':has(:focus-visible)');
+        } catch {
+          keyboardFocus = false;
+        }
+        const keep = open || keyboardFocus || y < 120;
+        nav.classList.toggle('is-tucked', !keep && dy > 0);
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    nav.addEventListener('focusin', () => {
+      try {
+        if (nav.matches(':has(:focus-visible)')) nav.classList.remove('is-tucked');
+      } catch {
+        nav.classList.remove('is-tucked');
+      }
+    });
+
+    // Current-section threshold on desktop links.
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')];
+    const targets = links
+      .map((a) => document.getElementById(a.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    if ('IntersectionObserver' in window && targets.length) {
+      const visible = new Set<string>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+          const current = targets.find((t) => visible.has(t.id))?.id;
+          links.forEach((a) => {
+            if (a.hash.slice(1) === current) a.setAttribute('aria-current', 'location');
+            else a.removeAttribute('aria-current');
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

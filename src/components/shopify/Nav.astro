@@ -1,0 +1,437 @@
+---
+/**
+ * Nav: a shop fascia across the full width, resting on a shelf edge. Tucks away while you
+ * scroll down and slides back the moment you scroll up (out-quint), and never hides while it
+ * holds keyboard focus or its menu is open.
+ * Phone: brand, theme switch, and a menu button that drops a panel with the links and the CTA.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV_LINKS, PERSON_NAME, bookingUrl } from '../../data/shopify/site';
+import { HOLE, ROTATE, STRING_D, TAG_D } from '../../lib/shopify/brand-mark';
+import { isHome, link, sectionHref } from '../../lib/shopify/paths';
+
+const href = (id: string) => sectionHref(Astro.url, id);
+const brandHref = isHome(Astro.url) ? '#top' : link('/');
+---
+
+<header class="nav" data-nav style="view-transition-name: site-nav">
+  <div class="nav__bar container">
+    <a class="nav__brand" href={brandHref} aria-label={`${PERSON_NAME}, Shopify developer: home`}>
+      <svg class="nav__mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="currentColor"></rect>
+        <g class="nav__tag" transform={ROTATE}>
+          <path d={STRING_D} fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round"></path>
+          <path d={TAG_D} fill="var(--accent)"></path>
+          <circle cx={HOLE.cx} cy={HOLE.cy} r={HOLE.r} fill="currentColor"></circle>
+          <path d="M16.5 18.2H22.5" stroke="var(--bg)" stroke-width="1.5" stroke-linecap="round"></path>
+        </g>
+      </svg>
+      <span class="nav__name">{PERSON_NAME}</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        {
+          NAV_LINKS.map((l) => (
+            <li>
+              <a class="nav__link" href={href(l.id)}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <ThemeToggle />
+      <a class="btn nav__cta" href={bookingUrl('nav')}>
+        <span>Book a call</span>
+      </a>
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="nav-sheet" data-menu-btn>
+        <span class="visually-hidden">Menu</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__sheet" id="nav-sheet" data-menu hidden>
+    <ul role="list">
+      {
+        NAV_LINKS.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a class="nav__sheet-link" href={href(l.id)} data-menu-link>
+              <span class="nav__sheet-num mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
+      <span>Book a scoping call</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-nav);
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: saturate(1.3) blur(14px);
+    backdrop-filter: saturate(1.3) blur(14px);
+    /* The shelf edge it rests on: a hairline and a soft shadow under it. */
+    box-shadow:
+      0 1px 0 var(--line),
+      0 12px 24px -22px rgb(64 40 24 / 0.5);
+    transform: translate3d(0, 0, 0);
+    transition: transform 560ms var(--ease-out-quint);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav {
+      background: var(--bg);
+    }
+  }
+  .nav.is-tucked {
+    transform: translate3d(0, calc(-100% - 12px), 0);
+  }
+  .nav__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--nav-h);
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: var(--radius-s);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__mark {
+    flex: none;
+  }
+  .nav__tag {
+    transform-box: view-box;
+    transform-origin: 4px 5px;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    /* The tag swings on its string, once, like a price tag brushed past. */
+    .nav__brand:hover .nav__tag {
+      animation: swing 1300ms var(--ease-in-out-sine);
+    }
+  }
+  @keyframes swing {
+    25% {
+      rotate: 9deg;
+    }
+    55% {
+      rotate: -5deg;
+    }
+    80% {
+      rotate: 2deg;
+    }
+  }
+  .nav__name {
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__links ul {
+    display: flex;
+    gap: 2px;
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 14px;
+    border-radius: var(--radius-pill);
+    color: var(--text-2);
+    font-weight: 500;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition:
+      color var(--dur-hover) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .nav__link:focus-visible,
+  .nav__link[aria-current='location'] {
+    color: var(--text);
+  }
+  /* Current section: a small clay dot under the label, like a sale sticker. */
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    width: 5px;
+    height: 5px;
+    margin-left: -2.5px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 520ms var(--ease-spring);
+  }
+  .nav__link[aria-current='location']::after {
+    transform: scale(1);
+  }
+  @media (hover: hover) {
+    .nav__link:hover {
+      color: var(--text);
+      background: var(--surface-1);
+    }
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .nav__cta {
+    display: none;
+    min-height: 46px;
+    padding-right: 20px;
+    padding-left: 38px;
+    font-size: 0.9375rem;
+  }
+  .nav__cta::before {
+    left: 18px;
+  }
+  @media (min-width: 960px) {
+    .nav__links,
+    .nav__cta {
+      display: flex;
+    }
+    .nav__links {
+      display: block;
+    }
+    .nav__end {
+      margin-left: 0;
+    }
+    .nav__menu-btn {
+      display: none !important;
+    }
+  }
+
+  .nav__menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    touch-action: manipulation;
+  }
+  .nav__burger {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+  .nav__burger span {
+    display: block;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* Without JS the menu button and theme switch cannot work: hide them and show the CTA.
+     The footer's "On this page" links stay as the way around. */
+  :global(html:not(.js)) .nav__menu-btn,
+  :global(html:not(.js)) .nav :global(.tt) {
+    display: none;
+  }
+  :global(html:not(.js)) .nav__cta {
+    display: inline-flex;
+  }
+  @media (forced-colors: active) {
+    .nav__link::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
+  }
+
+  /* ---------- phone panel ---------- */
+  .nav__sheet {
+    /* A short landscape screen must still reach the last link and the CTA. */
+    max-height: calc(100dvh - var(--nav-h) - 24px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    width: min(100% - 2 * var(--margin), var(--container-max));
+    margin: 0 auto 12px;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    transform-origin: top center;
+  }
+  .nav__sheet ul {
+    display: grid;
+    margin: 0 0 var(--space-4);
+  }
+  .nav__sheet-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 56px;
+    padding-inline: var(--space-2);
+    border-bottom: 1px dotted var(--line-strong);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav__sheet-num {
+    color: var(--accent-text);
+  }
+  .nav__sheet-cta {
+    width: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav__sheet.is-open {
+      animation: sheet-in 460ms var(--ease-out-quint) both;
+    }
+    .nav__sheet.is-open li {
+      animation: sheet-item 520ms var(--ease-out-quint) both;
+      animation-delay: calc(60ms + var(--i) * 45ms);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scaleY(0.96);
+    }
+  }
+  @keyframes sheet-item {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+  }
+</style>
+
+<script>
+  import { getActiveMotion } from '../../lib/motion-registry';
+
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const btn = nav?.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const sheet = nav?.querySelector<HTMLElement>('[data-menu]');
+
+  if (nav && btn && sheet) {
+    let open = false;
+    const desktop = window.matchMedia('(min-width: 960px)');
+
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      if (open === next) return;
+      open = next;
+      btn.setAttribute('aria-expanded', String(next));
+      btn.querySelector('.visually-hidden')!.textContent = next ? 'Close menu' : 'Menu';
+      sheet.hidden = !next;
+      sheet.classList.toggle('is-open', next);
+      nav.classList.remove('is-tucked');
+      document.documentElement.classList.toggle('menu-open', next);
+      const m = getActiveMotion();
+      if (next) m?.stop();
+      else m?.start();
+      if (!next && restoreFocus) btn.focus();
+    };
+
+    btn.addEventListener('click', () => setOpen(!open));
+    sheet.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (open && e.key === 'Escape') setOpen(false, true);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !nav.contains(e.target)) setOpen(false);
+    });
+    nav.addEventListener('focusout', (e) => {
+      if (open && e.relatedTarget instanceof Node && !nav.contains(e.relatedTarget)) setOpen(false);
+    });
+    desktop.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+
+    // Tuck on scroll down, return on scroll up. Small jitters (< 6px) are ignored.
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) < 6) return;
+        // Only keyboard focus pins the nav: a mouse click leaves focus on the link it clicked.
+        let keyboardFocus = false;
+        try {
+          keyboardFocus = nav.matches(':has(:focus-visible)');
+        } catch {
+          keyboardFocus = false;
+        }
+        const keep = open || keyboardFocus || y < 120;
+        nav.classList.toggle('is-tucked', !keep && dy > 0);
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    nav.addEventListener('focusin', () => {
+      try {
+        if (nav.matches(':has(:focus-visible)')) nav.classList.remove('is-tucked');
+      } catch {
+        nav.classList.remove('is-tucked');
+      }
+    });
+
+    // Current-section dot on desktop links.
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('.nav__link')];
+    const targets = links
+      .map((a) => document.getElementById(a.hash.slice(1)))
+      .filter((el): el is HTMLElement => el !== null);
+    if ('IntersectionObserver' in window && targets.length) {
+      const visible = new Set<string>();
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+          const current = targets.find((t) => visible.has(t.id))?.id;
+          links.forEach((a) => {
+            if (a.hash.slice(1) === current) a.setAttribute('aria-current', 'location');
+            else a.removeAttribute('aria-current');
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

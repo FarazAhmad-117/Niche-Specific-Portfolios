@@ -1,0 +1,2423 @@
+---
+/**
+ * ★ Signature: "Before / after" (brief §4 item 4), drawn as the screens a WordPress owner lives
+ * in: the admin menu on the left, then the Plugins screen, Site Health, the block editor and a
+ * page preview. An example site (labelled), in this site's own editorial palette: no WordPress
+ * logo, no wp-admin colours, no screenshots.
+ *
+ * Six steps: 47 plugins and 9 updates waiting → the conflicts flagged → the homepage carrying
+ * every plugin's files → the prune (struck rows, the count rolls 47 → 12) → a block theme with
+ * editable patterns, caching set once → a before/after compare the visitor can drag.
+ *
+ * Motion: a screen's rows set in one by one (out-quint); fault tags stamp on (spring); struck
+ * rows draw their line left to right (in-out-quart); the menu's current bar and the selection
+ * outline snap on out-expo; the compare handle sweeps on the story clock.
+ *
+ * Playback: starts when a third of the player is on screen, or when it covers a third of the
+ * viewport (a tall player on a landscape phone). The current story segment's fill is a CSS
+ * animation and its `animationend` advances the story, so pausing (button, off screen, hidden
+ * tab) just pauses the fill; the compare sweep reads the same animation's clock. Clicking a
+ * step, prev or next, a menu item or the compare handle hands control to the visitor
+ * (playback pauses; play resumes). Under reduced motion it never autoplays, has no play button,
+ * and opens on the finished step.
+ *
+ * Without JS: the window shows the finished compare (half before, half after, no handle),
+ * every step is a plain list, and the controls are hidden. The decorative screens are
+ * aria-hidden; the steps list, a visually hidden summary and the compare slider (role=slider,
+ * added by the script) are the accessible content.
+ */
+import { ASSETS, COUNTS, EXAMPLE_SITE, MENU, PATTERNS, PLUGINS, SETTINGS, STEPS } from '../../data/wp/player';
+import { folio } from '../../data/wp/site';
+
+const n = STEPS.length;
+const STEP_MS = 4800;
+const last = STEPS[n - 1]!;
+const blocking = ASSETS.filter((a) => a.blocking).length;
+
+const ICONS: Record<(typeof MENU)[number]['id'], string> = {
+  dashboard: 'M4.5 14.5a7.5 7.5 0 0 1 15 0M12 14.5l3.5-4M3.5 18.5h17',
+  posts: 'M6 4h12v16H6zM9 8.5h6M9 12h6M9 15.5h4',
+  media: 'M4 5.5h16v13H4zM4 15l4.5-4.5 4 4 2.5-2.5 5 5',
+  pages: 'M7 3.5h7l4 4v13H7zM14 3.5v4h4',
+  appearance: 'M5 19.5l5-5M10 14.5l7.5-9 1.5 1.5-9 7.5M5 19.5c0-2 1-3 2.5-3',
+  plugins: 'M9 3.5v4.5M15 3.5v4.5M7 8h10v3.5a5 5 0 0 1-10 0zM12 16.5v4',
+  tools: 'M14.5 4.5a4.5 4.5 0 0 0 5 5.5l-8.5 8.5a2.1 2.1 0 0 1-3-3L16.5 7a4.5 4.5 0 0 1-2-2.5z',
+  settings: 'M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9M15 5.5v4M9 14.5v4',
+};
+const CRUMBS = {
+  plugins: 'Plugins › Installed plugins',
+  health: 'Tools › Site Health',
+  editor: 'Appearance › Editor › Home',
+  compare: 'Pages › Home › Preview',
+} as const;
+const MODE_LABEL = { before: 'Before', fix: 'On staging', after: 'After' } as const;
+---
+
+<section class="section bas" id="before-after" aria-labelledby="before-after-title">
+  <div class="container">
+    <div class="head head--split" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('before-after')}</span>
+        <span class="folio__name">Before / after</span>
+        <span>Illustrative mock</span>
+      </p>
+      <h2 id="before-after-title">Watch a heavy site get <span class="em">lighter.</span></h2>
+      <p class="lede">
+        An example WordPress site in the admin, before and after I get to it. It plays on its own, or step through it, and drag
+        the last screen to compare.
+      </p>
+    </div>
+  </div>
+
+  <div class="ba-wrap">
+    <div
+      class="ba"
+      data-ba
+      data-step={n - 1}
+      data-screen={last.screen}
+      data-mode={last.mode}
+      data-fixed
+      style={`--step-ms:${STEP_MS}ms`}
+      data-pause-offscreen
+    >
+      <div class="ba__panel">
+        <div class="win">
+          <div class="win__bar" aria-hidden="true">
+            <span class="win__site">
+              <span class="win__pil">¶</span>
+              <span class="win__site-name">{EXAMPLE_SITE}</span>
+            </span>
+            <span class="win__crumb mono" data-crumb>{CRUMBS[last.screen]}</span>
+            <span class="win__mode mono" data-mode-pill>{MODE_LABEL[last.mode]}</span>
+          </div>
+
+          <div class="win__body">
+            <ul class="win__menu" role="list" aria-hidden="true">
+              {
+                MENU.map((m) => (
+                  <li class:list={['mi', { 'is-cur': m.id === last.menu }]} data-mi={m.id}>
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d={ICONS[m.id]} />
+                    </svg>
+                    <span class="mi__label">{m.label}</span>
+                    {m.id === 'plugins' && (
+                      <span class:list={['mi__badge num', { 'is-zero': COUNTS.after.updates === 0 }]} data-badge>
+                        {COUNTS.after.updates}
+                      </span>
+                    )}
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="win__main">
+              {/* ---------- Plugins ---------- */}
+              <div class="scr scr--plugins" data-scr="plugins" aria-hidden="true">
+                <div class="pl__head">
+                  <span class="scr__title">Plugins</span>
+                  <span class="pl__add">Add New Plugin</span>
+                </div>
+                <p class="pl__filters mono">
+                  <span class="v-before">All <b class="num">{COUNTS.before.plugins}</b></span>
+                  <span class="v-after">All <b class="num">{COUNTS.after.plugins}</b></span>
+                  <span class="pl__sep">|</span>
+                  <span class="v-before">Inactive <b class="num">6</b></span>
+                  <span class="v-after">Inactive <b class="num">0</b></span>
+                  <span class="pl__sep">|</span>
+                  <span class="v-before pl__upd">Update available <b class="num">{COUNTS.before.updates}</b></span>
+                  <span class="v-after">Update available <b class="num">{COUNTS.after.updates}</b></span>
+                </p>
+                <ul class="pl__list" role="list">
+                  {
+                    PLUGINS.map((p, k) => (
+                      <li class:list={['pr', `pr--${p.fix}`, { 'is-off': !p.active }]} style={`--k:${k}`}>
+                        <span class="pr__check" />
+                        <span class="pr__main">
+                          <span class="pr__name">{p.name}</span>
+                          <span class="pr__desc">{p.desc}</span>
+                        </span>
+                        <span class="pr__tags">
+                          {p.update && <span class="pr__upd mono">Update</span>}
+                          {p.flag && <span class="pr__flag mono">{p.flag}</span>}
+                          <span class="pr__fix mono">{p.fixNote}</span>
+                        </span>
+                        <span class="pr__state mono">
+                          <span class="pr__state-off">{p.active ? 'Active' : 'Inactive'}</span>
+                          <span class="pr__state-on">{p.fix === 'remove' ? 'Deleted' : p.fix === 'replace' ? 'Replaced' : 'Active'}</span>
+                        </span>
+                      </li>
+                    ))
+                  }
+                </ul>
+                <p class="pl__more mono">
+                  <span class="v-before">+ {COUNTS.before.plugins - PLUGINS.length} more plugins</span>
+                  <span class="v-after">
+                    {COUNTS.after.plugins} kept · {COUNTS.before.plugins - COUNTS.after.plugins} removed or replaced
+                  </span>
+                </p>
+              </div>
+
+              {/* ---------- Site Health ---------- */}
+              <div class="scr scr--health" data-scr="health" aria-hidden="true">
+                <div class="hl__head">
+                  <span class="scr__title">Site Health</span>
+                  <span class="hl__status mono">Should be improved</span>
+                </div>
+                <p class="hl__sub">What the homepage loads, longest bar = heaviest. Relative, no units.</p>
+                <ol class="hl__list" role="list">
+                  {
+                    ASSETS.map((a, k) => (
+                      <li class:list={['as', { 'as--block': a.blocking }]} style={`--k:${k};--w:${a.w}`}>
+                        <span class="as__file mono">{a.file}</span>
+                        <span class="as__from">{a.from}</span>
+                        <span class="as__bar">
+                          <span />
+                        </span>
+                        {a.blocking && <span class="as__tag mono">Blocks first paint</span>}
+                      </li>
+                    ))
+                  }
+                </ol>
+                <p class="hl__foot mono">
+                  {blocking} files hold up the first paint · 1 image at full camera size · 2 caches answering
+                </p>
+              </div>
+
+              {/* ---------- Block editor ---------- */}
+              <div class="scr scr--editor" data-scr="editor" aria-hidden="true">
+                <div class="ed__top">
+                  <span class="scr__title">Home</span>
+                  <span class="ed__tmpl mono">Template · Block theme</span>
+                  <span class="ed__save">Save</span>
+                </div>
+                <div class="ed__body">
+                  <div class="ed__patterns">
+                    <p class="ed__label mono">Patterns</p>
+                    <ul role="list">
+                      {
+                        PATTERNS.map((p, k) => (
+                          <li style={`--k:${k}`}>
+                            <span class="ed__pname">{p.name}</span>
+                            <span class="ed__pblocks">{p.blocks}</span>
+                            <span class="ed__synced mono">Synced</span>
+                          </li>
+                        ))
+                      }
+                    </ul>
+                  </div>
+                  <div class="ed__canvas">
+                    <div class="eb eb--hero is-sel" style="--k:0">
+                      <span class="eb__tool mono">
+                        <span class="eb__tool-name">Pattern · Hero</span>
+                        <span class="eb__tool-edit">Edit</span>
+                      </span>
+                      <span class="eb__h">Notes from the <i>north shore</i></span>
+                      <span class="eb__btns"><span>Subscribe</span><span>Read the issue</span></span>
+                    </div>
+                    <div class="eb eb--cols" style="--k:1">
+                      {[0, 1, 2].map(() => (
+                        <span class="eb__col">
+                          <span />
+                          <span />
+                        </span>
+                      ))}
+                    </div>
+                    <div class="eb eb--query" style="--k:2">
+                      <span /><span /><span />
+                    </div>
+                  </div>
+                  <div class="ed__side">
+                    <p class="ed__label mono">Speed, set once</p>
+                    <ul role="list">
+                      {
+                        SETTINGS.map((s, k) => (
+                          <li style={`--k:${k}`}>
+                            <span class="ed__k">{s.k}</span>
+                            <span class="ed__v">{s.v}</span>
+                            <span class="ed__on" />
+                          </li>
+                        ))
+                      }
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* ---------- Compare ---------- */}
+              <div class="scr scr--compare" data-scr="compare">
+                <div class="cmp" data-cmp style="--pos:50%">
+                  <div class="cmp__page cmp__page--before" aria-hidden="true">
+                    <span class="cb__nav">
+                      <span class="cb__logo">NORTHWIND</span>
+                      <span class="cb__links"><span /><span /><span /><span /><span /></span>
+                    </span>
+                    <span class="cb__slider">
+                      <span class="cb__arrow">‹</span>
+                      <span class="cb__slide-h">SPRING SALE!!</span>
+                      <span class="cb__arrow">›</span>
+                      <span class="cb__dots"><span /><span /><span /><span /></span>
+                    </span>
+                    <span class="cb__cards"><span /><span /><span /></span>
+                    <span class="cb__share"><span /><span /><span /><span /></span>
+                    <span class="cb__pop">
+                      <span class="cb__pop-h">Wait! Don’t go</span>
+                      <span class="cb__pop-b">Join the list</span>
+                    </span>
+                    <span class="cb__cookie">We use cookies. <b>OK</b></span>
+                    <span class="cb__chat">?</span>
+                    <span class="cb__spin" />
+                  </div>
+                  <div class="cmp__page cmp__page--after" aria-hidden="true">
+                    <span class="ca__nav">
+                      <span class="ca__logo">Northwind <i>Journal</i></span>
+                      <span class="ca__links"><span /><span /><span /></span>
+                    </span>
+                    <span class="ca__hero">
+                      <span class="ca__h">Notes from the <i>north shore</i></span>
+                      <span class="ca__btn">Read the issue</span>
+                    </span>
+                    <span class="ca__cols">
+                      {[0, 1, 2].map(() => (
+                        <span class="ca__col">
+                          <span />
+                          <span />
+                          <span />
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                  <span class="cmp__label cmp__label--before mono" aria-hidden="true">Before</span>
+                  <span class="cmp__label cmp__label--after mono" aria-hidden="true">After</span>
+                  <span class="cmp__rule" aria-hidden="true"></span>
+                  <span class="cmp__handle" data-cmp-handle hidden>
+                    <span class="cmp__knob" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9.5 7l-5 5 5 5M14.5 7l5 5-5 5"></path></svg>
+                    </span>
+                  </span>
+                </div>
+                <div class="cmp__read" aria-hidden="true">
+                  <span class="cmp__count">
+                    <span class="mono">Plugins</span>
+                    <b class="num" data-cmp-plugins>{Math.round((COUNTS.before.plugins + COUNTS.after.plugins) / 2)}</b>
+                  </span>
+                  <span class="cmp__meter">
+                    <span class="cmp__meter-label mono">Page weight <span class="stamp">Illustrative</span></span>
+                    <span class="cmp__meter-bar"><span data-cmp-meter></span></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="win__foot" aria-hidden="true">
+            <span class="stamp">Example site</span>
+            <span class="win__disclaim">Illustrative mock, not a WordPress screenshot. Plugin names are invented.</span>
+            <span class="win__counts mono">
+              <span>Plugins <b class="num" data-count-plugins>{COUNTS.after.plugins}</b></span>
+              <span>Updates <b class="num" data-count-updates>{COUNTS.after.updates}</b></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="ba__segs" aria-hidden="true" data-ba-segs hidden>
+          {STEPS.map((_, i) => <span class="seg" data-seg={i}><span class="seg__fill" data-seg-fill /></span>)}
+        </div>
+
+        <div class="visually-hidden">
+          <p>
+            Illustrative mock of an example WordPress site, {EXAMPLE_SITE}. Before: {COUNTS.before.plugins} plugins with {COUNTS.before.updates}
+            updates waiting. Plugins shown:
+          </p>
+          <ul>
+            {PLUGINS.map((p) => <li>{p.name}, {p.desc}, {p.active ? 'active' : 'inactive'}{p.flag ? `, flagged: ${p.flag}` : ''}. In the fix: {p.fixNote}.</li>)}
+          </ul>
+          <p>After: {COUNTS.after.plugins} plugins, no updates waiting, a block theme with editable patterns.</p>
+        </div>
+      </div>
+
+      <div class="ba__side">
+        <ol class="ba__steps" role="list">
+          {
+            STEPS.map((s, i) => (
+              <li
+                class="st"
+                data-st={i}
+                data-mode={s.mode}
+                data-screen={s.screen}
+                data-menu={s.menu}
+                data-flags={s.flags ? '' : undefined}
+                data-fixed={s.fixed ? '' : undefined}
+                data-title={s.title}
+              >
+                {/* Disabled until the script runs: without JS the steps are a plain list. */}
+                <button class="st__btn" type="button" data-st-btn={i} disabled>
+                  <span class="st__num mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="st__title">{s.title}</span>
+                  <span class:list={['st__mode mono', `st__mode--${s.mode}`]}>{MODE_LABEL[s.mode]}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="st__body">
+                  <div class="st__body-inner">
+                    <p class="st__text">
+                      {s.text}
+                      {s.hint && <span class="st__hint"> {s.hint}</span>}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="ba__controls" data-ba-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Play the walkthrough" data-state="paused">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="ba__count mono" aria-hidden="true"><span data-ba-count>{n}</span> / {n}</span>
+          <span class="ba__dots" aria-hidden="true">
+            {STEPS.map((_, i) => <span class="ba__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-ba-live></p>
+        <p class="ba__note">
+          <span class="stamp">Illustrative</span> An example site, not a client’s, and no measured results. The problems are the ones
+          plugin-heavy sites commonly collect.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* =========================================================
+     Frame: the player is capped at 1180px wide and laid out so it fits ~85% of a 1440×900
+     screen, and one 390×844 phone screen.
+     ========================================================= */
+  .ba-wrap {
+    width: min(100% - 2 * var(--margin), 1180px);
+    margin-inline: auto;
+  }
+  .ba {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 1200px) {
+    .ba {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 19rem);
+      gap: var(--space-6);
+      align-items: start;
+    }
+  }
+  .ba__panel {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  /* ---------- the admin window ---------- */
+  .win {
+    display: grid;
+    min-width: 0;
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    overflow: hidden;
+  }
+  .win__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 44px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .win__site {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+  .win__pil {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .win__site-name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .win__crumb {
+    min-width: 0;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .win__mode {
+    margin-left: auto;
+    flex: none;
+    padding: 2px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+      background-color 420ms var(--ease-out-expo),
+      color 420ms var(--ease-out-expo);
+  }
+  .ba[data-mode='before'] .win__mode {
+    background: var(--fault-bg);
+    color: var(--fault);
+  }
+  .ba[data-mode='fix'] .win__mode {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .ba[data-mode='after'] .win__mode {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+
+  .win__body {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+  }
+
+  /* ---------- admin menu ---------- */
+  .win__menu {
+    display: grid;
+    align-content: start;
+    gap: 1px;
+    margin: 0;
+    padding: 10px 0;
+    border-right: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .mi {
+    position: relative;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 30px;
+    padding: 0 10px 0 14px;
+    color: var(--text-2);
+    font-size: 0.8125rem;
+    transition:
+      color 360ms var(--ease-out-expo),
+      background-color 360ms var(--ease-out-expo);
+  }
+  .mi svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mi::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 460ms var(--ease-out-expo);
+  }
+  .mi.is-cur {
+    color: var(--text);
+    font-weight: 600;
+    background: var(--surface-2);
+  }
+  .mi.is-cur::before {
+    transform: scaleY(1);
+  }
+  .mi__badge {
+    min-width: 20px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--fault);
+    color: var(--surface-2);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    transition: transform 520ms var(--ease-spring);
+  }
+  .mi__badge.is-zero {
+    background: var(--surface-2);
+    color: var(--text-3);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+
+  /* ---------- screens: stacked in one cell, so the window never changes height ---------- */
+  .win__main {
+    display: grid;
+    min-width: 0;
+    background: var(--surface-2);
+  }
+  .scr {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    padding: 16px 18px;
+    visibility: hidden;
+  }
+  .scr.is-on {
+    visibility: visible;
+  }
+  .ba:not(.is-live) .scr--compare {
+    visibility: visible;
+  }
+  .scr__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.375rem;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+
+  /* Plugins */
+  .pl__head,
+  .hl__head,
+  .ed__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .pl__add {
+    padding: 2px 10px;
+    border-radius: var(--radius-xs);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--text-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .pl__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .pl__filters b {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .pl__upd b {
+    color: var(--fault);
+  }
+  .pl__sep {
+    color: var(--line-strong);
+  }
+  .v-after {
+    display: none;
+  }
+  .ba[data-fixed] .v-after {
+    display: inline;
+  }
+  .ba[data-fixed] .v-before {
+    display: none;
+  }
+  .pl__list {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .pr {
+    position: relative;
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto 5.5rem;
+    align-items: center;
+    gap: 12px;
+    min-height: 41px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--line);
+    transition: background-color 480ms var(--ease-out-quint);
+  }
+  .pr.is-off {
+    background: color-mix(in srgb, var(--surface-1) 70%, transparent);
+  }
+  .pr__check {
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  .pr__main {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .pr__name {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pr__desc {
+    color: var(--text-3);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pr__tags {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .pr__upd,
+  .pr__flag,
+  .pr__fix {
+    padding: 1px 7px;
+    border-radius: var(--radius-xs);
+    font-size: 0.6875rem;
+    line-height: 1.55;
+    white-space: nowrap;
+  }
+  .pr__upd {
+    color: var(--text-2);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .pr__flag {
+    display: none;
+    background: var(--fault-bg);
+    color: var(--fault);
+    box-shadow: inset 0 0 0 1px var(--fault-line);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pr__fix {
+    display: none;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .pr__state {
+    justify-self: end;
+    color: var(--success);
+    font-size: 0.6875rem;
+  }
+  .pr.is-off .pr__state {
+    color: var(--fault);
+  }
+  .pr__state-on {
+    display: none;
+  }
+  .pl__more,
+  .hl__foot {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  /* Step 2+: fault tags on, update tags give way to them. */
+  .ba[data-flags] .pr__flag {
+    display: inline-block;
+  }
+  .ba[data-flags] .pr:has(.pr__flag) .pr__upd {
+    display: none;
+  }
+  /* Fixed: every visible row says what happened to it. Removed rows are struck through and set
+     back on a tinted ground; their text stays at an AA colour (no opacity on text). */
+  .ba[data-fixed] .pr__upd,
+  .ba[data-fixed] .pr__flag {
+    display: none;
+  }
+  .ba[data-fixed] .pr__fix {
+    display: inline-block;
+  }
+  .ba[data-fixed] .pr__state-off {
+    display: none;
+  }
+  .ba[data-fixed] .pr__state-on {
+    display: inline;
+  }
+  .ba[data-fixed] .pr.is-off {
+    background: none;
+  }
+  .ba[data-fixed] .pr.is-off .pr__state {
+    color: var(--success);
+  }
+  .ba[data-fixed] .pr--remove,
+  .ba[data-fixed] .pr--replace {
+    background: var(--surface-1);
+  }
+  .ba[data-fixed] .pr--remove .pr__state,
+  .ba[data-fixed] .pr--replace .pr__state {
+    color: var(--text-3);
+  }
+  .ba[data-fixed] .pr--remove .pr__name,
+  .ba[data-fixed] .pr--replace .pr__name {
+    color: var(--text-3);
+  }
+  .ba[data-fixed] .pr--remove .pr__fix {
+    background: transparent;
+    color: var(--text-3);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .pr__name::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 52%;
+    height: 1.5px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .ba[data-fixed] .pr--remove .pr__name::after,
+  .ba[data-fixed] .pr--replace .pr__name::after {
+    transform: scaleX(1);
+  }
+
+  /* Site Health */
+  .hl__status {
+    padding: 2px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--fault-bg);
+    color: var(--fault);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hl__sub {
+    color: var(--text-2);
+    font-size: 0.8125rem;
+  }
+  .hl__list {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+  .as {
+    display: grid;
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+    grid-template-areas:
+      'file bar'
+      'from tag';
+    column-gap: 14px;
+    row-gap: 2px;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: var(--radius-xs);
+  }
+  .as--block {
+    background: color-mix(in srgb, var(--fault-bg) 55%, transparent);
+  }
+  .as__file {
+    grid-area: file;
+    font-size: 0.75rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .as__from {
+    grid-area: from;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .as__bar {
+    grid-area: bar;
+    position: relative;
+    display: block;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--surface-1);
+  }
+  .as__bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--w) * 100%);
+    border-radius: inherit;
+    background: var(--line-strong);
+    transform-origin: left;
+  }
+  .as--block .as__bar span {
+    background: var(--fault-line);
+  }
+  .as__tag {
+    grid-area: tag;
+    justify-self: start;
+    color: var(--fault);
+    font-size: 0.6875rem;
+  }
+
+  /* Block editor */
+  .ed__tmpl {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .ed__save {
+    margin-left: auto;
+    padding: 3px 14px;
+    border-radius: var(--radius-xs);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .ed__body {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr) 10rem;
+    gap: 14px;
+    align-items: start;
+  }
+  .ed__label {
+    margin-bottom: 6px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ed__patterns ul,
+  .ed__side ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .ed__patterns li {
+    display: grid;
+    gap: 1px;
+    padding: 6px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    line-height: 1.3;
+  }
+  .ed__patterns li:first-child {
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .ed__pname {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .ed__pblocks {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .ed__synced {
+    width: fit-content;
+    margin-top: 2px;
+    padding: 0 6px;
+    border-radius: var(--radius-xs);
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+  }
+  .ed__canvas {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-xs);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .eb {
+    position: relative;
+    border-radius: var(--radius-xs);
+  }
+  .eb.is-sel {
+    box-shadow:
+      0 0 0 1.5px var(--accent),
+      0 0 0 5px color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .eb--hero {
+    display: grid;
+    gap: 8px;
+    padding: 14px 12px 12px;
+    margin-top: 12px;
+    background: linear-gradient(160deg, var(--accent-soft), var(--surface-1));
+  }
+  .eb__tool {
+    position: absolute;
+    left: 8px;
+    top: -12px;
+    display: inline-flex;
+    gap: 1px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.6875rem;
+    line-height: 20px;
+    overflow: hidden;
+  }
+  .eb__tool span {
+    padding: 0 8px;
+  }
+  .eb__tool-edit {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .eb__h {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.1875rem;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .eb__h i,
+  .ca__h i,
+  .ca__logo i {
+    color: var(--accent-text);
+  }
+  .eb__btns {
+    display: flex;
+    gap: 6px;
+  }
+  .eb__btns span {
+    padding: 1px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.7;
+  }
+  .eb__btns span + span {
+    background: transparent;
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .eb--cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .eb__col {
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+    border-radius: var(--radius-xs);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .eb__col span,
+  .eb--query span {
+    display: block;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  .eb__col span:first-child {
+    width: 60%;
+    background: color-mix(in srgb, var(--text) 30%, var(--surface-2));
+  }
+  .eb--query {
+    display: grid;
+    gap: 6px;
+    padding: 4px 2px;
+  }
+  .eb--query span:nth-child(2) {
+    width: 82%;
+  }
+  .eb--query span:nth-child(3) {
+    width: 64%;
+  }
+  .ed__side li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--radius-xs);
+    box-shadow: inset 0 0 0 1px var(--line);
+    line-height: 1.3;
+  }
+  .ed__k {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .ed__v {
+    grid-column: 1;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+  }
+  .ed__on {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    position: relative;
+    width: 26px;
+    height: 14px;
+    border-radius: 7px;
+    background: var(--accent);
+  }
+  .ed__on::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--on-accent);
+  }
+
+  /* ---------- Compare ---------- */
+  .scr--compare {
+    gap: 12px;
+  }
+  .cmp {
+    --pos: 50%;
+    position: relative;
+    height: 21rem;
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+  }
+  .cmp__page {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+  }
+  /* The after page covers the right of the divider. */
+  .cmp__page--after {
+    clip-path: inset(0 0 0 var(--pos));
+    background: var(--bg);
+  }
+  /* Before: everything a plugin pile adds. Crowded on purpose. */
+  .cmp__page--before {
+    background: var(--surface-1);
+  }
+  .cb__nav,
+  .ca__nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 38px;
+    padding: 0 14px;
+  }
+  .cb__nav {
+    background: var(--text);
+  }
+  .cb__logo {
+    color: var(--bg);
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+  }
+  .cb__links,
+  .ca__links {
+    display: flex;
+    gap: 8px;
+  }
+  .cb__links span {
+    width: 26px;
+    height: 5px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--bg) 55%, var(--text));
+  }
+  .cb__slider {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 50px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    border-radius: 2px;
+    background: repeating-linear-gradient(135deg, var(--line) 0 10px, var(--surface-2) 10px 20px);
+  }
+  .cb__arrow {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.9375rem;
+    line-height: 1;
+  }
+  .cb__slide-h {
+    padding: 2px 10px;
+    background: var(--fault);
+    color: var(--surface-2);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+  }
+  .cb__dots {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    display: flex;
+    gap: 5px;
+    transform: translateX(-50%);
+  }
+  .cb__dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-3);
+  }
+  .cb__cards {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 182px;
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr 1fr;
+    gap: 8px;
+  }
+  .cb__cards span {
+    height: 70px;
+    border-radius: 2px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .cb__cards span:nth-child(2) {
+    height: 92px;
+  }
+  .cb__share {
+    position: absolute;
+    left: 0;
+    top: 96px;
+    display: grid;
+    gap: 2px;
+  }
+  .cb__share span {
+    width: 18px;
+    height: 18px;
+    background: var(--text-2);
+  }
+  .cb__share span:nth-child(2) {
+    background: var(--accent);
+  }
+  .cb__share span:nth-child(3) {
+    background: var(--fault);
+  }
+  .cb__pop {
+    position: absolute;
+    left: 50%;
+    top: 74px;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: 46%;
+    max-width: 210px;
+    padding: 14px 12px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    box-shadow:
+      0 0 0 999px color-mix(in srgb, var(--text) 18%, transparent),
+      0 14px 30px -10px rgb(0 0 0 / 0.4);
+    transform: translateX(-50%);
+  }
+  .cb__pop-h {
+    font-weight: 800;
+    font-size: 0.875rem;
+    color: var(--text);
+  }
+  .cb__pop-b {
+    padding: 2px 10px;
+    background: var(--fault);
+    color: var(--surface-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .cb__cookie {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 7px 14px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.6875rem;
+  }
+  .cb__cookie b {
+    margin-left: 6px;
+    padding: 0 6px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .cb__chat {
+    position: absolute;
+    right: 12px;
+    bottom: 40px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+  .cb__spin {
+    position: absolute;
+    right: 18px;
+    top: 196px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--text);
+  }
+  /* After: one header, one hero, one row. */
+  .ca__nav {
+    border-bottom: 1px solid var(--line);
+  }
+  .ca__logo {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.9375rem;
+    line-height: 1;
+  }
+  .ca__links span {
+    width: 30px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+  .ca__hero {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 52px;
+    display: grid;
+    align-content: end;
+    justify-items: end;
+    text-align: right;
+    gap: 10px;
+    height: 150px;
+    padding: 16px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(160deg, var(--accent-soft), var(--surface-1) 70%);
+  }
+  .ca__h {
+    max-width: 16ch;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.375rem;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .ca__btn {
+    padding: 2px 12px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.7;
+  }
+  .ca__cols {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 216px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .ca__col {
+    display: grid;
+    gap: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--text);
+  }
+  .ca__col span {
+    display: block;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  .ca__col span:first-child {
+    width: 55%;
+    background: color-mix(in srgb, var(--text) 35%, var(--surface-2));
+  }
+  .ca__col span:last-child {
+    width: 75%;
+  }
+  .cmp__label {
+    position: absolute;
+    top: 48px;
+    padding: 1px 8px;
+    border-radius: var(--radius-xs);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    z-index: 2;
+  }
+  .cmp__label--before {
+    left: 10px;
+    background: var(--fault-bg);
+    color: var(--fault);
+    box-shadow: inset 0 0 0 1px var(--fault-line);
+  }
+  .cmp__label--after {
+    right: 10px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .cmp__rule {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--accent);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .cmp__handle {
+    position: absolute;
+    top: 50%;
+    left: var(--pos);
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 50%;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+  .cmp__knob {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.45);
+    transition: transform 360ms var(--ease-spring);
+  }
+  .cmp__knob path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .cmp__handle:focus-visible {
+    outline: none;
+  }
+  .cmp__handle:focus-visible .cmp__knob {
+    box-shadow:
+      0 0 0 3px var(--surface-2),
+      0 0 0 5px var(--focus);
+  }
+  .cmp.is-dragging .cmp__knob,
+  .cmp__handle:active .cmp__knob {
+    transform: scale(1.1);
+  }
+  .cmp__read {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+  }
+  .cmp__count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .cmp__count .mono {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cmp__count b {
+    min-width: 2ch;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.625rem;
+    line-height: 1;
+  }
+  .cmp__meter {
+    display: grid;
+    gap: 5px;
+  }
+  .cmp__meter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cmp__meter-bar {
+    position: relative;
+    display: block;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .cmp__meter-bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 60%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 45%, var(--fault-line)));
+  }
+
+  .win__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--text-3);
+    font-size: 0.75rem;
+  }
+  .win__counts {
+    display: inline-flex;
+    gap: 14px;
+    margin-left: auto;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .win__counts b {
+    color: var(--text);
+    font-size: 0.8125rem;
+  }
+
+  /* =========================================================
+     Motion. Static (no JS / reduced motion) = the finished compare.
+     ========================================================= */
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .scr.is-on {
+      animation: ba-scr-in 520ms var(--ease-out-quint) both;
+    }
+    .is-live .scr--plugins.is-on .pr,
+    .is-live .scr--health.is-on .as,
+    .is-live .scr--editor.is-on .ed__patterns li,
+    .is-live .scr--editor.is-on .eb,
+    .is-live .scr--editor.is-on .ed__side li {
+      animation: ba-row-in 560ms var(--ease-out-quint) both;
+      animation-delay: calc(80ms + var(--k, 0) * 70ms);
+    }
+    .is-live .scr--health.is-on .as__bar span {
+      animation: ba-bar 900ms var(--ease-in-out-quart) both;
+      animation-delay: calc(240ms + var(--k, 0) * 110ms);
+    }
+    .is-live[data-flags]:not([data-fixed]) .scr--plugins.is-on .pr__flag {
+      animation: ba-stamp 560ms var(--ease-spring) both;
+      animation-delay: calc(500ms + var(--k, 0) * 90ms);
+    }
+    .is-live[data-fixed] .scr--plugins.is-on .pr__name::after {
+      transition: transform 620ms var(--ease-in-out-quart);
+      transition-delay: calc(420ms + var(--k, 0) * 120ms);
+    }
+    .is-live[data-fixed] .scr--plugins.is-on .pr__fix {
+      animation: ba-stamp 520ms var(--ease-spring) both;
+      animation-delay: calc(600ms + var(--k, 0) * 120ms);
+    }
+    .is-live .scr--editor.is-on .eb.is-sel {
+      animation:
+        ba-row-in 560ms var(--ease-out-quint) both,
+        ba-select 900ms var(--ease-out-expo) 700ms both;
+    }
+  }
+  @keyframes ba-scr-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @keyframes ba-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes ba-bar {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes ba-stamp {
+    from {
+      opacity: 0;
+      transform: scale(0.7) rotate(-4deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes ba-select {
+    from {
+      box-shadow:
+        0 0 0 0 var(--accent),
+        0 0 0 0 transparent;
+    }
+  }
+
+  /* ---------- story segments ---------- */
+  .ba__segs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    padding-inline: 2px;
+  }
+  .seg {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .seg__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .seg.is-past .seg__fill {
+    transform: scaleX(1);
+  }
+  .seg.is-current .seg__fill {
+    animation: ba-seg var(--dur, var(--step-ms)) linear forwards;
+  }
+  .ba:not(.is-playing) .seg.is-current .seg__fill {
+    animation-play-state: paused;
+  }
+  @keyframes ba-seg {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg.is-current .seg__fill {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+
+  /* =========================================================
+     Steps and controls
+     ========================================================= */
+  .ba__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    min-width: 0;
+  }
+  .ba__steps {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text);
+  }
+  .st {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+  .st::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .st__btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--tap);
+    padding: 10px 2px 10px 14px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+  }
+  .st__num {
+    color: var(--text-3);
+  }
+  .st__title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+  .st__mode {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .st__mode::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    vertical-align: 1px;
+  }
+  .st__mode--before::before {
+    background: var(--fault-line);
+  }
+  .st__mode--fix::before {
+    background: var(--accent);
+  }
+  .st__mode--after::before {
+    background: var(--text);
+  }
+  .st__text {
+    padding: 0 2px 14px 14px;
+    color: var(--text-2);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .is-live .mi {
+    cursor: pointer;
+  }
+  /* Without JS the compare is static at 50%: no live counter, no drag hint. */
+  .ba:not(.is-live) .cmp__read,
+  .ba:not(.is-live) .st__hint {
+    display: none;
+  }
+  .st__btn:disabled {
+    cursor: default;
+  }
+  .ba__note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    color: var(--text-3);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+  .is-live .st__btn {
+    cursor: pointer;
+  }
+  .is-live .st.is-current::before {
+    transform: scaleY(1);
+  }
+  .is-live .st.is-current .st__num {
+    color: var(--accent-text);
+  }
+  .is-live .st:not(.is-current) .st__title {
+    color: var(--text-2);
+  }
+  @media (hover: hover) {
+    .is-live .st:not(.is-current) .st__btn:hover .st__title {
+      color: var(--text);
+    }
+  }
+  .is-live .st__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 560ms var(--ease-out-quint);
+  }
+  .is-live .st.is-current .st__body {
+    grid-template-rows: 1fr;
+  }
+  .is-live .st__body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .is-live .st__text {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-quint);
+  }
+  .is-live .st.is-current .st__text {
+    opacity: 1;
+    transform: none;
+    transition-delay: 120ms;
+  }
+  /* Measuring pass (one frame, never painted): every step open, no transitions. */
+  .is-measuring .st {
+    display: block !important;
+  }
+  .is-measuring .st__body {
+    grid-template-rows: 1fr !important;
+    transition: none !important;
+  }
+  .is-measuring .ba__steps,
+  .is-measuring .st {
+    min-height: 0 !important;
+  }
+  @media (min-width: 1200px) {
+    .is-live .ba__steps {
+      min-height: var(--ba-steps-h, auto);
+    }
+  }
+  .ba__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .ba__count {
+    margin-left: 6px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .ba__dots {
+    display: none;
+  }
+
+  /* ---------- below 1200: the window, then the current step only ---------- */
+  @media (max-width: 1199px) {
+    .is-live .st:not(.is-current) {
+      display: none;
+    }
+    .is-live .ba__steps {
+      border-top: 0;
+    }
+    .is-live .st {
+      border-bottom: 0;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      box-shadow: inset 0 0 0 1px var(--line);
+      overflow: hidden;
+    }
+    .is-live .st.is-current {
+      min-height: var(--ba-card-h, 7.25rem);
+    }
+    .ba__dots {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+    }
+    .ba__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .ba__dot.is-on {
+      background: var(--accent);
+    }
+    .ba__dot.is-current {
+      width: 20px;
+    }
+  }
+  @media (max-width: 900px) {
+    .ed__body {
+      grid-template-columns: minmax(0, 1fr) 10rem;
+    }
+    .ed__patterns {
+      display: none;
+    }
+  }
+
+  /* ---------- phones: no menu column, compact rows, a shorter compare ---------- */
+  @media (max-width: 719px) {
+    .win__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .win__menu {
+      display: none;
+    }
+    .win__bar {
+      gap: var(--space-3);
+      padding-inline: 10px;
+    }
+    .win__crumb {
+      display: none;
+    }
+    .scr {
+      gap: 8px;
+      padding: 12px;
+    }
+    .scr__title {
+      font-size: 1.1875rem;
+    }
+    .pr {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      min-height: 32px;
+      padding: 3px 4px;
+    }
+    .pr__check,
+    .pr__desc,
+    .pr__state {
+      display: none;
+    }
+    /* The one switched-off plugin keeps its state word: it is the point of the row. */
+    .ba:not([data-fixed]) .pr.is-off .pr__state {
+      display: inline;
+    }
+    .pl__add {
+      display: none;
+    }
+    .as {
+      grid-template-columns: minmax(0, 1fr) 34%;
+      padding: 5px 4px;
+    }
+    .as__from {
+      display: none;
+    }
+    .as {
+      grid-template-areas: 'file bar';
+    }
+    .as__tag {
+      display: none;
+    }
+    .hl__sub {
+      font-size: 0.75rem;
+    }
+    .ed__body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+    .ed__side ul {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .ed__side li {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 6px;
+    }
+    .ed__on {
+      display: none;
+    }
+    .ed__side .ed__label {
+      display: none;
+    }
+    .eb--query {
+      display: none;
+    }
+    .cmp {
+      height: 16rem;
+    }
+    .ca__h {
+      font-size: 1.125rem;
+    }
+    .cb__cards {
+      top: 180px;
+    }
+    .cb__share {
+      top: 60px;
+    }
+    .win__disclaim {
+      flex-basis: 100%;
+      order: 3;
+    }
+    .cmp__read {
+      gap: 12px;
+    }
+    .is-live .st.is-current {
+      min-height: var(--ba-card-h, 7rem);
+    }
+    .st__text {
+      padding-bottom: 12px;
+    }
+    .win__foot {
+      padding: 6px 10px;
+      font-size: 0.6875rem;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .cmp__rule,
+    .cmp__knob,
+    .seg__fill {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/wp/base';
+
+  const ba = document.querySelector<HTMLElement>('[data-ba]');
+  if (ba) {
+    const steps = [...ba.querySelectorAll<HTMLElement>('[data-st]')];
+    const segs = [...ba.querySelectorAll<HTMLElement>('[data-seg]')];
+    const dots = [...ba.querySelectorAll<HTMLElement>('[data-dot]')];
+    const screens = [...ba.querySelectorAll<HTMLElement>('[data-scr]')];
+    const menuItems = [...ba.querySelectorAll<HTMLElement>('[data-mi]')];
+    const playBtn = ba.querySelector<HTMLButtonElement>('[data-play]')!;
+    const crumb = ba.querySelector<HTMLElement>('[data-crumb]');
+    const modePill = ba.querySelector<HTMLElement>('[data-mode-pill]');
+    const badge = ba.querySelector<HTMLElement>('[data-badge]');
+    const countPlugins = ba.querySelector<HTMLElement>('[data-count-plugins]');
+    const countUpdates = ba.querySelector<HTMLElement>('[data-count-updates]');
+    const count = ba.querySelector<HTMLElement>('[data-ba-count]');
+    const live = ba.querySelector<HTMLElement>('[data-ba-live]');
+    const cmp = ba.querySelector<HTMLElement>('[data-cmp]')!;
+    const handle = ba.querySelector<HTMLElement>('[data-cmp-handle]')!;
+    const cmpPlugins = ba.querySelector<HTMLElement>('[data-cmp-plugins]');
+    const meter = ba.querySelector<HTMLElement>('[data-cmp-meter]');
+    const n = steps.length;
+
+    // Example-site numbers (src/data/wp/player.ts COUNTS); the meter is relative, no units.
+    const BEFORE = { plugins: 47, updates: 9, weight: 0.92 };
+    const AFTER = { plugins: 12, updates: 0, weight: 0.24 };
+    const CRUMBS: Record<string, string> = {
+      plugins: 'Plugins › Installed plugins',
+      health: 'Tools › Site Health',
+      editor: 'Appearance › Editor › Home',
+      compare: 'Pages › Home › Preview',
+    };
+    const MODES: Record<string, string> = { before: 'Before', fix: 'On staging', after: 'After' };
+
+    // Per-step state comes from the markup, so no page copy is bundled into this script.
+    const STEPS = steps.map((st) => ({
+      mode: st.dataset.mode ?? 'after',
+      screen: st.dataset.screen ?? 'compare',
+      menu: st.dataset.menu ?? '',
+      flags: st.dataset.flags !== undefined,
+      fixed: st.dataset.fixed !== undefined,
+      title: st.dataset.title ?? '',
+    }));
+    const reduced = prefersReduced();
+
+    let active = n - 1;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let visible = false;
+    let started = false;
+    let userCompare = false; // the visitor has taken the compare handle
+
+    /* ---------- the compare ---------- */
+    let pos = 50;
+    const setPos = (p: number) => {
+      pos = Math.max(0, Math.min(100, p));
+      cmp.style.setProperty('--pos', `${pos}%`);
+      // The before page shows left of the divider: more "before" means more plugins.
+      const t = pos / 100;
+      const plugins = Math.round(AFTER.plugins + (BEFORE.plugins - AFTER.plugins) * t);
+      if (cmpPlugins) cmpPlugins.textContent = String(plugins);
+      if (meter) meter.style.width = `${(AFTER.weight + (BEFORE.weight - AFTER.weight) * t) * 100}%`;
+      handle.setAttribute('aria-valuenow', String(Math.round(pos)));
+      handle.setAttribute(
+        'aria-valuetext',
+        `${Math.round(100 - pos)}% of the after page shown; ${plugins} plugins on this illustrative scale`,
+      );
+    };
+
+    /** Story clock → divider: hold, sweep toward "before", across to "after", settle. */
+    const sweepAt = (p: number): number => {
+      const ease = (x: number) => 0.5 - Math.cos(Math.PI * x) / 2;
+      const seg = (a: number, b: number, from: number, to: number) => from + (to - from) * ease((p - a) / (b - a));
+      if (p < 0.1) return 50;
+      if (p < 0.38) return seg(0.1, 0.38, 50, 88);
+      if (p < 0.74) return seg(0.38, 0.74, 88, 10);
+      if (p < 0.94) return seg(0.74, 0.94, 10, 50);
+      return 50;
+    };
+    let raf = 0;
+    const fillAnim = (): Animation | undefined =>
+      segs[active]?.querySelector<HTMLElement>('[data-seg-fill]')?.getAnimations()[0];
+    const sweepLoop = () => {
+      raf = 0;
+      if (STEPS[active]?.screen !== 'compare' || userCompare || reduced) return;
+      const a = fillAnim();
+      const dur = a?.effect?.getTiming().duration;
+      const t = a?.currentTime;
+      if (a && typeof dur === 'number' && typeof t === 'number' && dur > 0) setPos(sweepAt(Math.min(1, t / dur)));
+      if (playing) raf = requestAnimationFrame(sweepLoop);
+    };
+    const kickSweep = () => {
+      if (!raf && playing) raf = requestAnimationFrame(sweepLoop);
+    };
+
+    /* ---------- counters ---------- */
+    let shown = { plugins: AFTER.plugins, updates: AFTER.updates };
+    let countRaf = 0;
+    const paintCounts = (p: number, u: number) => {
+      if (countPlugins) countPlugins.textContent = String(p);
+      if (countUpdates) countUpdates.textContent = String(u);
+      if (badge) {
+        badge.textContent = String(u);
+        badge.classList.toggle('is-zero', u === 0);
+      }
+    };
+    const rollCounts = (to: { plugins: number; updates: number }) => {
+      cancelAnimationFrame(countRaf);
+      const from = { ...shown };
+      shown = { ...to };
+      if (reduced || (from.plugins === to.plugins && from.updates === to.updates)) {
+        paintCounts(to.plugins, to.updates);
+        return;
+      }
+      const t0 = performance.now();
+      const D = 1100;
+      const frame = (now: number) => {
+        const k = Math.min(1, (now - t0) / D);
+        const e = 1 - Math.pow(1 - k, 4);
+        paintCounts(
+          Math.round(from.plugins + (to.plugins - from.plugins) * e),
+          Math.round(from.updates + (to.updates - from.updates) * e),
+        );
+        if (k < 1) countRaf = requestAnimationFrame(frame);
+      };
+      // The count rolls once the struck lines have started drawing.
+      window.setTimeout(() => (countRaf = requestAnimationFrame(frame)), 500);
+    };
+
+    /** Restart the current segment's CSS animation from zero. */
+    const restartFill = () => {
+      const fill = segs[active]?.querySelector<HTMLElement>('[data-seg-fill]');
+      if (!fill) return;
+      fill.style.animation = 'none';
+      void fill.offsetWidth; // flush, so the next rule starts a fresh animation
+      fill.style.animation = '';
+    };
+    /** Toggling `is-on` off and on restarts a screen's row animations. */
+    const replay = (el: HTMLElement) => {
+      el.classList.remove('is-on');
+      void el.offsetWidth;
+      el.classList.add('is-on');
+    };
+
+    const render = (i: number) => {
+      active = (i + n) % n;
+      const s = STEPS[active]!;
+      ba.dataset.step = String(active);
+      ba.dataset.mode = s.mode;
+      ba.dataset.screen = s.screen;
+      if (s.flags) ba.dataset.flags = '';
+      else delete ba.dataset.flags;
+      if (s.fixed) ba.dataset.fixed = '';
+      else delete ba.dataset.fixed;
+
+      screens.forEach((el) => (el.dataset.scr === s.screen ? replay(el) : el.classList.remove('is-on')));
+      menuItems.forEach((m) => m.classList.toggle('is-cur', m.dataset.mi === s.menu));
+      if (crumb) crumb.textContent = CRUMBS[s.screen] ?? '';
+      if (modePill) modePill.textContent = MODES[s.mode] ?? '';
+      rollCounts(s.fixed ? AFTER : BEFORE);
+
+      steps.forEach((st, k) => {
+        st.classList.toggle('is-current', k === active);
+        const b = st.querySelector('[data-st-btn]');
+        if (k === active) b?.setAttribute('aria-current', 'step');
+        else b?.removeAttribute('aria-current');
+      });
+      segs.forEach((g, k) => {
+        g.classList.toggle('is-past', k < active);
+        g.classList.toggle('is-current', k === active);
+      });
+      dots.forEach((d, k) => {
+        d.classList.toggle('is-on', k <= active);
+        d.classList.toggle('is-current', k === active);
+      });
+      if (count) count.textContent = String(active + 1);
+
+      // The compare rests longer, so the sweep can run there and back.
+      ba.style.setProperty('--dur', s.screen === 'compare' ? 'calc(var(--step-ms) * 1.6)' : 'var(--step-ms)');
+      userCompare = false;
+      if (s.screen === 'compare') setPos(50);
+      restartFill();
+      kickSweep();
+    };
+
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      ba.classList.toggle('is-playing', on);
+      playBtn.dataset.state = on ? 'playing' : 'paused';
+      playBtn.setAttribute('aria-label', on ? 'Pause the walkthrough' : 'Play the walkthrough');
+      if (on) kickSweep();
+    };
+    const sync = () => setPlaying(visible && wantsPlay && !document.hidden);
+
+    // The segment finishing is the clock: advance, loop after the last step.
+    ba.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-seg-fill]')) return;
+      render(active + 1);
+    });
+
+    // Announce only what the visitor asked for (never autoplay), once, after it settles.
+    let liveTimer: number | undefined;
+    const announce = () => {
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        const s = STEPS[active]!;
+        if (live) live.textContent = `Step ${active + 1} of ${n}, ${MODES[s.mode] ?? ''}: ${s.title}`;
+      }, 250);
+    };
+    const pauseForVisitor = () => {
+      wantsPlay = false;
+      setPlaying(false);
+    };
+    const takeControl = (i: number) => {
+      pauseForVisitor();
+      render(i);
+      announce();
+    };
+    steps.forEach((st, i) => st.querySelector('[data-st-btn]')?.addEventListener('click', () => takeControl(i)));
+    ba.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    ba.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    // Pointer shortcut: an admin menu item jumps to the first step on that screen. The steps
+    // list is the keyboard path to the same content.
+    menuItems.forEach((m) =>
+      m.addEventListener('click', () => {
+        const target = STEPS.findIndex((s) => s.menu === m.dataset.mi);
+        if (target > -1) takeControl(target);
+      }),
+    );
+    playBtn.addEventListener('click', () => {
+      // The button follows what is on screen: Pause while it plays, Play otherwise.
+      wantsPlay = !playing;
+      if (wantsPlay && active === n - 1) render(0);
+      sync();
+    });
+    if (reduced) playBtn.hidden = true;
+
+    /* ---------- the compare handle: pointer anywhere on the page, keys on the handle ---------- */
+    handle.hidden = false;
+    handle.tabIndex = 0;
+    handle.setAttribute('role', 'slider');
+    handle.setAttribute('aria-label', 'Compare the example homepage before and after');
+    handle.setAttribute('aria-valuemin', '0');
+    handle.setAttribute('aria-valuemax', '100');
+    handle.setAttribute('aria-orientation', 'horizontal');
+    const takeCompare = () => {
+      userCompare = true;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      pauseForVisitor();
+    };
+    const posFromEvent = (e: PointerEvent) => {
+      const r = cmp.getBoundingClientRect();
+      return ((e.clientX - r.left) / r.width) * 100;
+    };
+    let dragId: number | null = null;
+    let startX = 0;
+    let startY = 0;
+    let decided = false;
+    cmp.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      dragId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      // Mouse and pen drag at once; touch waits to see if the finger moves sideways, so a
+      // vertical swipe still scrolls the page (touch-action: pan-y).
+      decided = e.pointerType !== 'touch' || e.target === handle || handle.contains(e.target as Node);
+      if (decided) {
+        takeCompare();
+        cmp.setPointerCapture(e.pointerId);
+        cmp.classList.add('is-dragging');
+        setPos(posFromEvent(e));
+      }
+    });
+    cmp.addEventListener('pointermove', (e) => {
+      if (dragId !== e.pointerId) return;
+      if (!decided) {
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dy > 8 && dy > dx) {
+          dragId = null;
+          return;
+        }
+        if (dx < 6) return;
+        decided = true;
+        takeCompare();
+        cmp.setPointerCapture(e.pointerId);
+        cmp.classList.add('is-dragging');
+      }
+      setPos(posFromEvent(e));
+    });
+    const end = (e: PointerEvent) => {
+      if (dragId !== e.pointerId) return;
+      // A tap (touch that never moved) still sets the divider where it landed.
+      if (!decided && e.type === 'pointerup') {
+        takeCompare();
+        setPos(posFromEvent(e));
+      }
+      dragId = null;
+      cmp.classList.remove('is-dragging');
+    };
+    cmp.addEventListener('pointerup', end);
+    cmp.addEventListener('pointercancel', end);
+    handle.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 10 : 2;
+      const map: Record<string, number> = {
+        ArrowLeft: pos - step,
+        ArrowDown: pos - step,
+        ArrowRight: pos + step,
+        ArrowUp: pos + step,
+        PageDown: pos - 10,
+        PageUp: pos + 10,
+        Home: 0,
+        End: 100,
+      };
+      const next = map[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      takeCompare();
+      setPos(next);
+    });
+
+    /*
+     * Reserve height: measure every step expanded once (and again on resize), then give the
+     * list (desktop: all titles + the longest text) or the current-step card (narrow: the
+     * tallest step) that height, so the controls and the page below never move.
+     */
+    const list = ba.querySelector<HTMLElement>('.ba__steps');
+    const reserve = () => {
+      if (!list) return;
+      ba.classList.add('is-measuring');
+      let base = 0;
+      let maxText = 0;
+      let maxStep = 0;
+      steps.forEach((st) => {
+        const inner = st.querySelector<HTMLElement>('.st__body-inner');
+        const t = inner?.offsetHeight ?? 0;
+        const h = st.offsetHeight;
+        base += h - t;
+        maxText = Math.max(maxText, t);
+        maxStep = Math.max(maxStep, h);
+      });
+      ba.classList.remove('is-measuring');
+      const border = parseFloat(getComputedStyle(list).borderTopWidth) || 0;
+      ba.style.setProperty('--ba-steps-h', `${Math.ceil(base + maxText + border)}px`);
+      ba.style.setProperty('--ba-card-h', `${Math.ceil(maxStep)}px`);
+    };
+    let lastW = 0;
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(([e]) => {
+        const w = Math.round(e?.contentRect.width ?? 0);
+        if (w === lastW) return;
+        lastW = w;
+        reserve();
+      }).observe(ba);
+    }
+    document.fonts?.ready.then(reserve).catch(() => {});
+
+    ba.classList.add('is-live');
+    steps.forEach((st) => st.querySelector<HTMLButtonElement>('[data-st-btn]')?.removeAttribute('disabled'));
+    ba.querySelectorAll<HTMLElement>('[data-ba-controls], [data-ba-segs]').forEach((el) => (el.hidden = false));
+    // Reduced motion opens on the finished step and stays put; otherwise the story starts at
+    // step 1 when the player comes into view.
+    render(reduced ? n - 1 : 0);
+    setPlaying(false);
+    setPos(50);
+
+    // "In view" = a third of the player is visible, or it covers a third of the viewport (a
+    // player taller than a landscape phone can never be a third visible).
+    if ('IntersectionObserver' in window && !reduced) {
+      const thresholds = Array.from({ length: 21 }, (_, k) => k / 20);
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          const covers = e.intersectionRect.height >= window.innerHeight / 3;
+          visible = e.isIntersecting && (e.intersectionRatio >= 1 / 3 || covers);
+          if (visible && !started) {
+            started = true;
+            render(0);
+          }
+          sync();
+        },
+        { threshold: thresholds },
+      ).observe(ba);
+    }
+    document.addEventListener('visibilitychange', sync);
+  }
+</script>

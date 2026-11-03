@@ -1,0 +1,931 @@
+---
+/**
+ * Hero. Left: who this is and what it does, in one look. Right: a guard board on an EXAMPLE
+ * account (labelled illustrative): four guards, each watching one metric against its threshold.
+ *
+ * Stacked depth: a plate behind the board, the board, and the change log as a card floating in
+ * front of its lower corner.
+ *
+ * One thing changes per beat (2.8s): the next guard's chart comes up on the screen, its line
+ * draws up to the dashed threshold (in-out-quart), the guard acts at the crossing (the marker
+ * seats on the spring and the action chip appears), the line carries on corrected while a red
+ * dashed ghost shows where it was heading without the rule, the guard's row flips to its action,
+ * and the action drops into the change log. Four beats, a held beat on the finished board, then a
+ * quiet reset.
+ *
+ * Without JS, or under reduced motion, the board renders its finished state: every guard has
+ * acted, all four log entries are in, the last guard's chart is fully drawn. Values are
+ * relative (1 = each guard's threshold), never money.
+ */
+import { HERO, HERO_GUARDS } from '../../data/ads/content';
+import { bookingUrl } from '../../data/ads/site';
+
+const W = 480;
+const H = 178;
+const X0 = 14;
+const X1 = 466;
+const YT = 26;
+const YB = 150;
+const VMAX = 1.6;
+const r1 = (n: number) => Math.round(n * 10) / 10;
+const n = HERO_GUARDS.length;
+const last = n - 1;
+
+const screens = HERO_GUARDS.map((g) => {
+  const step = (X1 - X0) / (g.series.length - 1);
+  const x = (i: number) => r1(X0 + i * step);
+  const y = (v: number) => r1(YB - (Math.min(v, VMAX) / VMAX) * (YB - YT));
+  const line = g.series.map((v, i) => `${i ? 'L' : 'M'}${x(i)} ${y(v)}`).join(' ');
+  const area = `${line} L${x(g.series.length - 1)} ${YB} L${x(0)} ${YB} Z`;
+  const ghost = g.ghost.map((v, i) => `${i ? 'L' : 'M'}${x(g.trip + i)} ${y(v)}`).join(' ');
+  const mx = x(g.trip);
+  const my = y(g.series[g.trip] ?? 1);
+  const tagW = Math.round(g.act.length * 6.9 + 22);
+  const tagX = r1(Math.max(X0, Math.min(X1 - tagW, mx - tagW / 2)));
+  const tagY = r1(my - 40 < 4 ? my + 14 : my - 40);
+  return { g, line, area, ghost, mx, my, tagW, tagX, tagY, yT: y(1) };
+});
+---
+
+<section class="hero" id="top" data-hero aria-labelledby="hero-title">
+  <div class="hero__inner container">
+    <div class="hero__copy">
+      <p class="eyebrow">{HERO.eyebrow}</p>
+      <h1 id="hero-title" class="hero__title">
+        {
+          HERO.headline.map((line, i) => (
+            <span class="hero__line" style={`--l:${i}`}>
+              <span class:list={['hero__li', { em: i === HERO.headline.length - 1 }]}>
+                {line}
+                {i === HERO.headline.length - 1 && (
+                  <span class="hero__guard" aria-hidden="true">
+                    <span class="hero__guard-line" />
+                    <span class="hero__guard-dot" />
+                  </span>
+                )}
+              </span>{' '}
+            </span>
+          ))
+        }
+      </h1>
+      <p class="lede hero__lede">{HERO.lede}</p>
+      <div class="hero__ctas">
+        <a class="btn" href={bookingUrl('hero')}>
+          <span class="btn__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>{HERO.primary}</span>
+        </a>
+        <a class="btn btn--ghost" href="#services">
+          <span>{HERO.secondary}</span>
+          <span class="btn__arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="hero__note text-3">{HERO.note}</p>
+    </div>
+
+    <figure class="board" data-board data-active={last} data-acted={last} aria-labelledby="board-cap">
+      <div class="board__plate" aria-hidden="true"></div>
+
+      <div class="board__panel" data-pause-offscreen>
+        <div class="board__head">
+          <span class="ex">Example account · illustrative</span>
+          <span class="board__status mono">
+            <span class="pip pip--watch" aria-hidden="true"></span>
+            Watching · {n} guards
+          </span>
+          <button class="board__pp" type="button" data-board-pp aria-label="Pause the board animation" data-state="playing" hidden>
+            <svg class="board__pp-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="board__pp-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+        </div>
+
+        {/* The screen: one guard's chart at a time. A visual duplicate of the rows below. */}
+        <div class="screen" aria-hidden="true">
+          {
+            screens.map((s, i) => (
+              <div class:list={['scr', { 'is-active': i === last }]} data-scr={i}>
+                <div class="scr__top">
+                  <span class="scr__metric mono">{s.g.metric}</span>
+                  <span class="scr__rule">
+                    <span class="kw">IF</span>
+                    <span class="cond">{s.g.rule.if}</span>
+                    {s.g.rule.for && (
+                      <>
+                        <span class="kw">FOR</span>
+                        <span class="cond">{s.g.rule.for}</span>
+                      </>
+                    )}
+                    <span class="kw">THEN</span>
+                    <span class="cond cond--act">{s.g.rule.then}</span>
+                  </span>
+                </div>
+                <svg class="scr__svg" viewBox={`0 0 ${W} ${H}`}>
+                  {[0.5, 1.5].map((v) => (
+                    <line class="scr__grid" x1={X0} x2={X1} y1={r1(YB - (v / VMAX) * (YB - YT))} y2={r1(YB - (v / VMAX) * (YB - YT))} />
+                  ))}
+                  <line class="scr__base" x1={X0} x2={X1} y1={YB} y2={YB} />
+                  <path class="scr__area" d={s.area} />
+                  <line class="scr__limit" x1={X0} x2={X1} y1={s.yT} y2={s.yT} />
+                  <text class="scr__limit-t" x={X1} y={s.yT - 7} text-anchor="end">
+                    {s.g.limit}
+                  </text>
+                  <path class="scr__ghost" d={s.ghost} />
+                  <path class="scr__line" d={s.line} pathLength="1" />
+                  <g class="scr__mark">
+                    <circle class="scr__ring" cx={s.mx} cy={s.my} r="13" />
+                    <circle class="scr__dot" cx={s.mx} cy={s.my} r="5" />
+                  </g>
+                  <g class:list={['scr__tag', `scr__tag--${s.g.kind}`]}>
+                    <rect x={s.tagX} y={s.tagY} width={s.tagW} height="22" rx="3" />
+                    <text x={s.tagX + s.tagW / 2} y={s.tagY + 15} text-anchor="middle">
+                      {s.g.act}
+                    </text>
+                  </g>
+                  <text class="scr__span" x={X0} y={H - 6}>
+                    {s.g.span}
+                  </text>
+                  <g class="scr__key">
+                    <line x1={X1 - 196} x2={X1 - 178} y1={H - 10} y2={H - 10} class="scr__key-line" />
+                    <text x={X1 - 172} y={H - 6}>with the rule</text>
+                    <line x1={X1 - 70} x2={X1 - 54} y1={H - 10} y2={H - 10} class="scr__key-ghost" />
+                    <text x={X1 - 48} y={H - 6}>without</text>
+                  </g>
+                </svg>
+              </div>
+            ))
+          }
+        </div>
+
+        <ol class="guards" role="list">
+          {
+            HERO_GUARDS.map((g, i) => (
+              <li class:list={['guard', `guard--${g.kind}`, 'is-acted', { 'is-active': i === last }]} data-guard={i}>
+                <span class="guard__bar" aria-hidden="true" />
+                <span class="guard__name">{g.name}</span>
+                <span class="guard__state">
+                  <span class="guard__watch mono">
+                    <span class="pip pip--off" aria-hidden="true" />
+                    Watching
+                  </span>
+                  <span class="guard__act mono">{g.act}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <div class="board__log" aria-hidden="true">
+        <p class="board__log-title mono">
+          <span>Change log</span>
+          <span class="board__log-count num" data-board-count>{n}</span>
+        </p>
+        <ol class="board__log-list" role="list">
+          {
+            HERO_GUARDS.map((g, i) => (
+              <li class="logline is-in" data-log={i} style={`order:${n - i}`}>
+                <span class="logline__when mono">{g.when}</span>
+                <span class="logline__text">{g.log}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <figcaption id="board-cap" class="board__cap text-3">
+        An example account, not a client’s: four guards, each watching one number against its line. Here every guard has
+        acted once: {HERO_GUARDS.map((g) => `${g.name.toLowerCase()}, ${g.act.toLowerCase()}`).join('; ')}.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: clip;
+    padding-top: calc(var(--nav-h) + clamp(3rem, 2rem + 5vw, 6.5rem));
+    padding-bottom: clamp(4rem, 2.5rem + 5vw, 7rem);
+    background:
+      radial-gradient(52rem 34rem at 88% 8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+      var(--bg);
+  }
+  /* Chart gridlines behind the board: horizontal rules only, fading toward the copy. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px);
+    background-size: 100% 48px;
+    -webkit-mask-image: radial-gradient(70% 80% at 82% 45%, #000, transparent 75%);
+    mask-image: radial-gradient(70% 80% at 82% 45%, #000, transparent 75%);
+    pointer-events: none;
+  }
+
+  /* ---------- layout ---------- */
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+  @media (min-width: 1100px) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      min-height: min(78svh, 760px);
+    }
+  }
+  .hero__copy {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero__title {
+    margin-top: var(--space-2);
+    /* "their own budget." must hold one line wherever there is room: cap the size by the column. */
+    font-size: max(2.5rem, min(var(--fs-hero), 10.4cqi));
+  }
+  .hero__line {
+    display: block;
+    overflow: clip;
+    /* Room for descenders and the guard line inside the clip. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .hero__li {
+    position: relative;
+    display: inline-block;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__li {
+      animation: hero-rise 1000ms var(--ease-out-quint) both;
+      animation-delay: calc(80ms + var(--l) * 110ms);
+    }
+  }
+  @keyframes hero-rise {
+    from {
+      transform: translate3d(0, 105%, 0);
+    }
+  }
+  /* The threshold under the last line, with a point seated where the curve meets it. */
+  .hero__guard {
+    position: absolute;
+    left: 0.02em;
+    right: -0.1em;
+    bottom: 0.02em;
+    height: 0.16em;
+    pointer-events: none;
+  }
+  .hero__guard-line {
+    position: absolute;
+    left: 0;
+    right: 0.14em;
+    top: 50%;
+    border-top: max(2px, 0.03em) dashed var(--accent-line);
+    transform-origin: left;
+  }
+  .hero__guard-dot {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 0.14em;
+    height: 0.14em;
+    margin-top: -0.07em;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0.03em var(--bg);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__guard-line {
+      animation: hero-draw-x 900ms var(--ease-in-out-quart) 900ms both;
+    }
+    .hero__guard-dot {
+      animation: hero-seat var(--dur-arrive) var(--ease-spring) 1700ms both;
+    }
+  }
+  @keyframes hero-draw-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes hero-seat {
+    from {
+      transform: scale(0);
+    }
+  }
+  .hero__lede {
+    max-width: 46ch;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero__note {
+    margin: 0;
+    font-size: var(--fs-small);
+    max-width: 46ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__lede,
+    .hero__ctas,
+    .hero__note,
+    .board {
+      animation: hero-lift 900ms var(--ease-out-quint) both;
+    }
+    .hero__lede {
+      animation-delay: 420ms;
+    }
+    .hero__ctas {
+      animation-delay: 520ms;
+    }
+    .hero__note {
+      animation-delay: 600ms;
+    }
+    .board {
+      animation-delay: 360ms;
+    }
+  }
+  @keyframes hero-lift {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+  }
+
+  /* =========================================================
+     The board: plate (behind) → panel → change log (in front)
+     ========================================================= */
+  .board {
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    justify-self: center;
+    margin: 0;
+    padding: 18px 18px 0 0;
+  }
+  @media (min-width: 1100px) {
+    .board {
+      justify-self: end;
+    }
+  }
+  .board__plate {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    left: 34px;
+    border-radius: var(--radius-xl);
+    background:
+      repeating-linear-gradient(-45deg, transparent 0 9px, color-mix(in srgb, var(--accent) 14%, transparent) 9px 10px),
+      var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .board__panel {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4) var(--space-4);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  .board__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .board__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .board__pp {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -6px -4px -6px 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .board__pp svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .board__pp-play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .board__pp-play,
+  .board__pp[data-state='paused'] .board__pp-pause {
+    display: none;
+  }
+  .board__pp[data-state='paused'] .board__pp-play {
+    display: block;
+  }
+
+  /* ---------- the screen ---------- */
+  .screen {
+    display: grid;
+    border-radius: var(--radius-l);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 24px,
+      var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  /* Every chart sits in the same cell; only the active one shows. */
+  .scr {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: 6px;
+    padding: 12px 14px 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 420ms var(--ease-out-quint),
+      visibility 0s linear 420ms;
+  }
+  .scr.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 420ms var(--ease-out-quint) 120ms,
+      visibility 0s;
+  }
+  .scr__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px var(--space-3);
+  }
+  .scr__metric {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .scr__rule {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+  .scr__rule .cond {
+    min-height: 22px;
+    font-size: 0.6875rem;
+  }
+  .scr__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .scr__grid {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .scr__base {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+  .scr__limit {
+    stroke: var(--accent-line);
+    stroke-width: 1.8;
+    stroke-dasharray: 7 5;
+  }
+  .scr__limit-t,
+  .scr__span,
+  .scr__key text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .scr__limit-t {
+    fill: var(--accent-text);
+    font-weight: 600;
+  }
+  .scr__span,
+  .scr__key text {
+    fill: var(--text-3);
+  }
+  .scr__key-line {
+    stroke: var(--text);
+    stroke-width: 2.6;
+  }
+  .scr__key-ghost {
+    stroke: var(--waste);
+    stroke-width: 1.8;
+    stroke-dasharray: 3 3;
+  }
+  .scr__area {
+    fill: var(--accent);
+    fill-opacity: 0.12;
+  }
+  .scr__line {
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .scr__ghost {
+    fill: none;
+    stroke: var(--waste);
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+    stroke-linecap: round;
+  }
+  .scr__ring {
+    fill: none;
+    stroke: var(--accent-line);
+    stroke-width: 1.6;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .scr__dot {
+    fill: var(--accent);
+    stroke: var(--surface-2);
+    stroke-width: 2.4;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .scr__tag {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+  }
+  .scr__tag rect {
+    fill: var(--accent);
+  }
+  .scr__tag text {
+    fill: var(--on-accent);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .scr__tag--alert rect {
+    fill: var(--surface-2);
+    stroke: var(--accent-line);
+    stroke-width: 1.4;
+  }
+  .scr__tag--alert text {
+    fill: var(--accent-text);
+  }
+  /* A beat, in order: the line draws to the threshold, the guard acts (marker seats, ring
+     flashes, tag arrives), then the ghost shows where it was heading without the rule. */
+  @media (prefers-reduced-motion: no-preference) {
+    .scr.is-play .scr__line {
+      animation: hero-draw-line 1250ms var(--ease-in-out-quart) both;
+    }
+    .scr.is-play .scr__area {
+      animation: hero-fade-in 700ms var(--ease-out-quint) 650ms both;
+    }
+    .scr.is-play .scr__dot {
+      animation: hero-seat var(--dur-arrive) var(--ease-spring) 1000ms both;
+    }
+    .scr.is-play .scr__ring {
+      animation: hero-flash 1100ms var(--ease-out-quint) 1050ms both;
+    }
+    .scr.is-play .scr__tag {
+      animation: hero-tag-in var(--dur-arrive) var(--ease-spring) 1200ms both;
+    }
+    .scr.is-play .scr__ghost {
+      animation: hero-fade-in 600ms var(--ease-out-quint) 1450ms both;
+    }
+  }
+  @keyframes hero-draw-line {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes hero-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes hero-flash {
+    0% {
+      transform: scale(0.4);
+      stroke-width: 4;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    60% {
+      transform: scale(1.8);
+      stroke-width: 1;
+      opacity: 0.3;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes hero-tag-in {
+    from {
+      transform: translateY(6px) scale(0.7);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- guards ---------- */
+  .guards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+  }
+  .guard {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    min-width: 0;
+    padding: 9px 10px 9px 14px;
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    overflow: hidden;
+    transition: background-color 500ms var(--ease-out-quint);
+  }
+  .guard__bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent-line);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .guard.is-active .guard__bar {
+    transform: scaleY(1);
+  }
+  .guard.is-active {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-1));
+  }
+  .guard__name {
+    font-weight: 650;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+  }
+  .guard__state {
+    display: grid;
+    justify-items: start;
+  }
+  .guard__state > span {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 6px;
+    border-radius: var(--radius-xs);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 520ms var(--ease-spring);
+  }
+  .guard__watch {
+    color: var(--text-3);
+    padding-left: 0 !important;
+  }
+  .guard__act {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .guard--alert .guard__act {
+    background: var(--surface-2);
+    color: var(--accent-text);
+    box-shadow: inset 0 0 0 1.2px var(--accent-line);
+  }
+  .guard:not(.is-acted) .guard__act,
+  .guard.is-acted .guard__watch {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  /* The row flips as the chart's tag arrives. */
+  .guard.is-new .guard__act {
+    transition-delay: 1250ms;
+  }
+
+  /* ---------- the change log, in front ---------- */
+  .board__log {
+    position: relative;
+    z-index: 2;
+    width: min(340px, 86%);
+    margin: -10px 0 0 -26px;
+    padding: 10px 14px 12px;
+    border-radius: var(--radius-l);
+    background: var(--inv-bg);
+    color: var(--inv-fg);
+    box-shadow: var(--shadow-lift);
+  }
+  .board__log-title {
+    display: flex;
+    justify-content: space-between;
+    color: var(--inv-2);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .board__log-count {
+    color: var(--accent-inv);
+  }
+  .board__log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 6px 0 0;
+    min-height: calc(4 * 1.45em + 6px);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+  .logline {
+    display: grid;
+    grid-template-columns: 5.2rem minmax(0, 1fr);
+    gap: 8px;
+    min-width: 0;
+  }
+  .logline__when {
+    color: var(--accent-inv);
+    font-size: 0.6875rem;
+    padding-top: 2px;
+  }
+  .logline__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .logline:not(.is-in) {
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .logline.is-new {
+      animation: hero-log-in var(--dur-arrive) var(--ease-spring) 1500ms both;
+    }
+  }
+  @keyframes hero-log-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  .board__cap {
+    margin-top: var(--space-3);
+    padding-inline: 4px;
+    font-size: 0.8125rem;
+  }
+  /* The server render is the finished state: nothing animates in on first paint. */
+  .board[data-static] * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  @media (max-width: 520px) {
+    .board {
+      padding: 12px 10px 0 0;
+    }
+    .board__plate {
+      left: 20px;
+    }
+    .board__panel {
+      padding: var(--space-3);
+    }
+    .scr {
+      padding: 10px 10px 4px;
+    }
+    .scr__rule {
+      display: none;
+    }
+    /* The chart is drawn ~0.65× here: drop the small decorative labels (the rows below carry
+       the action) and enlarge the threshold label so it stays near 11px. */
+    .scr__key,
+    .scr__span,
+    .scr__tag {
+      display: none;
+    }
+    .scr__limit-t {
+      font-size: 17px;
+    }
+    .board__log {
+      width: auto;
+      margin: -18px 0 0 10px;
+    }
+    .logline {
+      grid-template-columns: 4.6rem minmax(0, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/ads/base';
+
+  const board = document.querySelector<HTMLElement>('[data-board]');
+  if (board && !prefersReduced()) {
+    const scrs = [...board.querySelectorAll<HTMLElement>('[data-scr]')];
+    const guards = [...board.querySelectorAll<HTMLElement>('[data-guard]')];
+    const logs = [...board.querySelectorAll<HTMLElement>('[data-log]')];
+    const count = board.querySelector<HTMLElement>('[data-board-count]');
+    const n = guards.length;
+    const BEAT_MS = 2800;
+    const HOLD = 2; // extra beats on the finished board before the quiet reset
+    let beat = 0;
+    let timer: number | undefined;
+    let visible = false;
+    let userPaused = false; // the visitor's pause always wins (WCAG 2.2.2)
+    const pp = board.querySelector<HTMLButtonElement>('[data-board-pp]');
+
+    /** Guard `a` is on screen and has just acted; guards before it acted earlier. */
+    const show = (a: number, animate: boolean) => {
+      scrs.forEach((s, k) => {
+        s.classList.toggle('is-active', k === a);
+        s.classList.remove('is-play');
+      });
+      if (animate) {
+        const s = scrs[a];
+        if (s) {
+          void s.offsetWidth; // restart this chart's beat from its first frame
+          s.classList.add('is-play');
+        }
+      }
+      guards.forEach((g, k) => {
+        g.classList.toggle('is-active', k === a);
+        g.classList.toggle('is-acted', k <= a);
+        g.classList.toggle('is-new', animate && k === a);
+      });
+      logs.forEach((l, k) => {
+        l.classList.toggle('is-in', k <= a);
+        l.classList.toggle('is-new', animate && k === a);
+      });
+      if (count) count.textContent = String(a + 1);
+    };
+    const tick = () => {
+      beat = beat + 1 > n + HOLD - 1 ? 0 : beat + 1;
+      if (beat < n) show(beat, true);
+    };
+    const play = () => {
+      if (timer !== undefined || !visible || document.hidden || userPaused) return;
+      timer = window.setInterval(tick, BEAT_MS);
+    };
+    const pause = () => {
+      window.clearInterval(timer);
+      timer = undefined;
+    };
+    if (pp) {
+      pp.hidden = false;
+      pp.addEventListener('click', () => {
+        userPaused = !userPaused;
+        // One pattern only: the label says what the button will do (no aria-pressed).
+        pp.dataset.state = userPaused ? 'paused' : 'playing';
+        pp.setAttribute('aria-label', userPaused ? 'Play the board animation' : 'Pause the board animation');
+        if (userPaused) {
+          pause();
+          // Paused means finished: every guard acted, every entry logged, nothing half-drawn.
+          beat = n - 1;
+          show(n - 1, false);
+        } else play();
+      });
+    }
+    // Start from the first guard; the first frame is not animated from the finished state.
+    board.dataset.static = '';
+    show(0, false);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        delete board.dataset.static;
+        show(0, true);
+      }),
+    );
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => {
+        visible = Boolean(e?.isIntersecting);
+        if (visible) play();
+        else pause();
+      }).observe(board);
+    } else {
+      visible = true;
+      play();
+    }
+    document.addEventListener('visibilitychange', () => (document.hidden ? pause() : play()));
+  }
+</script>

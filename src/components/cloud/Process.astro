@@ -1,0 +1,346 @@
+---
+/**
+ * Process (brief §4 item 9): Audit → Plan → Implement → Monitor, drawn as a CI pipeline's run view.
+ * Four jobs joined by real connectors; each job says what triggers it ("on" / "needs") and what it
+ * hands over as its artifact. No status icons, durations or counts: this is the shape of the work,
+ * not a run that happened.
+ *
+ * Alignment: the jobs share rows through subgrid (head, title, text, artifact), so every artifact
+ * sits on one baseline whatever the text length. Desktop: one row of four, connectors across the
+ * gaps (none after the last job). Below 1024px: a vertical pipeline with the connector down the
+ * icon column. Reveal: the cards rise and the connectors draw in, in order (skipped above the
+ * fold, without JS and under reduced motion).
+ */
+import { PROCESS } from '../../data/cloud/content';
+
+const ICONS = {
+  Audit: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.2 15.2 20 20',
+  Plan: 'M6 3.5h8.5L18 7v13.5H6zM14 3.5V7.5h4M9 11h6M9 14h6M9 17h4',
+  Implement: 'M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 5l-3 14',
+  Monitor: 'M3 12.5h4l2.5-6 4 11 2.5-5H21',
+} as const;
+---
+
+<section class="section process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">Four stages, like any good pipeline.</h2>
+      <p class="lede">Nothing moves to the next stage until the last one has left something you can keep.</p>
+    </div>
+
+    <div class="run panel panel--ticks">
+      <div class="run__head">
+        <span class="run__title mono">workflow · engagement</span>
+        <span class="run__legend mono">
+          <span class="run__key" aria-hidden="true"></span>
+          each job needs the one before it
+        </span>
+      </div>
+
+      <ol class="jobs" role="list" data-reveal-stagger>
+        {
+          PROCESS.map((p, i) => (
+            <li class="job">
+              <div class="job__head">
+                <span class="job__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18">
+                    <path d={ICONS[p.title]} />
+                  </svg>
+                </span>
+                <span class="job__idx mono">Stage 0{i + 1}</span>
+                <span class="job__needs mono">
+                  {i === 0 ? 'on: your call' : `needs: ${PROCESS[i - 1]!.title.toLowerCase()}`}
+                </span>
+              </div>
+              <h3 class="job__title">{p.title}</h3>
+              <p class="job__text">{p.text}</p>
+              <p class="job__artifact">
+                <span class="job__file" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M12 3 20 7.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9" />
+                  </svg>
+                </span>
+                <span class="job__art-text">
+                  <span class="job__art-k mono">Artifact</span>
+                  <span class="job__art-v">{p.leaves}</span>
+                </span>
+              </p>
+              {i < PROCESS.length - 1 && <span class="job__link" aria-hidden="true" style={`--i:${i}`} />}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .run {
+    display: grid;
+    gap: clamp(1.25rem, 0.9rem + 1.2vw, 2rem);
+    padding: clamp(1rem, 0.6rem + 1.6vw, 2.25rem);
+    background: var(--surface-1);
+  }
+  .run__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px var(--space-4);
+    padding-bottom: var(--space-4);
+    box-shadow: inset 0 -1px 0 var(--line);
+  }
+  .run__title {
+    color: var(--text-2);
+  }
+  .run__legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-3);
+  }
+  .run__key {
+    position: relative;
+    width: 26px;
+    height: 2px;
+    background: var(--control-border);
+  }
+  .run__key::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid var(--control-border);
+    border-right: 2px solid var(--control-border);
+    transform: rotate(45deg);
+  }
+
+  /* ---------- the jobs ---------- */
+  .jobs {
+    --gap: 34px;
+    --head-h: 44px;
+    --pad: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap);
+    margin: 0;
+  }
+  @media (min-width: 1024px) {
+    .jobs {
+      --gap: clamp(28px, 1rem + 1.6vw, 48px);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: auto auto 1fr auto;
+      row-gap: 0;
+    }
+    .job {
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+    }
+  }
+  .job {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--pad);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .job__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--head-h);
+    margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 4px;
+    padding: 0 var(--pad);
+    box-shadow: inset 0 -1px 0 var(--line);
+  }
+  .job__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .job__icon path,
+  .job__file path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .job__idx {
+    color: var(--text-3);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .job__needs {
+    margin-left: auto;
+    padding: 2px 7px;
+    border-radius: var(--radius-xs);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text-2);
+    font-size: 0.625rem;
+    white-space: nowrap;
+  }
+  .job__title {
+    font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  }
+  .job__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  /* The artifact: a package chip at the foot of the job, on the shared bottom row. Content sits at
+     the top, so the labels line up across jobs even when one value wraps. */
+  .job__artifact {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    align-self: stretch;
+    margin-top: var(--space-2);
+    padding: 10px 12px;
+    border-radius: var(--radius-s);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .job__file {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: var(--surface-1);
+    color: var(--text-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .job__art-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+  .job__art-k {
+    color: var(--text-3);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+  }
+  .job__art-v {
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  /* ---------- connectors: from this job's edge to the next one, ending in an arrowhead ---------- */
+  .job__link {
+    position: absolute;
+    pointer-events: none;
+    background: var(--control-border);
+    transform-origin: left center;
+  }
+  .job__link::before,
+  .job__link::after {
+    content: '';
+    position: absolute;
+  }
+  /* start node: a small port on the job's edge */
+  .job__link::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--surface-1);
+  }
+  /* arrowhead touching the next job */
+  .job__link::after {
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid var(--control-border);
+    border-right: 2px solid var(--control-border);
+  }
+  @media (min-width: 1024px) {
+    .job__link {
+      left: 100%;
+      top: calc(var(--head-h) / 2 - 1px);
+      width: var(--gap);
+      height: 2px;
+    }
+    .job__link::before {
+      left: -4px;
+      top: -3px;
+    }
+    .job__link::after {
+      right: 1px;
+      top: -3.5px;
+      transform: rotate(45deg);
+    }
+  }
+  @media (max-width: 1023px) {
+    .job__link {
+      top: 100%;
+      left: calc(var(--pad) + 13px);
+      width: 2px;
+      height: var(--gap);
+      transform-origin: center top;
+    }
+    .job__link::before {
+      top: -4px;
+      left: -3px;
+    }
+    .job__link::after {
+      bottom: 1px;
+      left: -2.5px;
+      transform: rotate(135deg);
+    }
+  }
+
+  /* Reveal: once the list is revealed, each connector draws after its job has risen. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.is-armed) > .job .job__link {
+      transform: scaleX(0);
+      transition: transform 720ms var(--ease-in-out-quart);
+      transition-delay: calc(380ms + var(--i) * 140ms);
+    }
+    :global(.is-armed.is-revealed) > .job .job__link {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) and (max-width: 1023px) {
+    :global(.is-armed) > .job .job__link {
+      transform: scaleY(0);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .job__title,
+    .job__text,
+    .job__artifact {
+      margin-left: calc(28px + 10px);
+    }
+  }
+  @media (max-width: 479px) {
+    .job__title,
+    .job__text,
+    .job__artifact {
+      margin-left: 0;
+    }
+    .job__idx {
+      display: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .job__link,
+    .job__link::before {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
+  }
+</style>

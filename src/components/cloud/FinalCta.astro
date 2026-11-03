@@ -1,0 +1,193 @@
+---
+/**
+ * Final CTA + the shared contact form, themed from this scoped parent (README › Rules).
+ */
+import ContactForm from '../shared/ContactForm.astro';
+import { CALL_PROMISE } from '../../data/cloud/content';
+import { CONTACT_EMAIL, SUPPORT_HOURS, bookingUrl } from '../../data/cloud/site';
+---
+
+<section class="section cta" id="contact" aria-labelledby="contact-title">
+  <div class="container">
+    <div class="cta__card">
+      <div class="cta__copy inverse">
+        <p class="eyebrow">Contact</p>
+        <h2 id="contact-title">Let’s find what’s fragile, and what it costs.</h2>
+        <p class="lede">Free 30-minute scoping call. {CALL_PROMISE}.</p>
+        <a class="btn btn--inv cta__book" href={bookingUrl('final')}>
+          <span class="btn__led" aria-hidden="true"></span>
+          <span>Book a scoping call</span>
+        </a>
+        <p class="cta__mail">
+          Or email <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+        <p class="cta__hours mono">Support {SUPPORT_HOURS} · not on-call</p>
+      </div>
+
+      <div class="cta__form">
+        <p class="cta__form-title">Or write it down</p>
+        <ContactForm
+          niche="cloud"
+          cta="Send message"
+          fallbackEmail={CONTACT_EMAIL}
+          labels={{ message: 'What do you run, and what keeps breaking (or costing too much)?' }}
+          messages={{ success: 'Thanks, it’s through. I’ll reply within business hours (8AM–5PM EST).' }}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
+    padding: clamp(1.5rem, 1rem + 3vw, 4.5rem);
+    border-radius: var(--radius-l);
+    background:
+      radial-gradient(46rem 26rem at 0% 100%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 62%),
+      var(--btn-bg);
+    color: var(--btn-fg);
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) {
+    .cta__card {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+  .cta__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .cta__copy .eyebrow,
+  .cta__copy .lede,
+  .cta__mail,
+  .cta__hours {
+    color: inherit;
+  }
+  .cta__copy .eyebrow::before {
+    background: var(--accent-inv);
+  }
+  .cta__copy .lede,
+  .cta__mail,
+  .cta__hours {
+    opacity: 0.8;
+  }
+  .cta__copy h2 {
+    max-width: 15ch;
+  }
+  .cta__mail {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .cta__mail .link {
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  }
+  .cta__hours {
+    text-transform: uppercase;
+  }
+
+  /* ---------- the shared form, themed from here ---------- */
+  .cta__form {
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    color: var(--text);
+    --cf-gap: 1rem;
+    --cf-bg: var(--surface-2);
+    --cf-border: var(--control-border);
+    --cf-radius: 8px;
+    --cf-pad: 0.8rem 1rem;
+    --cf-focus: var(--focus);
+    --cf-btn-bg: var(--btn-bg);
+    --cf-btn-color: var(--btn-fg);
+    --cf-error: var(--error);
+    --cf-success: var(--success);
+  }
+  .cta__form-title {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-display);
+    font-stretch: 108%;
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+  }
+  .cta__form :global(.cf__label) {
+    font-weight: 700;
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__control) {
+    min-height: 48px;
+    transition:
+      border-color var(--dur-hover) var(--ease-out-quint),
+      box-shadow var(--dur-hover) var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__control:focus-visible) {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  /* Same language as .btn: ink plate with a mint deploy bar that fills it from the left.
+     Colours are set here explicitly because the base reset (button { color: inherit })
+     outranks the form's zero-specificity defaults. */
+  .cta__form :global(.cf__submit) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    min-height: 50px;
+    padding: 0 26px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0;
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      color 360ms var(--ease-out-quint) 140ms;
+  }
+  .cta__form :global(.cf__submit)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-fill) var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__submit:focus-visible) {
+    color: var(--on-accent);
+  }
+  .cta__form :global(.cf__submit:focus-visible)::before {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .cta__form :global(.cf__submit:hover:not(:disabled)) {
+      color: var(--on-accent);
+    }
+    .cta__form :global(.cf__submit:hover:not(:disabled))::before {
+      transform: scaleX(1);
+    }
+  }
+  .cta__form :global(.cf__submit:disabled) {
+    opacity: 0.7;
+  }
+  .cta__form :global(.cf__submit:active) {
+    transform: scale(0.98);
+  }
+  .cta__form :global(.cf__status) {
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__fallback) {
+    color: var(--accent-text);
+    font-weight: 700;
+  }
+</style>

@@ -1,0 +1,1225 @@
+---
+/**
+ * ★ Signature: the Rules engine (brief §4 item 4), as an in-place player, not a scroll-jack.
+ * An EXAMPLE account over 14 days (labelled illustrative): CPA against its target on top, daily
+ * spend against its cap below. Six steps: the account with no rules, then four rule cards
+ * arriving one at a time, each visibly acting on the chart (the CPA line glides back under
+ * target, a bar is clipped at the cap, an alert flags a day and the line recovers), then the
+ * change log.
+ *
+ * Playback: starts when a third of the player is on screen. The current story segment's fill is
+ * a CSS animation and its `animationend` advances the story, so pausing (button, off screen,
+ * hidden tab) just pauses the fill and nothing can drift out of sync. Clicking a step, prev or
+ * next hands control to the visitor (playback pauses; play resumes). Under reduced motion it
+ * never autoplays and there is no play button.
+ *
+ * Without JS: the chart shows the finished state (all four rules running), every step is a
+ * plain list, and the controls are hidden. The chart is a visual duplicate (aria-hidden); the
+ * step list and a visually hidden description are the accessible content.
+ */
+import { DAYS, RULES, SPEND_AVG, STEPS, chart, daysOver, type Chart } from '../../data/ads/rules';
+
+const charts: Chart[] = [chart('wide'), chart('narrow')];
+const n = STEPS.length;
+const last = n - 1;
+const STEP_MS = 4600;
+const tagW = (t: string, narrow: boolean) => Math.round(t.length * (narrow ? 8.4 : 7.3) + (narrow ? 14 : 18));
+const clampX = (x: number, w: number, c: Chart) => Math.max(c.f.x0, Math.min(c.f.x1 - w, x - w / 2));
+const dayLabels = (c: Chart) => (c.layout === 'wide' ? [0, 3, 6, 9, 13] : [0, 6, 13]);
+const kindLabel = { action: 'Action', alert: 'Alert' } as const;
+---
+
+<section class="section rules" id="rules" aria-labelledby="rules-title">
+  <div class="container head head--split">
+    <p class="eyebrow">The rules engine</p>
+    <h2 id="rules-title">Watch four rules take over an account.</h2>
+    <p class="lede">
+      Two weeks of an example account, first with nobody watching, then with one rule added at a time. It plays on its own;
+      step through it whenever you like.
+    </p>
+  </div>
+
+  <div class="container">
+    <div class="re" data-re data-step={last} style={`--step-ms:${STEP_MS}ms`} data-pause-offscreen>
+      <div class="re__panel">
+        <div class="re__top">
+          <span class="ex">Example account · illustrative</span>
+          <span class="re__meta mono">{DAYS} days · relative</span>
+          <span class="re__count mono" aria-hidden="true">
+            <span class="re__count-k">Days over target</span>
+            <span class="re__count-v num" data-re-over>{daysOver(RULES.length)}</span>
+          </span>
+          <span class="re__count mono" aria-hidden="true">
+            <span class="re__count-k">Rules running</span>
+            <span class="re__count-v num" data-re-running>{RULES.length}</span>
+          </span>
+        </div>
+
+        <div class="re__segs" aria-hidden="true" data-re-segs hidden>
+          {STEPS.map((_, i) => <span class="seg" data-seg={i}><span class="seg__fill" data-seg-fill /></span>)}
+        </div>
+
+        <figure class="re__chart" aria-labelledby="re-cap">
+          {
+            charts.map((c) => {
+              const narrow = c.layout === 'narrow';
+              const yT = c.yCpa(1);
+              const id = `re-${c.layout}`;
+              return (
+                <svg
+                  class={`re__svg re__svg--${c.layout}`}
+                  viewBox={`0 0 ${c.w} ${c.h}`}
+                  aria-hidden="true"
+                  data-re-svg
+                >
+                  <defs>
+                    <clipPath id={`${id}-above`}>
+                      <rect x="0" y="0" width={c.w} height={yT} />
+                    </clipPath>
+                    <pattern id={`${id}-hatch`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <rect class="re__hatch-bg" width="6" height="6" />
+                      <rect class="re__hatch-fg" width="2.2" height="6" />
+                    </pattern>
+                  </defs>
+
+                  {/* CPA panel */}
+                  <text class="re__axis-title" x={c.f.x0} y={c.f.cTop - 6}>
+                    {narrow ? 'CPA ÷ target' : 'CPA, relative to target'}
+                  </text>
+                  {c.ticks.map((t) => (
+                    <g>
+                      <line class:list={['re__grid', { 're__grid--t': t.v === 1 }]} x1={c.f.x0} x2={c.f.x1} y1={t.y} y2={t.y} />
+                      <text class:list={['re__tick', { 're__tick--t': t.v === 1 }]} x={c.f.x0 - 8} y={t.y + 3.5} text-anchor="end">
+                        {t.label}
+                      </text>
+                    </g>
+                  ))}
+                  <line class="re__base" x1={c.f.x0} x2={c.f.x1} y1={c.f.cBot} y2={c.f.cBot} />
+
+                  <path class="re__area" d={c.areas[last]} clip-path={`url(#${id}-above)`} data-ds={JSON.stringify(c.areas)} />
+                  <path class="re__ghost" d={c.ghost} />
+                  <path class="re__line" d={c.lines[last]} data-ds={JSON.stringify(c.lines)} />
+
+                  {/* Spend panel */}
+                  <text class="re__axis-title" x={c.f.x0} y={c.f.sTop - 8}>
+                    {narrow ? 'Spend ÷ daily cap' : 'Daily spend, relative to its cap'}
+                  </text>
+                  <line class="re__cap" x1={c.f.x0} x2={c.f.x1} y1={c.ySpend(1)} y2={c.ySpend(1)} />
+                  <text class="re__tick re__tick--t" x={c.f.x0 - 8} y={c.ySpend(1) + 3.5} text-anchor="end">
+                    Cap
+                  </text>
+                  <line class="re__avg" x1={c.f.x0} x2={c.f.x1} y1={c.ySpend(SPEND_AVG)} y2={c.ySpend(SPEND_AVG)} />
+                  {!narrow && (
+                    <text class="re__tick" x={c.f.x0 - 8} y={c.ySpend(SPEND_AVG) + 8} text-anchor="end">
+                      Avg
+                    </text>
+                  )}
+                  {c.bars.map((b) => (
+                    <g class:list={['re__bar', { 'is-held': b.rule > -1 }]} data-bar-rule={b.rule}>
+                      <rect class="re__kept" x={b.x} y={b.keptY} width={c.f.barW} height={b.keptH} rx="1.5" />
+                      {b.rule > -1 && (
+                        <>
+                          <rect class="re__ex re__ex--waste" x={b.x} y={b.exY} width={c.f.barW} height={b.exH} rx="1.5" />
+                          <rect
+                            class="re__ex re__ex--held"
+                            x={b.x + 0.75}
+                            y={b.exY + 0.75}
+                            width={c.f.barW - 1.5}
+                            height={Math.max(0, b.exH - 1.5)}
+                            rx="1.5"
+                            fill={`url(#${id}-hatch)`}
+                          />
+                        </>
+                      )}
+                    </g>
+                  ))}
+                  <line class="re__base" x1={c.f.x0} x2={c.f.x1} y1={c.f.sBot} y2={c.f.sBot} />
+                  {dayLabels(c).map((d) => (
+                    <text class="re__day" x={c.xs[d]} y={c.f.sBot + 16} text-anchor="middle">
+                      {narrow ? `${d + 1}` : `Day ${d + 1}`}
+                    </text>
+                  ))}
+
+                  {/* Rule marks: shown once their rule is running. */}
+                  {c.marks.map((m) => {
+                    const w = tagW(m.tag, narrow);
+                    const top = m.kind === 'alert' && !m.onBar;
+                    const th = narrow ? 20 : 19;
+                    // Spend tags sit beside the bar (right, or left near the edge), centred on the
+                    // held-back part, so they never cover the hatching they explain.
+                    // Phones are tight: the cap tag goes left of its bar, the spike tag above its bar.
+                    const right = m.x + c.f.barW / 2 + 6;
+                    const left = m.x - c.f.barW / 2 - 6 - w;
+                    const above = narrow && m.onBar && m.kind === 'alert';
+                    const side = narrow ? left : right + w <= c.f.x1 ? right : left;
+                    const exTop = m.exMid - (m.y - m.exMid);
+                    const ty = top
+                      ? c.f.cTop + 2
+                      : above
+                        ? exTop - th - 4
+                        : m.onBar
+                          ? m.exMid - th / 2
+                          : m.y - (narrow ? 24 : 28);
+                    const tx = above ? clampX(m.x, w, c) : m.onBar ? side : clampX(m.x, w, c);
+                    return (
+                      <g class:list={['re__mark', `re__mark--${m.kind}`, 'is-on']} data-mark={m.rule}>
+                        {top ? (
+                          <line class="re__flag" x1={m.x} x2={m.x} y1={c.f.cTop + 20} y2={c.f.cBot} />
+                        ) : (
+                          <>
+                            <circle class="re__ring" cx={m.x} cy={m.y} r={narrow ? 9 : 12} />
+                            <circle class="re__dot" cx={m.x} cy={m.y} r={narrow ? 3.6 : 4.5} />
+                          </>
+                        )}
+                        <g class="re__tag">
+                          <rect x={tx} y={ty} width={w} height={th} rx="3" />
+                          <text x={tx + w / 2} y={ty + (narrow ? 14.5 : 13.5)} text-anchor="middle">
+                            {m.tag.toUpperCase()}
+                          </text>
+                        </g>
+                      </g>
+                    );
+                  })}
+                </svg>
+              );
+            })
+          }
+          <figcaption id="re-cap" class="visually-hidden">
+            Example account chart over {DAYS} days. Without rules, CPA runs over target on {daysOver(0)} of {DAYS} days, one
+            day spends well past its daily cap, and a tracking outage reads as a spike. With all four rules running, CPA is over
+            target on {daysOver(RULES.length)} days: {RULES.map((r) => `${r.name} on day ${r.day + 1}: ${r.did}`).join('; ')}.
+          </figcaption>
+        </figure>
+
+        <div class="re__foot">
+          <p class="re__readout" aria-hidden="true">
+            <span class="re__readout-k mono" data-re-kind>Change log</span>
+            <span data-re-readout>{RULES.map((r) => `Day ${r.day + 1}: ${r.did}`).join(' · ')}</span>
+          </p>
+          <ul class="re__legend" role="list" aria-hidden="true">
+            <li><span class="sw sw--line"></span>CPA with rules</li>
+            <li><span class="sw sw--ghost"></span>Without rules</li>
+            <li><span class="sw sw--waste"></span>Over target</li>
+            <li><span class="sw sw--held"></span>Held back by a rule</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="re__side">
+        <ol class="re__steps" role="list">
+          {
+            STEPS.map((s, i) => {
+              const r = s.arriving !== undefined ? RULES[s.arriving] : undefined;
+              return (
+                <li
+                  class:list={['rc', { 'rc--rule': r }]}
+                  data-st={i}
+                  data-rules={s.rules}
+                  data-over={daysOver(s.rules)}
+                  data-title={s.title}
+                  data-kind={r ? `Day ${r.day + 1} · ${r.name}` : s.log ? 'Change log' : 'No rules'}
+                  data-readout={r ? r.did : s.log ? `${RULES.length} actions logged` : `CPA over target on ${daysOver(0)} of ${DAYS} days`}
+                >
+                  <button class="rc__btn" type="button" data-st-btn={i}>
+                    <span class="rc__num mono" aria-hidden="true">
+                      {String(i).padStart(2, '0')}
+                    </span>
+                    <span class="rc__title">{s.title}</span>
+                    {r ? (
+                      <span class:list={['rc__kind mono', `rc__kind--${r.kind}`]}>{kindLabel[r.kind]}</span>
+                    ) : (
+                      <span class="rc__kind mono">{s.log ? 'Log' : 'Before'}</span>
+                    )}
+                    <span class="visually-hidden">
+                      , step {i + 1} of {n}
+                    </span>
+                  </button>
+                  <div class="rc__body">
+                    <div class="rc__inner">
+                      {r && (
+                        <p class="rc__syntax">
+                          <span class="kw">IF</span>
+                          <span class="cond">{r.if}</span>
+                          {r.for && (
+                            <>
+                              <span class="kw">FOR</span>
+                              <span class="cond">{r.for}</span>
+                            </>
+                          )}
+                          <span class="kw">THEN</span>
+                          <span class="cond cond--act">{r.then}</span>
+                        </p>
+                      )}
+                      <p class="rc__text">{s.text}</p>
+                      {r && (
+                        <p class="rc__fired mono">
+                          <span class="pip" aria-hidden="true" />
+                          Fired day {r.day + 1} · {r.did}
+                        </p>
+                      )}
+                      {s.log && (
+                        <ol class="rc__log" role="list">
+                          {RULES.map((x) => (
+                            <li>
+                              <span class="rc__log-day mono">Day {x.day + 1}</span>
+                              <span class="rc__log-rule">{x.name}</span>
+                              <span class="rc__log-did">{x.did}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ol>
+
+        <div class="re__controls" data-re-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="re__step-count mono" aria-hidden="true"><span data-re-count>{n}</span> / {n}</span>
+          <span class="re__dots" aria-hidden="true">
+            {STEPS.map((_, i) => <span class="re__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-re-live></p>
+        <p class="re__note text-3">
+          Illustrative account, not a client’s. CPA and spend are shown relative to the account’s own target and cap, so there
+          are no figures to mistake for a result.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Compact by design: the whole player (panel and step column) reads in one look, about
+     85% of a 900px-tall screen at most, and never sprawls on wide screens. */
+  .re {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 1180px;
+    margin-inline: auto;
+  }
+  @media (min-width: 1200px) {
+    .re {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 21rem);
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+
+  /* ---------- the panel ---------- */
+  .re__panel {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: clamp(0.75rem, 0.55rem + 0.8vw, 1.125rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  .re__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+  }
+  .re__meta {
+    color: var(--text-3);
+  }
+  .re__count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 28px;
+    padding: 3px 9px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .re__meta + .re__count {
+    margin-left: auto;
+  }
+  .re__count-v {
+    min-width: 2ch;
+    color: var(--text);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* Story segments: the current one fills; its animationend advances the story. */
+  .re__segs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .seg {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .seg__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent-line);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .seg.is-past .seg__fill {
+    transform: scaleX(1);
+  }
+  /* Always attached to the current fill and only paused/resumed, so a pause continues where
+     it stopped instead of restarting the step. */
+  .seg.is-current .seg__fill {
+    animation: seg-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  .re:not(.is-playing) .seg.is-current .seg__fill {
+    animation-play-state: paused;
+  }
+  @keyframes seg-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg.is-current .seg__fill {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+
+  /* ---------- the chart ---------- */
+  .re__chart {
+    margin: 0;
+    padding: 10px 10px 4px;
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .re__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .re__svg--narrow {
+    display: none;
+  }
+  @media (max-width: 719px) {
+    .re__svg--wide {
+      display: none;
+    }
+    .re__svg--narrow {
+      display: block;
+    }
+    .re__chart {
+      padding: var(--space-3) var(--space-2) var(--space-2);
+    }
+  }
+  .re__axis-title,
+  .re__tick,
+  .re__day {
+    fill: var(--text-3);
+    font-family: var(--font-mono);
+    /* The wide chart draws at ~0.95× its viewBox: 12 units ≈ 11.4px on screen. */
+    font-size: 12px;
+  }
+  .re__axis-title {
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 11.6px;
+  }
+  .re__tick--t {
+    fill: var(--accent-text);
+    font-weight: 600;
+  }
+  /* The phone chart is drawn ~306px wide from a 340-unit viewBox: 12 units ≈ 11px on screen. */
+  .re__svg--narrow .re__axis-title,
+  .re__svg--narrow .re__tick,
+  .re__svg--narrow .re__day {
+    font-size: 12.5px;
+  }
+  .re__svg--narrow .re__axis-title {
+    letter-spacing: 0.02em;
+  }
+  .re__grid {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .re__grid--t,
+  .re__cap {
+    stroke: var(--accent-line);
+    stroke-width: 1.6;
+    stroke-dasharray: 6 5;
+  }
+  .re__avg {
+    stroke: var(--text-3);
+    stroke-width: 1;
+    stroke-dasharray: 1 4;
+    stroke-linecap: round;
+  }
+  .re__base {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+
+  /* Lines and the waste area. Where the browser can animate `d`, a step glides between
+     shapes on in-out-quart; elsewhere the attribute swaps. */
+  .re__area {
+    fill: var(--waste);
+    fill-opacity: 0.2;
+    stroke: none;
+    transition: d 1000ms var(--ease-in-out-quart);
+  }
+  .re__ghost {
+    fill: none;
+    stroke: var(--text-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+    opacity: 0.7;
+    transition: opacity 500ms var(--ease-out-quint);
+  }
+  .re[data-rules='0'] .re__ghost {
+    opacity: 0;
+  }
+  .re__line {
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: d 1000ms var(--ease-in-out-quart);
+  }
+  .re__svg--narrow .re__line {
+    stroke-width: 2.2;
+  }
+
+  /* Bars */
+  .re__kept {
+    fill: var(--text-3);
+    fill-opacity: 0.55;
+  }
+  .re__ex {
+    transition: opacity 600ms var(--ease-out-quint);
+  }
+  .re__ex--waste {
+    fill: var(--waste);
+    fill-opacity: 0.75;
+  }
+  .re__ex--held {
+    stroke: var(--accent-line);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 2;
+    opacity: 0;
+  }
+  .re__hatch-bg {
+    fill: var(--bg);
+  }
+  .re__hatch-fg {
+    fill: var(--accent);
+  }
+  .re__bar.is-held .re__ex--waste {
+    opacity: 0;
+  }
+  .re__bar.is-held .re__ex--held {
+    opacity: 1;
+  }
+
+  /* Marks */
+  .re__mark {
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out-quint);
+  }
+  .re__mark.is-on {
+    opacity: 1;
+  }
+  .re__ring {
+    fill: none;
+    stroke: var(--accent-line);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .re__dot {
+    fill: var(--accent);
+    stroke: var(--bg);
+    stroke-width: 2;
+  }
+  .re__flag {
+    stroke: var(--accent-line);
+    stroke-width: 1.6;
+    stroke-dasharray: 3 3;
+  }
+  .re__tag rect {
+    fill: var(--accent);
+  }
+  .re__tag text {
+    fill: var(--on-accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .re__svg--narrow .re__tag text {
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+  }
+  .re__mark--alert .re__tag rect {
+    fill: var(--surface-2);
+    stroke: var(--accent-line);
+    stroke-width: 1.2;
+  }
+  .re__mark--alert .re__tag text {
+    fill: var(--accent-text);
+  }
+  /* The trigger flash: the arriving rule's mark pulses once, then settles (spring). */
+  @media (prefers-reduced-motion: no-preference) {
+    .re__mark.is-new .re__ring {
+      animation: flash 1200ms var(--ease-out-quint) 650ms both;
+    }
+    .re__mark.is-new .re__tag {
+      animation: tag-in var(--dur-arrive) var(--ease-spring) 500ms both;
+      transform-box: fill-box;
+      transform-origin: center bottom;
+    }
+    .re__mark.is-new .re__flag {
+      animation: flag-in 700ms var(--ease-in-out-quart) 350ms both;
+      transform-box: fill-box;
+      transform-origin: center top;
+    }
+  }
+  @keyframes flash {
+    0% {
+      transform: scale(0.4);
+      stroke-width: 4;
+      opacity: 1;
+    }
+    60% {
+      transform: scale(1.9);
+      stroke-width: 1;
+      opacity: 0.35;
+    }
+    100% {
+      transform: scale(1);
+      stroke-width: 1.5;
+      opacity: 1;
+    }
+  }
+  @keyframes tag-in {
+    from {
+      transform: translateY(6px) scale(0.7);
+      opacity: 0;
+    }
+  }
+  @keyframes flag-in {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  .re.is-instant *,
+  .re.is-instant {
+    transition: none !important;
+  }
+
+  /* ---------- readout + legend ---------- */
+  /* Readout and legend share one row; the legend is one small line that wraps if it must. */
+  .re__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px var(--space-4);
+  }
+  .re__readout {
+    flex: 1 1 18rem;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px var(--space-3);
+    min-height: 2.4em;
+    padding: 7px 12px;
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    color: var(--text);
+    font-size: var(--fs-small);
+    font-weight: 550;
+    line-height: 1.45;
+  }
+  .re__readout-k {
+    flex: none;
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .re__legend {
+    flex: 0 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px var(--space-4);
+    margin: 0;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .re__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .sw {
+    flex: none;
+    display: inline-block;
+    width: 18px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .sw--line {
+    height: 3px;
+    background: var(--text);
+  }
+  .sw--ghost {
+    height: 0;
+    border-top: 2px dashed var(--text-3);
+  }
+  .sw--waste {
+    background: color-mix(in srgb, var(--waste) 30%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--waste) 60%, transparent);
+  }
+  .sw--held {
+    background: repeating-linear-gradient(-45deg, var(--accent) 0 2px, transparent 2px 5px);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+  }
+
+  /* ---------- steps: rule cards (no JS: all open, a plain list) ---------- */
+  .re__side {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    min-width: 0;
+  }
+  .re__steps {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+  }
+  .rc {
+    position: relative;
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition:
+      box-shadow 500ms var(--ease-out-quint),
+      background-color 500ms var(--ease-out-quint),
+      opacity 500ms var(--ease-out-quint);
+  }
+  .rc__btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--tap);
+    padding: 8px 10px 8px 12px;
+    border: 0;
+    border-radius: var(--radius-m);
+    background: none;
+    color: var(--text);
+    text-align: left;
+  }
+  .rc__num {
+    color: var(--text-3);
+  }
+  .rc__title {
+    font-weight: 650;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+  .rc[aria-current='step'] .rc__title {
+    font-size: 1rem;
+  }
+  .rc__kind {
+    padding: 1px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  .rc__kind--action {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .rc__inner {
+    display: grid;
+    gap: 8px;
+    padding: 0 12px 11px;
+  }
+  .rc__syntax {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .rc__text {
+    color: var(--text-2);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .rc__fired {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-size: 0.75rem;
+  }
+  /* The change log: one line per action (day · rule · what it did). */
+  .rc__log {
+    display: grid;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    border-top: 1px solid var(--line);
+  }
+  .rc__log li {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+    gap: 0 var(--space-2);
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .rc__log-day {
+    grid-row: span 2;
+    padding-top: 1px;
+    color: var(--accent-text);
+    font-size: 0.75rem;
+  }
+  .rc__log-rule {
+    font-weight: 650;
+  }
+  .rc__log-did {
+    color: var(--text-2);
+  }
+  @media (min-width: 1200px) {
+    .rc__log li {
+      grid-template-columns: 3.6rem minmax(0, 0.9fr) minmax(0, 1.25fr);
+    }
+    .rc__log-day {
+      grid-row: auto;
+    }
+  }
+  .re__note {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  /* ---------- live (JS) ---------- */
+  .is-live .rc__btn {
+    cursor: pointer;
+  }
+  /* A rule not deployed yet: a dashed, empty slot. */
+  .is-live .rc--rule:not(.is-armed) {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--line-strong) 55%, transparent);
+  }
+  .is-live .rc--rule:not(.is-armed) .rc__kind {
+    background: transparent;
+    color: var(--text-3);
+  }
+  .is-live .rc[aria-current='step'] {
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1.5px var(--accent-line),
+      var(--shadow-soft);
+  }
+  .is-live .rc[aria-current='step'] .rc__num {
+    color: var(--accent-text);
+  }
+  .is-live .rc:not([aria-current='step']) .rc__title {
+    color: var(--text-2);
+  }
+  @media (hover: hover) {
+    .is-live .rc:not([aria-current='step']) .rc__btn:hover .rc__title {
+      color: var(--text);
+    }
+  }
+  /* The arriving card deploys: it seats on the spring. */
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .rc.is-arriving {
+      animation: deploy var(--dur-arrive) var(--ease-spring) both;
+    }
+  }
+  @keyframes deploy {
+    from {
+      transform: translateX(14px) scale(0.97);
+    }
+  }
+  /* Accordion: only the current step opens; height glides via grid rows. */
+  .is-live .rc__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 560ms var(--ease-out-quint);
+  }
+  .is-live .rc[aria-current='step'] .rc__body {
+    grid-template-rows: 1fr;
+  }
+  .is-live .rc__body > .rc__inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .is-live .rc__inner > * {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 560ms var(--ease-out-quint);
+  }
+  .is-live .rc[aria-current='step'] .rc__inner > * {
+    opacity: 1;
+    transform: none;
+    transition-delay: 140ms;
+  }
+  .is-live .rc[aria-current='step'] .rc__inner > :nth-child(2) {
+    transition-delay: 220ms;
+  }
+  .is-live .rc[aria-current='step'] .rc__inner > :nth-child(3) {
+    transition-delay: 300ms;
+  }
+  .is-live .rc__body {
+    overflow: hidden;
+  }
+
+  /* ---------- controls ---------- */
+  .re__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .re__step-count {
+    margin-left: 6px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .re__dots {
+    display: none;
+  }
+
+  /* ---------- below 1200px: chart first, then the current card ---------- */
+  @media (max-width: 1199px) {
+    .is-live .rc:not([aria-current='step']) {
+      display: none;
+    }
+    .is-live .rc[aria-current='step'] {
+      min-height: 8rem;
+    }
+    .re__dots {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+    }
+    .re__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .re__dot.is-on {
+      background: var(--accent-line);
+    }
+    .re__dot.is-current {
+      width: 20px;
+    }
+  }
+  @media (min-width: 720px) and (max-width: 1199px) {
+    .is-live .re__side {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+    .is-live .re__note {
+      grid-column: 1 / -1;
+    }
+    .is-live .re__dots {
+      display: none;
+    }
+  }
+  @media (max-width: 719px) {
+    /* Phones: the "14 days · relative" note is said again in the note below; drop the line. */
+    .re__meta {
+      display: none;
+    }
+    .re__count {
+      font-size: 0.6875rem;
+      padding: 2px 8px;
+    }
+    .re__readout {
+      flex-basis: 100%;
+      padding: 6px 10px;
+      font-size: 0.875rem;
+    }
+    .re__legend li {
+      white-space: normal;
+    }
+    .re__meta + .re__count {
+      margin-left: 0;
+    }
+    .re__count {
+      order: 2;
+    }
+    .re__legend {
+      font-size: 0.6875rem;
+      gap: 2px var(--space-3);
+    }
+    .sw {
+      width: 14px;
+    }
+    .is-live .rc[aria-current='step'] {
+      min-height: 7rem;
+    }
+    .re__chart {
+      padding: 8px 6px 2px;
+    }
+    .re__panel {
+      gap: 8px;
+      padding: 10px;
+    }
+    .rc__log li {
+      padding: 3px 0;
+    }
+    .rc__inner {
+      gap: 6px;
+      padding-bottom: 9px;
+    }
+    .re__side {
+      gap: var(--space-2);
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/ads/base';
+
+  const re = document.querySelector<HTMLElement>('[data-re]');
+  if (re) {
+    const steps = [...re.querySelectorAll<HTMLElement>('[data-st]')];
+    const segs = [...re.querySelectorAll<HTMLElement>('[data-seg]')];
+    const dots = [...re.querySelectorAll<HTMLElement>('[data-dot]')];
+    const marks = [...re.querySelectorAll<SVGGElement>('[data-mark]')];
+    const bars = [...re.querySelectorAll<SVGGElement>('[data-bar-rule]')];
+    const shapes = [...re.querySelectorAll<SVGPathElement>('path[data-ds]')].map((el) => ({
+      el,
+      ds: JSON.parse(el.dataset.ds ?? '[]') as string[],
+    }));
+    const playBtn = re.querySelector<HTMLButtonElement>('[data-play]')!;
+    const overEl = re.querySelector<HTMLElement>('[data-re-over]');
+    const runEl = re.querySelector<HTMLElement>('[data-re-running]');
+    const kindEl = re.querySelector<HTMLElement>('[data-re-kind]');
+    const readEl = re.querySelector<HTMLElement>('[data-re-readout]');
+    const count = re.querySelector<HTMLElement>('[data-re-count]');
+    const live = re.querySelector<HTMLElement>('[data-re-live]');
+    const n = steps.length;
+    // Per-step state comes from the markup, so no page copy is bundled into this script.
+    const STEPS = steps.map((st) => ({
+      rules: Number(st.dataset.rules ?? 0),
+      over: st.dataset.over ?? '',
+      title: st.dataset.title ?? '',
+      kind: st.dataset.kind ?? '',
+      readout: st.dataset.readout ?? '',
+    }));
+    const reduced = prefersReduced();
+
+    let active = n - 1;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let started = false;
+
+    /** Restart the current segment's CSS animation from zero. */
+    const restartFill = () => {
+      const fill = segs[active]?.querySelector<HTMLElement>('[data-seg-fill]');
+      if (!fill) return;
+      fill.style.animation = 'none';
+      void fill.offsetWidth; // flush, so the next rule starts a fresh animation
+      fill.style.animation = '';
+    };
+
+    const render = (i: number) => {
+      const prevRules = STEPS[active]?.rules ?? 0;
+      active = (i + n) % n;
+      const s = STEPS[active]!;
+      const k = s.rules;
+      re.dataset.step = String(active);
+      re.dataset.rules = String(k);
+
+      // The line and the waste area: CSS `d` glides where supported; the attribute is the fallback.
+      shapes.forEach(({ el, ds }) => {
+        const d = ds[active];
+        if (!d) return;
+        el.setAttribute('d', d);
+        el.style.setProperty('d', `path("${d}")`);
+      });
+      marks.forEach((m) => {
+        const r = Number(m.dataset.mark);
+        m.classList.toggle('is-on', r < k);
+        // Only a rule arriving by moving forward one step flashes.
+        m.classList.toggle('is-new', r === k - 1 && k === prevRules + 1);
+      });
+      bars.forEach((b) => {
+        const r = Number(b.dataset.barRule);
+        b.classList.toggle('is-held', r > -1 && r < k);
+      });
+      steps.forEach((st, j) => {
+        if (j === active) st.setAttribute('aria-current', 'step');
+        else st.removeAttribute('aria-current');
+        const armed = st.classList.contains('rc--rule') && Number(st.dataset.rules) <= k;
+        st.classList.toggle('is-armed', armed);
+        st.classList.toggle('is-arriving', j === active && st.classList.contains('rc--rule') && k === prevRules + 1);
+      });
+      segs.forEach((g, j) => {
+        g.classList.toggle('is-past', j < active);
+        g.classList.toggle('is-current', j === active);
+      });
+      dots.forEach((d, j) => {
+        d.classList.toggle('is-on', j <= active);
+        d.classList.toggle('is-current', j === active);
+      });
+      if (overEl) overEl.textContent = s.over;
+      if (runEl) runEl.textContent = String(k);
+      if (kindEl) kindEl.textContent = s.kind;
+      if (readEl) readEl.textContent = s.readout;
+      if (count) count.textContent = String(active + 1);
+      // The last step rests longer, so the change log can be read before the loop.
+      re.style.setProperty('--dur', active === n - 1 ? 'calc(var(--step-ms) * 1.6)' : 'var(--step-ms)');
+      restartFill();
+    };
+
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      re.classList.toggle('is-playing', on);
+      playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+      playBtn.setAttribute('aria-label', wantsPlay ? 'Pause the walkthrough' : 'Play the walkthrough');
+    };
+
+    // The segment finishing is the clock: advance, loop after the last step.
+    re.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-seg-fill]')) return;
+      render(active + 1);
+    });
+
+    // Announce only what the visitor asked for (never autoplay), once, after it settles.
+    let liveTimer: number | undefined;
+    const announce = () => {
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        const s = STEPS[active]!;
+        if (live) live.textContent = `Step ${active + 1} of ${n}: ${s.title}. ${s.readout}.`;
+      }, 250);
+    };
+    const takeControl = (i: number) => {
+      wantsPlay = false;
+      setPlaying(false);
+      render(i);
+      announce();
+    };
+    steps.forEach((st, i) => st.querySelector('[data-st-btn]')?.addEventListener('click', () => takeControl(i)));
+    re.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    re.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    playBtn.addEventListener('click', () => {
+      wantsPlay = !wantsPlay;
+      if (wantsPlay && active === n - 1) render(0);
+      setPlaying(wantsPlay);
+    });
+    if (reduced) playBtn.hidden = true;
+
+    // Go live without animating the first frame from the server's finished state. Reduced
+    // motion keeps the finished state as the starting step (it is the most useful still).
+    re.classList.add('is-live', 'is-instant');
+    re.querySelectorAll<HTMLElement>('[data-re-controls], [data-re-segs]').forEach((el) => (el.hidden = false));
+    render(reduced ? n - 1 : 0);
+    setPlaying(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => re.classList.remove('is-instant')));
+
+    // Play only while a third of the player is visible; the visitor's pause always wins.
+    if ('IntersectionObserver' in window && !reduced) {
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          const visible = e.isIntersecting;
+          if (visible && !started) {
+            started = true;
+            render(0);
+          }
+          setPlaying(visible && wantsPlay);
+        },
+        { threshold: 0.33 },
+      ).observe(re);
+    }
+  }
+</script>

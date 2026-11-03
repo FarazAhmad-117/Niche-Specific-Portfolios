@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/ghl/Layout.astro';
+import Hero from '../../components/ghl/Hero.astro';
+import Proof from '../../components/ghl/Proof.astro';
+import Problem from '../../components/ghl/Problem.astro';
+import Switchboard from '../../components/ghl/Switchboard.astro';
+import Cases from '../../components/ghl/Cases.astro';
+import Offers from '../../components/ghl/Offers.astro';
+import Included from '../../components/ghl/Included.astro';
+import Process from '../../components/ghl/Process.astro';
+import Compare from '../../components/ghl/Compare.astro';
+import About from '../../components/ghl/About.astro';
+import Faq from '../../components/ghl/Faq.astro';
+import FinalCta from '../../components/ghl/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/ghl/seo';
+import { abs, homeLd } from '../../lib/ghl/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4): what this is → facts → the messy account → watch it get fixed
+ * (signature) → proof → how to buy → what's always included → how it runs → how I'm
+ * different → who builds it → questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so both linked cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <Switchboard />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <Compare />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

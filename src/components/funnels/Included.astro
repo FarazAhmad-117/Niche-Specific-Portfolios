@@ -1,0 +1,106 @@
+---
+/**
+ * "What every build includes" (brief §4 item 8). Each item carries a small line icon; the
+ * icons draw themselves (stroke-dashoffset, out-quint) as the list is revealed.
+ */
+import { INCLUDED } from '../../data/funnels/content';
+
+const ICONS: Record<(typeof INCLUDED)[number]['icon'], string> = {
+  shield: 'M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6zM8.5 12l2.5 2.5 4.5-5',
+  exit: 'M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10',
+  pause: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 9v6M14 9v6',
+  pin: 'M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  doc: 'M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6',
+};
+---
+
+<section class="section included" id="included" aria-labelledby="included-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow">In every build</p>
+      <h2 id="included-title">The unglamorous parts, done first.</h2>
+    </div>
+    <ul class="inc" role="list" data-reveal-stagger>
+      {
+        INCLUDED.map((item) => (
+          <li class="inc__item">
+            <span class="inc__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26">
+                <path d={ICONS[item.icon]} pathLength="1" />
+              </svg>
+            </span>
+            <h3 class="inc__title">{item.title}</h3>
+            <p class="inc__text">{item.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .included {
+    background: var(--surface-1);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .inc {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  /* Six items: 2×3 on tablets, 3×2 on desktop. Always full rows. */
+  @media (min-width: 640px) {
+    .inc {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .inc {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .inc__item {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+  }
+  .inc__icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .inc__icon path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .inc.is-armed .inc__icon path {
+      stroke-dashoffset: 1;
+    }
+    .inc.is-armed.is-revealed .inc__icon path {
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1200ms var(--ease-out-quint);
+      transition-delay: calc(200ms + min(var(--i, 0), 7) * 80ms);
+    }
+  }
+  .inc__title {
+    font-size: 1.25rem;
+  }
+  .inc__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

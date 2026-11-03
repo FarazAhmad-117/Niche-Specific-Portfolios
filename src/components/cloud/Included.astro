@@ -1,0 +1,91 @@
+---
+/**
+ * What every engagement includes (brief §4 item 8). Six items: a complete 3×2 grid on desktop,
+ * 2×3 on tablets, one column on phones. Each reads as a passing health check.
+ */
+import { INCLUDED } from '../../data/cloud/content';
+
+const ICONS: Record<(typeof INCLUDED)[number]['icon'], string> = {
+  code: 'M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14',
+  book: 'M5 4.5h9.5a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h9.5',
+  bell: 'M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
+  disk: 'M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  key: 'M14.5 9.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0zM13.2 12.7 20 19.5M17 16.5l2-2',
+  hand: 'M4 13.5h4l3 2.5h4.5a1.5 1.5 0 0 0 0-3H12M4 19.5h11l5.5-4a1.6 1.6 0 0 0-2-2.5L15 15',
+};
+---
+
+<section class="section included" id="included" aria-labelledby="included-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">In every engagement</p>
+      <h2 id="included-title">The checks that always pass at handover.</h2>
+      <p class="lede">Whatever the job, these are part of it, not extras.</p>
+    </div>
+
+    <ul class="checks" role="list" data-reveal-stagger>
+      {
+        INCLUDED.map((it) => (
+          <li class="check panel">
+            <div class="check__top">
+              <svg class="check__icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                <path d={ICONS[it.icon]} />
+              </svg>
+              <span class="status status--ok check__pass">Included</span>
+            </div>
+            <h3 class="check__title">{it.title}</h3>
+            <p class="check__text">{it.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .checks {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 700px) {
+    .checks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1100px) {
+    .checks {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .check {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+  }
+  .check__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+  .check__icon path {
+    fill: none;
+    stroke: var(--accent-text);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .check__pass {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .check__title {
+    font-size: 1.25rem;
+  }
+  .check__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+</style>

@@ -1,0 +1,660 @@
+/* funnels niche base: reset, typography, layout, shared primitives (buttons, bubbles, chips), reveals. */
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--anchor-gap));
+  overflow-x: clip;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 450;
+  line-height: var(--lh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 400ms var(--ease-out-quint), color 400ms var(--ease-out-quint);
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+dt,
+h1,
+h2,
+h3,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- typography ---------- */
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+}
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3,
+.h3 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+.lede {
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: var(--measure-lede);
+}
+.text-2 {
+  color: var(--text-2);
+}
+.text-3 {
+  color: var(--text-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  font-variant-ligatures: none;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+/* The accent word in a heading: rose ink with a hand-drawn underline swash. */
+.em {
+  position: relative;
+  color: var(--accent-text);
+  white-space: nowrap;
+}
+a {
+  color: inherit;
+}
+.link {
+  text-decoration: underline 1px var(--line-strong);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out-quint);
+}
+.link:focus-visible {
+  text-decoration-color: var(--accent);
+}
+@media (hover: hover) {
+  .link:hover {
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* ---------- focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+[tabindex="-1"]:focus:not(:focus-visible),
+main:focus {
+  outline: none;
+}
+
+/* ---------- layout ---------- */
+.container {
+  width: min(100% - 2 * var(--margin), var(--container-max));
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-section);
+  /* A #hash jump lands the heading (not the padding above it) just under the nav:
+     html's scroll-padding-top adds the nav height and gap back. */
+  scroll-margin-top: calc(-1 * var(--space-section));
+}
+
+/* Section heading block: eyebrow, h2, optional lede. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.head {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 60rem;
+  margin-bottom: clamp(2.5rem, 1.8rem + 3vw, 5rem);
+}
+.head > h2 {
+  max-width: 16ch;
+}
+.head--split {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  .head--split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--space-8);
+  }
+  .head--split > .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .head--split > .lede {
+    justify-self: end;
+  }
+}
+
+/* ---------- buttons ----------
+ * Primary: an ink pill with a rose dot. On hover the dot swells into a full rose fill
+ * (scale from the dot's own centre, out-expo), so the press target "fills up" toward the
+ * click. Secondary: a quiet outline pill whose arrow travels. */
+.btn {
+  --btn-dot: 10px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 24px 0 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.1;
+  text-decoration: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  /* The label flips colour a beat after the fill starts, as the rose passes under it. */
+  transition:
+    color 420ms var(--ease-out-quint) 140ms,
+    transform var(--dur-press) var(--ease-out-quint),
+    box-shadow var(--dur-hover) var(--ease-out-quint);
+}
+.btn__dot {
+  position: relative;
+  flex: none;
+  width: var(--btn-dot);
+  height: var(--btn-dot);
+}
+.btn__dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--accent);
+  /* Slow, even swell (out-quint over ~1s): reads as ink filling, not a flash. */
+  transition: transform 1050ms var(--ease-out-quint);
+}
+.btn:focus-visible {
+  color: var(--on-accent);
+}
+/* 10px dot x 72 = 720px: covers any button this site renders, measured from the dot. */
+.btn:focus-visible .btn__dot::before {
+  transform: scale(72);
+}
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--on-accent);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn:hover .btn__dot::before {
+    transform: scale(72);
+  }
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn--ghost {
+  padding-inline: 22px;
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  transition:
+    box-shadow var(--dur-hover) var(--ease-out-quint),
+    background-color var(--dur-hover) var(--ease-out-quint),
+    transform var(--dur-press) var(--ease-out-quint);
+}
+.btn__arrow {
+  display: inline-block;
+  transition: transform 520ms var(--ease-out-expo);
+}
+.btn--ghost:focus-visible {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+@media (hover: hover) {
+  .btn--ghost:hover {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+}
+.btn--ghost:hover .btn__arrow,
+.btn--ghost:focus-visible .btn__arrow {
+  transform: translateY(3px);
+}
+.btn--ghost.btn--side:hover .btn__arrow,
+.btn--ghost.btn--side:focus-visible .btn__arrow {
+  transform: translateX(4px);
+}
+
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.chip--live::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent);
+}
+.chip--rose {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ---------- message bubbles (shared by hero, journey, problem) ---------- */
+.bubble {
+  position: relative;
+  max-width: min(34ch, 100%);
+  padding: 12px 16px 13px;
+  border-radius: var(--radius-m);
+  font-size: 0.9688rem;
+  line-height: 1.45;
+}
+.bubble--out {
+  margin-left: auto;
+  border-bottom-right-radius: var(--radius-tail);
+  background: var(--bubble-out);
+  color: var(--bubble-out-text);
+}
+.bubble--in {
+  margin-right: auto;
+  border-bottom-left-radius: var(--radius-tail);
+  background: var(--bubble-in);
+  color: var(--bubble-in-text);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.bubble__meta {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.66;
+}
+/* System events in a thread: centred pills, not speech. */
+.event {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--event-bg);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.71875rem;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-align: center;
+}
+.event--rose {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+/* Placeholder chip for owner inputs that are still missing. Visible on purpose. */
+.todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+}
+
+/* ---------- a11y utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: var(--z-skip);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform 360ms var(--ease-out-quint);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- reveals ----------
+ * data-reveal (block) or data-reveal-stagger (direct children, 80ms steps, capped).
+ * Script arms only what is below the fold at load, so no-JS and above-the-fold content
+ * is never hidden. Lift + fade on out-quint; long and soft, never bouncy. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0);
+  }
+  [data-reveal].is-armed.is-revealed,
+  [data-reveal-stagger].is-armed.is-revealed > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-reveal) * 0.7) var(--ease-out-quint),
+      transform var(--dur-reveal) var(--ease-out-quint);
+    transition-delay: calc(min(var(--i, 0), 7) * 80ms);
+  }
+}
+@media print {
+  [data-reveal].is-armed,
+  [data-reveal-stagger].is-armed > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Pause CSS loops while off screen or in a background tab. */
+[data-pause-offscreen].is-paused *,
+[data-pause-offscreen].is-paused,
+[data-pause-offscreen].is-hidden-tab *,
+[data-pause-offscreen].is-hidden-tab {
+  animation-play-state: paused !important;
+}
+
+/* ---------- page transitions (cross-document View Transitions) ----------
+ * Home ↔ case pages. Three layers move at once, all on in-out-quart over ~0.9s:
+ *  - the outgoing page sinks a little and dims (it is "left behind")
+ *  - the incoming page rises behind a curved horizon: an ellipse clip that grows up from
+ *    the bottom edge, the same curve the footer sits on
+ *  - shared elements (a case card ↔ its page hero, the card title ↔ the h1) morph between
+ *    their two positions above both, so the eye follows the thing you clicked
+ * The nav is its own group and does not move. Browsers without support navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-sink 900ms var(--ease-in-out-quart) both;
+  }
+  ::view-transition-new(root) {
+    animation:
+      vt-horizon 900ms var(--ease-in-out-quart) both,
+      vt-rise 900ms var(--ease-out-quint) both;
+  }
+  /* Going back (history, or up to the home page) plays it in reverse: the old page lifts
+     away and the earlier page comes down from a horizon at the top. */
+  html:active-view-transition-type(back)::view-transition-old(root) {
+    animation-name: vt-lift;
+  }
+  html:active-view-transition-type(back)::view-transition-new(root) {
+    animation-name: vt-horizon-top, vt-drop;
+  }
+
+  /* The nav stays exactly where it is. */
+  ::view-transition-group(site-nav),
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none;
+  }
+
+  /* A case card ↔ its page hero. The box moves and resizes on in-out-quart; the two
+     snapshots are never stretched to the box (object-fit: none, pinned top-left), so text
+     stays crisp; the old one fades out early and the new one in late, so they never
+     double up into a ghost. */
+  ::view-transition-group(case-lead-drift),
+  ::view-transition-group(case-lead-pipeline),
+  ::view-transition-group(case-ai-seo-automator) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(case-lead-drift),
+  ::view-transition-image-pair(case-lead-pipeline),
+  ::view-transition-image-pair(case-ai-seo-automator) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-xl);
+  }
+  ::view-transition-old(case-lead-drift),
+  ::view-transition-old(case-lead-pipeline),
+  ::view-transition-old(case-ai-seo-automator),
+  ::view-transition-new(case-lead-drift),
+  ::view-transition-new(case-lead-pipeline),
+  ::view-transition-new(case-ai-seo-automator) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(case-lead-drift),
+  ::view-transition-old(case-lead-pipeline),
+  ::view-transition-old(case-ai-seo-automator) {
+    animation: vt-fade-out 360ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(case-lead-drift),
+  ::view-transition-new(case-lead-pipeline),
+  ::view-transition-new(case-ai-seo-automator) {
+    animation: vt-fade-in 520ms var(--ease-out-quint) 300ms both;
+  }
+}
+@keyframes vt-sink {
+  to {
+    opacity: 0.35;
+    transform: translateY(-4%) scale(0.97);
+  }
+}
+@keyframes vt-lift {
+  to {
+    opacity: 0.35;
+    transform: translateY(4%) scale(0.97);
+  }
+}
+@keyframes vt-horizon {
+  from {
+    clip-path: ellipse(130% 0% at 50% 100%);
+  }
+  to {
+    clip-path: ellipse(160% 150% at 50% 100%);
+  }
+}
+@keyframes vt-horizon-top {
+  from {
+    clip-path: ellipse(130% 0% at 50% 0%);
+  }
+  to {
+    clip-path: ellipse(160% 150% at 50% 0%);
+  }
+}
+@keyframes vt-rise {
+  from {
+    transform: translateY(6%);
+  }
+}
+@keyframes vt-drop {
+  from {
+    transform: translateY(-6%);
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Theme swap: the new snapshot wipes down over the old one (JS drives it). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* During a theme swap nothing is a shared element: the whole page wipes as one surface.
+   (!important in a stylesheet beats the inline view-transition-name.) */
+html.theme-vt [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+/* ---------- reduced motion: global kill switch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Inverted cards (background --btn-bg) re-point focus so the ring stays visible. */
+.inverse {
+  --focus: var(--focus-inv);
+}
+
+@media (forced-colors: active) {
+  .btn,
+  .bubble,
+  .event,
+  .chip {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

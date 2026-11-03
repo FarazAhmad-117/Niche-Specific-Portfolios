@@ -1,0 +1,109 @@
+---
+/**
+ * wp niche layout. Concept "Editorial" (docs/brief/wp.md §6).
+ *
+ * Props
+ *   title: string, description: string       -> <SEO>
+ *   path?: string                             canonical path on the subdomain (default: current page)
+ *   image?: string | ImageMetadata            og:image
+ *   noindex?: boolean                         per-page noindex (niche-wide switch is src/niches.ts)
+ *   jsonLd?: Record<string, unknown>[]        each emitted as <script type="application/ld+json">
+ *   expect?: string                           id of an element the first render must wait for, so a
+ *                                             page transition never snapshots the page before its
+ *                                             shared element exists (<link rel="expect">)
+ */
+import '../../styles/wp/tokens.css';
+import '../../styles/wp/base.css';
+import displayFontUrl from '../../assets/fonts/Boska-Medium.woff2?url';
+import SEO from '../../components/shared/SEO.astro';
+import Motion from '../../components/shared/Motion.astro';
+import Nav from '../../components/wp/Nav.astro';
+import Footer from '../../components/wp/Footer.astro';
+import StickyCta from '../../components/wp/StickyCta.astro';
+import { createLink } from '../../lib/link';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  image?: string | ImageMetadata;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  expect?: string;
+}
+
+const { title, description, path, image, noindex, jsonLd = [], expect } = Astro.props;
+
+const niche = 'wp' as const;
+const link = createLink(niche);
+
+// Runs before first paint; must stay tiny. CSS follows the system when nothing is stored.
+const themeScript =
+  "try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add('js')";
+const ld = (obj: Record<string, unknown>) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
+/*
+ * Page-transition direction. Both documents tag the same transition: the old one on
+ * `pageswap`, the new one on `pagereveal` (which must be registered before first render, so
+ * this is inline in <head>). "back" = a history traversal to an earlier entry, or going up
+ * from a case page to the home page; CSS plays the transition mirrored for it.
+ */
+/*
+ * Only ONE case box may morph per navigation: every page carries two case names (home: both
+ * cards; case page: its hero and the next-case card), so without pruning the unrelated card
+ * would fly across the screen too. Going forward the shared case is the one being opened
+ * (destination /work/<slug>/); going back it is the one being left (the earlier page is
+ * restored scrolled to that case's card), falling back to the other URL's slug. Both documents switch every other case name off,
+ * remembering the original in data-vt, so a page restored from bfcache can morph again.
+ * Landing on /#card-<slug> also scrolls the card into place before the first render, so
+ * the hero shrinks into a card that is on screen (the fragment jump lands frames later).
+ */
+const vtScript = `(function(){
+function slug(u){try{var m=/\\/work\\/([^/]+)/.exec(new URL(u).pathname);return m?m[1]:null}catch(e){return null}}
+function up(f,t){return Boolean(slug(f))&&!slug(t)}
+function back(type,fi,ti,f,t){return (type==='traverse'&&fi>-1&&ti>-1&&ti<fi)||up(f,t)}
+function keep(f,t,b,ty){var s=b?(slug(f)||slug(t)):(slug(t)||slug(f));if(s&&!slug(t)&&ty!=='traverse'){var h='';try{h=new URL(t).hash}catch(x){}if(h!=='#card-'+s)s=null}document.querySelectorAll('[style*="view-transition-name"]').forEach(function(el){var o=el.dataset.vt||el.style.viewTransitionName;if(o.indexOf('case-')!==0)return;el.dataset.vt=o;el.style.viewTransitionName=o==='case-'+s?o:'none'})}
+addEventListener('pageswap',function(e){var v=e.viewTransition,a=e.activation;if(!v||!a||!a.entry)return;var c=window.navigation&&navigation.currentEntry,b=back(a.navigationType,c?c.index:-1,a.entry.index,location.href,a.entry.url);keep(location.href,a.entry.url,b,a.navigationType);if(b)v.types.add('back')});
+addEventListener('pagereveal',function(e){var v=e.viewTransition,a=window.navigation&&navigation.activation;if(!v||!a||!a.from||!a.entry)return;var b=back(a.navigationType,a.from.index,a.entry.index,a.from.url,a.entry.url);keep(a.from.url,a.entry.url,b,a.navigationType);if(location.hash){var t=document.getElementById(decodeURIComponent(location.hash.slice(1)));if(t)t.scrollIntoView({block:'start',behavior:'instant'})}if(b)v.types.add('back')});
+})()`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline set:html={themeScript} />
+    <script is:inline set:html={vtScript} />
+    {expect && <link rel="expect" href={`#${expect}`} blocking="render" />}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e13" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={displayFontUrl} />
+    <link rel="icon" href={link('/icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={link('/apple-touch-icon.png')} />
+    <SEO niche={niche} title={title} description={description} path={path} image={image} noindex={noindex} />
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={ld(obj)} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <StickyCta />
+    <Motion />
+  </body>
+</html>
+
+<style>
+  main {
+    position: relative;
+    display: block;
+  }
+</style>
+
+<script>
+  import '../../lib/wp/base';
+</script>

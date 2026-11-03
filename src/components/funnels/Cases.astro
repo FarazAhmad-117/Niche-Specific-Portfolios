@@ -1,0 +1,257 @@
+---
+/**
+ * Case studies on the home page. Lead Drift leads (main case); the pipeline and AI SEO
+ * Automator sit beside it as compact cards. Each card is one link to its /work/<slug>/ page.
+ *
+ * Page transition: each card carries view-transition-name `case-<id>` and its title
+ * `case-name-<id>`; the case page hero uses the same names, so on navigation the card
+ * morphs into the hero while the rest of the page is wiped in behind it (base.css).
+ */
+import Flow from './Flow.astro';
+import AttributionRecord from './AttributionRecord.astro';
+import { CASES } from '../../data/funnels/cases';
+import { caseHref } from '../../lib/funnels/paths';
+
+const [main, ...rest] = CASES;
+if (!main) throw new Error('[funnels] no cases');
+// Only the card box morphs. The title is not a separate shared element: it wraps differently
+// on the card and on the page, so morphing it would stretch the text.
+const vt = (id: string) => `view-transition-name: case-${id}`;
+---
+
+<section class="section cases" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Case studies</p>
+      <h2 id="work-title">Built for my own pipeline first.</h2>
+      <p class="lede">The systems behind my own lead flow. Numbers are published once they’re cleared; until then, what each one does.</p>
+    </div>
+
+    {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
+        armed card is invisible at that moment. */}
+    <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
+      <div class="case__copy">
+        <div class="case__top">
+          <span class="case__kicker mono">{main.kicker}</span>
+          {main.status && <span class="chip chip--live">{main.status}</span>}
+        </div>
+        <h3 class="case__name">
+          <a class="case__link" href={caseHref(main.id)}>{main.name}</a>
+        </h3>
+        <p class="case__title">{main.title}</p>
+        <p class="case__text">{main.text}</p>
+        <ul class="case__facts" role="list">
+          {main.facts.map((f) => <li>{f}</li>)}
+        </ul>
+        <div class="case__end">
+          <span class="case__more" aria-hidden="true">Read the case study <span class="case__arrow">→</span></span>
+          {main.pending && <span class="todo">{main.pending}</span>}
+        </div>
+      </div>
+      <div class="case__visual case__visual--wide">
+        <Flow steps={main.flow} label={`${main.name}, how it runs`} />
+      </div>
+      <div class="case__visual case__visual--narrow">
+        <Flow steps={main.flow} label={`${main.name}, how it runs`} compact />
+      </div>
+    </article>
+
+    <div class="cases__pair">
+      {
+        rest.map((c) => (
+          <article class="case case--small" id={`card-${c.id}`} style={vt(c.id)}>
+            <div class="case__top">
+              <span class="case__kicker mono">{c.kicker}</span>
+              {c.status && <span class="chip chip--live">{c.status}</span>}
+            </div>
+            <h3 class="case__name">
+              <a class="case__link" href={caseHref(c.id)}>{c.name}</a>
+            </h3>
+            <p class="case__title">{c.title}</p>
+            {c.id === 'lead-pipeline' ? (
+              <AttributionRecord compact />
+            ) : (
+              <Flow steps={c.flow} label={`${c.name}, how it runs`} compact />
+            )}
+            <span class="case__more" aria-hidden="true">
+              Read the case study <span class="case__arrow">→</span>
+            </span>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .case {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: clamp(1.25rem, 0.8rem + 2vw, 3rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+  }
+  /* The title link stretches over the card: the whole card is the target, one tab stop. */
+  .case__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+  }
+  .case__link:focus-visible {
+    outline: none;
+  }
+  /* "All case studies" on a case page lands on its own card: give it air under the nav. */
+  .case {
+    scroll-margin-top: var(--space-4);
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .case:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-lift);
+    }
+    .case:hover .case__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .case--main {
+    gap: var(--space-6);
+    margin-bottom: var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .case--main {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      align-items: center;
+    }
+  }
+  .case__copy {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .case__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .case__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2rem, 1.5rem + 2.2vw, 3.75rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    width: fit-content;
+  }
+  .case--small .case__name {
+    font-size: clamp(1.625rem, 1.35rem + 1.1vw, 2.25rem);
+  }
+  .case__title {
+    font-size: var(--fs-lede);
+    font-weight: 700;
+    line-height: 1.3;
+    max-width: 30ch;
+  }
+  .case--small .case__title {
+    font-size: 1.0625rem;
+    color: var(--text-2);
+  }
+  .case__text {
+    color: var(--text-2);
+    max-width: 58ch;
+  }
+  .case__facts {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+  .case__facts li {
+    position: relative;
+    padding-left: 22px;
+  }
+  .case__facts li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.5em;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+  }
+  .case__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+  }
+  .case__end .todo {
+    position: relative;
+    z-index: 2;
+  }
+  .case__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+  .case__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  .case__visual--narrow {
+    display: none;
+  }
+  /* Phones: the zig-zag becomes a compact row and the fact list waits for the case page. */
+  @media (max-width: 719px) {
+    .case__visual--wide,
+    .case--main .case__facts,
+    .case--main .case__text {
+      display: none;
+    }
+    .case__visual--narrow {
+      display: block;
+    }
+    .case--main {
+      gap: var(--space-4);
+    }
+  }
+  .cases__pair {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 900px) {
+    .cases__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .case--small {
+    gap: var(--space-3);
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+  }
+</style>

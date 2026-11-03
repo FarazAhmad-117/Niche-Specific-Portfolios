@@ -1,0 +1,278 @@
+---
+/**
+ * Case studies on the home page: one row of three compact cards. AI SEO Automator (real, with
+ * TODO chips for what isn't verified), the example teardown (labelled), and a dashed slot for
+ * the open "Any rebuild / rescue" case, so the row is full and nothing pretends to be what it
+ * isn't. Detail lives on the case pages.
+ *
+ * Page transition: each linked card carries view-transition-name `case-<id>`; the case page hero
+ * box uses the same name, so the card morphs into it (base.css). Only the box morphs. Cards are
+ * never reveal-armed: a page transition may morph into one at load.
+ */
+import { CASES, CASE_SLOT } from '../../data/wp/cases';
+import { COUNTS } from '../../data/wp/player';
+import { folio } from '../../data/wp/site';
+import { caseHref } from '../../lib/wp/paths';
+
+const [main, teardown] = CASES;
+if (!main || !teardown) throw new Error('[wp] expected two cases');
+const vt = (id: string) => `view-transition-name: case-${id}`;
+---
+
+<section class="section cases" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('work')}</span>
+        <span class="folio__name">Case studies</span>
+        <span>Proof</span>
+      </p>
+      <h2 id="work-title">What I can show you today.</h2>
+      <p class="lede">
+        My own publishing product, a teardown of the kind of site I’m usually called in to fix, and a slot for client work once
+        it’s cleared to publish.
+      </p>
+    </div>
+
+    <div class="cases__row">
+      <article class="case" id={`card-${main.id}`} style={vt(main.id)}>
+        <p class="case__kicker kicker">{main.kicker}</p>
+        <h3 class="case__name">
+          <a class="case__link" href={caseHref(main.id)}>{main.name}</a>
+        </h3>
+        <p class="case__title">{main.title}</p>
+        <ol class="case__flow" role="list" aria-label={`${main.name}, in order`}>
+          {
+            main.flow.map((s, i) => (
+              <li>
+                <span class="mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {s}
+              </li>
+            ))
+          }
+        </ol>
+        <div class="case__end">
+          <span class="case__more" aria-hidden="true">Read the case <span class="case__arrow">→</span></span>
+          <span class="todo">{main.pending[0]}</span>
+        </div>
+      </article>
+
+      <article class="case" id={`card-${teardown.id}`} style={vt(teardown.id)}>
+        <p class="case__kicker kicker"><span class="stamp">Example</span> Illustrative teardown</p>
+        <h3 class="case__name">
+          <a class="case__link" href={caseHref(teardown.id)}>{teardown.name}</a>
+        </h3>
+        <p class="case__title">{teardown.title}</p>
+        <div class="td" aria-hidden="true">
+          <span class="td__col">
+            <span class="td__num">{COUNTS.before.plugins}</span>
+            <span class="td__label mono">plugins before</span>
+          </span>
+          <span class="td__rule"></span>
+          <span class="td__col">
+            <span class="td__num td__num--after">{COUNTS.after.plugins}</span>
+            <span class="td__label mono">after the fix</span>
+          </span>
+        </div>
+        <p class="visually-hidden">Example site: {COUNTS.before.plugins} plugins before, {COUNTS.after.plugins} after the fix.</p>
+        <div class="case__end">
+          <span class="case__more" aria-hidden="true">Read the teardown <span class="case__arrow">→</span></span>
+        </div>
+      </article>
+
+      <aside class="case case--slot" aria-label="Client case study placeholder">
+        <p class="case__kicker kicker">{CASE_SLOT.kicker}</p>
+        <p class="slot__title">{CASE_SLOT.title}</p>
+        <p class="slot__text">{CASE_SLOT.text}</p>
+        <ul class="slot__chips" role="list">
+          {
+            CASE_SLOT.chips.map((c) => (
+              <li>
+                <span class="todo">{c}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cases__row {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 960px) {
+    .cases__row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .case {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(1rem, 0.8rem + 0.6vw, 1.375rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    /* "All case studies" on a case page lands on its own card: give it air under the nav. */
+    scroll-margin-top: var(--space-4);
+  }
+  /* The title link stretches over the card: the whole card is the target, one tab stop. */
+  .case__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-l);
+  }
+  .case__link:focus-visible {
+    outline: none;
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .case:has(.case__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--text),
+        var(--shadow-lift);
+    }
+    .case:hover .case__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .case__kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3125rem, 1.2rem + 0.4vw, 1.5625rem);
+    line-height: 1.12;
+    letter-spacing: -0.018em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .case__title {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    max-width: 38ch;
+  }
+  .case__flow {
+    display: grid;
+    margin: var(--space-1) 0 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.875rem;
+  }
+  .case__flow li {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .case__flow .mono {
+    color: var(--accent-text);
+  }
+  .case__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+  }
+  .case__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+  .case__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+
+  /* Teardown mini: the example's count, before and after. */
+  .td {
+    display: grid;
+    grid-template-columns: auto minmax(1.5rem, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .td__col {
+    display: grid;
+    gap: 2px;
+  }
+  .td__num {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 2.125rem;
+    line-height: 1;
+    color: var(--fault);
+    text-decoration: line-through 2px;
+  }
+  .td__num--after {
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+  .td__label {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  .td__rule {
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  /* The client-story slot: a dashed, empty column. Not a link. */
+  .case--slot {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .slot__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3125rem, 1.2rem + 0.4vw, 1.5625rem);
+    line-height: 1.12;
+    letter-spacing: -0.018em;
+  }
+  .slot__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .slot__chips {
+    display: grid;
+    gap: 6px;
+    margin: var(--space-1) 0 0;
+  }
+</style>

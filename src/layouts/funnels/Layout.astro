@@ -1,81 +1,97 @@
 ---
+/**
+ * funnels niche layout. Concept "Flow" (docs/brief/funnels.md §6).
+ *
+ * Props
+ *   title: string, description: string       -> <SEO>
+ *   path?: string                             canonical path on the subdomain (default: current page)
+ *   image?: string | ImageMetadata            og:image
+ *   noindex?: boolean                         per-page noindex (niche-wide switch is src/niches.ts)
+ *   jsonLd?: Record<string, unknown>[]        each emitted as <script type="application/ld+json">
+ *   expect?: string                           id of an element the first render must wait for, so a
+ *                                             page transition never snapshots the page before its
+ *                                             shared element exists (<link rel="expect">)
+ */
+import '../../styles/funnels/tokens.css';
+import '../../styles/funnels/base.css';
+import cabinetUrl from '../../assets/fonts/CabinetGrotesk-Extrabold.woff2?url';
 import SEO from '../../components/shared/SEO.astro';
+import Motion from '../../components/shared/Motion.astro';
+import Nav from '../../components/funnels/Nav.astro';
+import Footer from '../../components/funnels/Footer.astro';
+import StickyCta from '../../components/funnels/StickyCta.astro';
 import { createLink } from '../../lib/link';
-import { getNiche } from '../../niches';
 
 interface Props {
   title: string;
   description: string;
-  /** Path on the subdomain; defaults to the current page. */
   path?: string;
+  image?: string | ImageMetadata;
   noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  expect?: string;
 }
 
-const { title, description, path, noindex } = Astro.props;
+const { title, description, path, image, noindex, jsonLd = [], expect } = Astro.props;
 
 const niche = 'funnels' as const;
 const link = createLink(niche);
-const { name } = getNiche(niche);
+
+// Runs before first paint; must stay tiny. CSS follows the system when nothing is stored.
+const themeScript =
+  "try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add('js')";
+const ld = (obj: Record<string, unknown>) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
+/*
+ * Page-transition direction. Both documents tag the same transition: the old one on
+ * `pageswap`, the new one on `pagereveal` (which must be registered before first render, so
+ * this is inline in <head>). "back" = a history traversal to an earlier entry, or going up
+ * from a case page to the home page; CSS plays the transition in reverse for it.
+ */
+const vtScript = `(function(){
+function up(f,t){try{var a=new URL(f).pathname,b=new URL(t).pathname;return /\\/work\\//.test(a)&&!/\\/work\\//.test(b)}catch(e){return false}}
+function back(type,fi,ti,f,t){return (type==='traverse'&&fi>-1&&ti>-1&&ti<fi)||up(f,t)}
+addEventListener('pageswap',function(e){var v=e.viewTransition,a=e.activation;if(!v||!a||!a.entry)return;var c=window.navigation&&navigation.currentEntry;if(back(a.navigationType,c?c.index:-1,a.entry.index,location.href,a.entry.url))v.types.add('back')});
+addEventListener('pagereveal',function(e){var v=e.viewTransition,a=window.navigation&&navigation.activation;if(!v||!a||!a.from||!a.entry)return;if(back(a.navigationType,a.from.index,a.entry.index,a.from.url,a.entry.url))v.types.add('back')});
+})()`;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <SEO niche={niche} title={title} description={description} path={path} noindex={noindex} />
+    <script is:inline set:html={themeScript} />
+    <script is:inline set:html={vtScript} />
+    {expect && <link rel="expect" href={`#${expect}`} blocking="render" />}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f2ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#151013" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={cabinetUrl} />
+    <link rel="icon" href={link('/icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={link('/apple-touch-icon.png')} />
+    <SEO niche={niche} title={title} description={description} path={path} image={image} noindex={noindex} />
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={ld(obj)} />)}
   </head>
   <body>
-    <div class="shell">
-      <header class="bar">
-        <a class="brand" href={link('/')}>{name}</a>
-      </header>
-      <main>
-        <slot />
-      </main>
-      <footer class="foot">© {new Date().getFullYear()} Faraz Ahmad</footer>
-    </div>
-    
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <StickyCta />
+    <Motion />
   </body>
 </html>
 
 <style>
-  /* Placeholder tokens: replace with the real design for this niche. */
-  body {
-    margin: 0;
-    background: hsl(30 30% 8%);
-  }
-  .shell {
-    --bg: hsl(30 30% 8%);
-    --fg: hsl(30 20% 94%);
-    --muted: hsl(30 10% 70%);
-    --accent: hsl(30 85% 62%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: system-ui, sans-serif;
-    line-height: 1.5;
-  }
-  .shell :global(*) {
-    box-sizing: border-box;
-  }
   main {
-    flex: 1;
-  }
-  .bar,
-  .foot {
-    padding: 1rem clamp(1rem, 4vw, 3rem);
-  }
-  .brand {
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .foot {
-    color: var(--muted);
-    font-size: 0.875rem;
+    position: relative;
+    display: block;
   }
 </style>
+
+<script>
+  import '../../lib/funnels/base';
+</script>

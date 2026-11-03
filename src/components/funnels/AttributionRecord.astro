@@ -1,0 +1,95 @@
+---
+/**
+ * Example first-touch record, using the real field names the shared contact form sends.
+ * `compact` drops the destination pill and caption for the home card.
+ */
+import { ATTRIBUTION_RECORD } from '../../data/funnels/cases';
+
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<figure class:list={['record', { 'record--compact': compact }]}>
+  <div class="record__card mono inverse">
+    {
+      ATTRIBUTION_RECORD.map(([k, v]) => (
+        <div class="record__row">
+          <span class="record__k">{k}</span>
+          <span class="record__v">{v}</span>
+        </div>
+      ))
+    }
+  </div>
+  {
+    !compact && (
+      <>
+        <div class="record__arrow" aria-hidden="true">
+          <svg viewBox="0 0 40 60" width="28" height="42">
+            <path d="M20 2C8 20 32 36 20 54M12 46l8 9 8-9" />
+          </svg>
+        </div>
+        <p class="event">GoHighLevel custom fields · tags · note · open opportunity</p>
+      </>
+    )
+  }
+  <figcaption class="text-3">Example record. Field names are the ones this site’s form really sends.</figcaption>
+</figure>
+
+<style>
+  .record {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-1);
+  }
+  .record__card {
+    display: grid;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-m);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .record__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: 5px;
+    border-bottom: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
+  }
+  .record__row:last-child {
+    border-bottom: 0;
+  }
+  .record__k {
+    opacity: 0.66;
+  }
+  .record__v {
+    color: var(--accent-inv);
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .record__arrow path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .record figcaption {
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+  .record--compact {
+    padding: var(--space-3);
+  }
+  .record--compact .record__row {
+    padding-block: 3px;
+    font-size: 0.75rem;
+  }
+</style>

@@ -210,7 +210,8 @@ Brief: `docs/brief/cloud.md` · draft brief · concept: Uptime
 - **Do you offer on-call?** — decided: No on-call; care plan is monitoring and fixes
 - **On-call hours / time zone** — decided: 8AM-5PM EST
 - **Clouds / tools you actually use and are certified in** — open (keep placeholder)
-- **Savings slider (bill to typical savings)** — decided: Include, labelled as an estimate
+- **Savings slider (bill to typical savings)** — decided: Do not include (changed 2026-11-03)
+  - Custom instructions: Owner: too big and technical for non-technical visitors, and dollar figures clash with "no pricing anywhere". Replaced by a plain-language "where cloud bills leak" section with no numbers.
 
 ### Build
 

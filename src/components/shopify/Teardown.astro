@@ -1,0 +1,1519 @@
+---
+/**
+ * ★ Signature: the Store teardown (brief §4 item 4), as an in-place player, not a scroll-jack.
+ * An EXAMPLE product page (store, product and scripts are illustrative and labelled) with a
+ * numbered hotspot on each problem. Six steps walk from "as found" through five fixes; each
+ * fix applies on the page and an illustrative speed meter climbs (a position on Slow → Fast,
+ * never a score or a load time). The last fix is a buying fix, so the meter holds still.
+ *
+ * Playback: starts when a third of the player is on screen. The current story segment's fill
+ * is a CSS animation and its `animationend` advances the story, so pausing (button, off
+ * screen, hidden tab) just pauses the fill and nothing drifts out of sync. Clicking a step, a
+ * hotspot, prev or next hands control to the visitor (playback pauses; play resumes). Under
+ * reduced motion it never autoplays and there is no play button.
+ *
+ * Below 1100px the steps become a swipeable card stack (scroll-snap), and the meter turns into
+ * a slim bar that sticks under the nav while the player is on screen, so the result stays in
+ * view while you swipe.
+ *
+ * Without JS: the page shows the fixed "after" state, the meter its final position, every step
+ * is a plain list, and the controls are hidden. The product page is a visual duplicate
+ * (aria-hidden); the steps list and a visually hidden description are the accessible content.
+ */
+import { SCRIPTS, STEPS, STORE, type FixId } from '../../data/shopify/teardown';
+
+const n = STEPS.length;
+const STEP_MS = 4800;
+const last = STEPS[n - 1]!;
+const allFixes = STEPS.map((s) => s.fix).filter((f): f is FixId => f !== null);
+const totalFixes = allFixes.length;
+/** Step index of each fix, for the hotspot numbers. */
+const stepOf = (fix: FixId) => STEPS.findIndex((s) => s.fix === fix);
+/** Hotspots carry the visible step number (01-based, the same as the list and the counter). */
+const hsNum = (fix: FixId) => String(stepOf(fix) + 1);
+const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix' } as const;
+const TICKS = Array.from({ length: 11 }, (_, i) => i / 10);
+const tick = (t: number, r1: number, r2: number) => {
+  const a = Math.PI * (1 - t);
+  return { x1: 100 + r1 * Math.cos(a), y1: 100 - r1 * Math.sin(a), x2: 100 + r2 * Math.cos(a), y2: 100 - r2 * Math.sin(a) };
+};
+---
+
+<section class="section tds" id="teardown" aria-labelledby="teardown-title">
+  <div class="container head head--split">
+    <p class="eyebrow">Store teardown</p>
+    <h2 id="teardown-title">Watch a slow product page get fast.</h2>
+    <p class="lede">
+      An example store, one fix at a time.
+      <span data-td-js-only hidden
+        >It plays on its own; step through it, or tap a numbered spot on the page to jump to that fix.</span
+      >
+    </p>
+  </div>
+
+  <div class="container">
+    <div
+      class="td"
+      data-td
+      data-step={n - 1}
+      data-fixes={allFixes.join(' ')}
+      style={`--step-ms:${STEP_MS}ms;--meter:${last.meter}`}
+      data-pause-offscreen
+    >
+      <!-- The meter: a dial on desktop, a slim sticky bar below 1100px. -->
+      <div class="meter" aria-hidden="true">
+        <svg class="meter__dial" viewBox="0 0 200 118">
+          <path class="meter__track" d="M20 100A80 80 0 0 1 180 100" pathLength="1"></path>
+          <path class="meter__fill" d="M20 100A80 80 0 0 1 180 100" pathLength="1"></path>
+          {
+            TICKS.map((t) => {
+              const k = tick(t, 62, t % 0.5 === 0 ? 52 : 56);
+              return <line class="meter__tick" x1={k.x1} y1={k.y1} x2={k.x2} y2={k.y2} />;
+            })
+          }
+          <g class="meter__needle">
+            <line x1="100" y1="100" x2="100" y2="40"></line>
+            <circle cx="100" cy="100" r="7"></circle>
+          </g>
+          <text class="meter__end" x="20" y="117" text-anchor="middle">SLOW</text>
+          <text class="meter__end" x="180" y="117" text-anchor="middle">FAST</text>
+        </svg>
+        <div class="meter__bar">
+          <span class="meter__bar-end mono">Slow</span>
+          <span class="meter__bar-track"><span class="meter__bar-fill"></span><span class="meter__bar-pin"></span></span>
+          <span class="meter__bar-end mono">Fast</span>
+        </div>
+        <div class="meter__read">
+          <span class="meter__title">Speed</span>
+          <span class="meter__fixes mono"
+            >Fixes applied <span class="num" data-td-fixes>{totalFixes}</span>/{totalFixes}</span
+          >
+          <span class="meter__note mono">Illustrative · not a measurement</span>
+        </div>
+      </div>
+
+      <div class="td__stage">
+        <div class="td__segs" aria-hidden="true" data-td-segs hidden>
+          {STEPS.map((_, i) => <span class="seg" data-seg={i}><span class="seg__fill" data-seg-fill /></span>)}
+        </div>
+
+        <figure class="pp" aria-labelledby="pp-cap">
+          <div class="pp__frame" aria-hidden="true">
+            <div class="pp__bar">
+              <span class="pp__dots"><span></span><span></span><span></span></span>
+              <span class="pp__url mono">{STORE.url}</span>
+              <span class="tag tag--example pp__ex">Example</span>
+            </div>
+            <div class="pp__page" data-td-page>
+              <div class="pp__announce" data-anchor="section">
+                <span class="pp__announce-text">Spring sale ends Sunday</span>
+                <span class="pp__badge pp__badge--app">App · countdown.js</span>
+                <span class="pp__badge pp__badge--ok">Theme section</span>
+                <span class="hs" data-hs={stepOf('section')}>{hsNum('section')}</span>
+              </div>
+              <div class="pp__header">
+                <span class="pp__logo">{STORE.name}</span>
+                <span class="pp__links"><span></span><span></span><span></span></span>
+                <span class="pp__cart"></span>
+              </div>
+              <div class="pp__main">
+                <div class="pp__gallery">
+                  <div class="pp__photo" data-anchor="img">
+                    <svg class="pp__mug" viewBox="0 0 120 120">
+                      <ellipse cx="58" cy="100" rx="34" ry="6" class="mug__shadow"></ellipse>
+                      <path class="mug__handle" d="M84 46c14 0 20 8 20 18s-7 18-21 18" fill="none" stroke-width="8" stroke-linecap="round"></path>
+                      <path class="mug__body" d="M30 34h56v52c0 8-6 14-14 14H44c-8 0-14-6-14-14z"></path>
+                      <ellipse class="mug__rim" cx="58" cy="34" rx="28" ry="5"></ellipse>
+                      <g class="mug__specks">
+                        <circle cx="40" cy="50" r="1.3"></circle><circle cx="52" cy="62" r="1"></circle><circle cx="70" cy="48" r="1.4"></circle>
+                        <circle cx="62" cy="78" r="1.1"></circle><circle cx="44" cy="84" r="1.3"></circle><circle cx="76" cy="70" r="1"></circle>
+                        <circle cx="56" cy="44" r="0.9"></circle><circle cx="38" cy="70" r="1"></circle>
+                      </g>
+                    </svg>
+                    <span class="pp__load" aria-hidden="true"></span>
+                    <span class="pp__badge pp__badge--app pp__photo-badge">Full-size upload</span>
+                    <span class="pp__badge pp__badge--ok pp__photo-badge">Sized · loads first</span>
+                    <span class="hs" data-hs={stepOf('img')}>{hsNum('img')}</span>
+                  </div>
+                  <div class="pp__thumbs">
+                    <span></span><span></span><span></span>
+                    <span class="pp__lazy mono">lazy</span>
+                  </div>
+                </div>
+                <div class="pp__info">
+                  <span class="pp__crumb"></span>
+                  <span class="pp__title">{STORE.product}</span>
+                  <span class="pp__stars"><span>★★★★★</span><span class="pp__stars-n">reviews</span></span>
+                  <span class="pp__price"></span>
+                  <span class="pp__swatches">
+                    {STORE.variants.map((v, i) => <span class={`pp__sw pp__sw--${i}`} title={v} />)}
+                  </span>
+                  <span class="pp__atc" data-anchor="sticky">
+                    Add to cart
+                    <span class="hs" data-hs={stepOf('sticky')}>{hsNum('sticky')}</span>
+                  </span>
+                  <span class="pp__upsell"><span></span><span></span></span>
+                </div>
+              </div>
+              <span class="pp__chat" data-anchor="chat">
+                <span class="pp__chat-dot"></span>
+                <span class="pp__chat-label mono">chat.js</span>
+                <span class="pp__chat-label pp__chat-label--ok mono">on tap</span>
+                <span class="hs" data-hs={stepOf('chat')}>{hsNum('chat')}</span>
+              </span>
+              <div class="pp__sticky">
+                <span class="pp__sticky-name">{STORE.product}</span>
+                <span class="pp__sticky-btn">Add to cart</span>
+              </div>
+            </div>
+            <div class="pp__scripts">
+              <span class="pp__scripts-label mono">Loaded on this page</span>
+              <span class="pp__chips">
+                {
+                  SCRIPTS.map((s) => (
+                    <span class:list={['chipjs mono', { 'chipjs--fix': s.fix }]} data-fix={s.fix ?? undefined}>
+                      <span class="chipjs__name">{s.name}</span>
+                      {s.after && <span class="chipjs__after">{s.after}</span>}
+                      {s.fix === 'dead' && <span class="hs" data-hs={stepOf('dead')}>{hsNum('dead')}</span>}
+                    </span>
+                  ))
+                }
+              </span>
+            </div>
+          </div>
+          <figcaption id="pp-cap" class="visually-hidden">
+            An example product page from an illustrative store, {STORE.name}, selling a {STORE.product.toLowerCase()}. It loads
+            {SCRIPTS.map((s) => s.name).join(', ')}. The steps below apply one fix each.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="td__side">
+        <ol class="td__steps" role="list" data-td-steps>
+          {
+            STEPS.map((s, i) => (
+              <li
+                class="st"
+                data-st={i}
+                data-fix={s.fix ?? undefined}
+                data-meter={s.meter}
+                data-title={s.title}
+                aria-current={i === n - 1 ? 'step' : undefined}
+              >
+                {/* Disabled until the player is live: without JS these buttons would do nothing. */}
+                <button class="st__btn" type="button" data-st-btn={i} disabled>
+                  <span class="st__num mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="st__title">{s.title}</span>
+                  <span class:list={['st__kind mono', `st__kind--${s.kind}`]}>{kindLabel[s.kind]}</span>
+                  <span class="visually-hidden">
+                    , step {i + 1} of {n}
+                  </span>
+                </button>
+                <div class="st__body">
+                  <div class="st__body-inner">
+                    <p class="st__text">{s.text}</p>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="td__controls" data-td-controls hidden>
+          <button class="ctl" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+          </button>
+          <button class="ctl ctl--play" type="button" data-play aria-label="Pause the walkthrough">
+            <svg class="ctl__pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="ctl__play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+          <button class="ctl" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <span class="td__count mono" aria-hidden="true"><span data-td-count>{n}</span> / {n}</span>
+          <span class="td__dots" aria-hidden="true">
+            {STEPS.map((_, i) => <span class="td__dot" data-dot={i} />)}
+          </span>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-td-live></p>
+        <p class="td__note text-3">
+          Illustrative store, not a client’s. The meter shows direction, not a score: real audits measure before and after the same
+          way.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* =========================================================
+     Layout
+     ========================================================= */
+  .td {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-areas: 'meter' 'stage' 'side';
+  }
+  @media (min-width: 1100px) {
+    .td {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      grid-template-areas: 'stage meter' 'stage side';
+      grid-template-rows: auto 1fr;
+      column-gap: var(--space-6);
+      align-items: start;
+    }
+  }
+  .meter {
+    grid-area: meter;
+  }
+  .td__stage {
+    grid-area: stage;
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .td__side {
+    grid-area: side;
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    min-width: 0;
+  }
+
+  /* =========================================================
+     Meter
+     ========================================================= */
+  .meter {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .meter__dial {
+    display: none;
+    width: 100%;
+    max-width: 260px;
+    margin-inline: auto;
+    overflow: visible;
+  }
+  .meter__track,
+  .meter__fill {
+    fill: none;
+    stroke-width: 14;
+    stroke-linecap: round;
+  }
+  .meter__track {
+    stroke: var(--surface-1);
+  }
+  .meter__fill {
+    stroke: var(--accent);
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--meter));
+    transition: stroke-dashoffset 1100ms var(--ease-in-out-quart);
+  }
+  .meter__tick {
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .meter__needle {
+    transform-origin: 100px 100px;
+    transform: rotate(calc(-90deg + var(--meter) * 180deg));
+    transition: transform 1200ms var(--ease-spring);
+  }
+  .meter__needle line {
+    stroke: var(--text);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .meter__needle circle {
+    fill: var(--text);
+    stroke: var(--surface-2);
+    stroke-width: 3;
+  }
+  .meter__end {
+    fill: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .meter__read {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px var(--space-3);
+  }
+  .meter__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.375rem;
+    letter-spacing: -0.01em;
+  }
+  .meter__fixes {
+    color: var(--text);
+  }
+  .meter__note {
+    flex-basis: 100%;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  /* Slim bar version (below 1100px). */
+  .meter__bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .meter__bar-end {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  .meter__bar-track {
+    position: relative;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .meter__bar-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(var(--meter));
+    transition: transform 1100ms var(--ease-in-out-quart);
+  }
+  .meter__bar-pin {
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 4px;
+    height: 18px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: var(--text);
+    translate: calc(var(--meter) * var(--track-w, 0px)) 0;
+  }
+  @media (min-width: 1100px) {
+    .meter__dial {
+      display: block;
+    }
+    .meter__bar {
+      display: none;
+    }
+    .meter__read {
+      justify-content: center;
+      text-align: center;
+    }
+    .meter__note {
+      text-align: center;
+    }
+  }
+  @media (max-width: 1099px) {
+    /* Stays in view under the nav while you swipe through the fixes. */
+    .meter {
+      position: sticky;
+      top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 8px);
+      z-index: 3;
+      padding: var(--space-3) var(--space-4);
+      background: color-mix(in srgb, var(--surface-2) 92%, transparent);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    .meter__title {
+      font-size: 1.0625rem;
+    }
+    .meter__read {
+      order: -1;
+    }
+    .meter__note {
+      flex-basis: auto;
+    }
+  }
+
+  /* Story segments: the current one fills; its animationend advances the story. */
+  .td__segs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .seg {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .seg__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .seg.is-past .seg__fill {
+    transform: scaleX(1);
+  }
+  /* Always attached to the current fill and only paused/resumed, so a pause continues where
+     it stopped instead of restarting the step. */
+  .seg.is-current .seg__fill {
+    animation: seg-fill var(--dur, var(--step-ms)) linear forwards;
+  }
+  .td:not(.is-playing) .seg.is-current .seg__fill {
+    animation-play-state: paused;
+  }
+  @keyframes seg-fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg.is-current .seg__fill {
+      animation: none;
+      transform: scaleX(1);
+    }
+  }
+
+  /* =========================================================
+     The example product page. Sized in container units so it keeps its layout from a phone
+     to a wide desktop (it is a picture of a page, not a page).
+     ========================================================= */
+  .pp {
+    margin: 0;
+    container-type: inline-size;
+  }
+  .pp__frame {
+    --u: 1cqi;
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    overflow: hidden;
+  }
+  .pp__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .pp__dots {
+    display: flex;
+    gap: 5px;
+  }
+  .pp__dots span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .pp__url {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    color: var(--text-3);
+    font-size: clamp(0.625rem, 1.6cqi, 0.75rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pp__page {
+    position: relative;
+    padding-bottom: calc(var(--u) * 9);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  /* Badges: an "app" badge before the fix, an "ok" badge after. Only one shows. */
+  .pp__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: clamp(0.5625rem, 1.5cqi, 0.6875rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .pp__badge--app {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  .pp__badge--ok {
+    display: none;
+    background: var(--accent-fill);
+    color: var(--on-accent);
+  }
+
+  .pp__announce {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: calc(var(--u) * 6.4);
+    padding: 6px 12px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: clamp(0.6875rem, 1.8cqi, 0.875rem);
+    font-weight: 500;
+  }
+  .pp__header {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 3);
+    padding: calc(var(--u) * 2.6) calc(var(--u) * 4);
+    border-bottom: 1px solid var(--line);
+  }
+  .pp__logo {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(0.875rem, 2.8cqi, 1.375rem);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .pp__links {
+    display: flex;
+    gap: calc(var(--u) * 2);
+    margin-inline: auto;
+  }
+  .pp__links span,
+  .pp__crumb,
+  .pp__price,
+  .pp__upsell span {
+    display: block;
+    height: calc(var(--u) * 1.4);
+    min-height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  .pp__links span {
+    width: calc(var(--u) * 7);
+  }
+  .pp__cart {
+    width: calc(var(--u) * 3.4);
+    height: calc(var(--u) * 3.4);
+    min-width: 14px;
+    min-height: 14px;
+    border: 2px solid var(--text-2);
+    border-radius: 3px 3px 6px 6px;
+  }
+  .pp__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: calc(var(--u) * 4);
+    padding: calc(var(--u) * 3.2) calc(var(--u) * 4);
+  }
+  .pp__gallery {
+    display: grid;
+    gap: calc(var(--u) * 1.6);
+  }
+  .pp__photo {
+    position: relative;
+    aspect-ratio: 1 / 0.8;
+    border-radius: calc(var(--u) * 1.6);
+    background:
+      radial-gradient(70% 60% at 50% 40%, #f3e2cf, transparent 70%),
+      linear-gradient(160deg, #ead5bd, #d9bc9c);
+  }
+  .pp__mug {
+    position: absolute;
+    inset: 12%;
+    width: 76%;
+    height: 76%;
+    filter: blur(5px) saturate(0.7);
+    opacity: 0.75;
+    transition:
+      filter 900ms var(--ease-out-quint),
+      opacity 900ms var(--ease-out-quint);
+  }
+  .mug__shadow {
+    fill: rgb(80 50 30 / 0.25);
+  }
+  .mug__body {
+    fill: #c25a35;
+  }
+  .mug__rim {
+    fill: #8f3d20;
+  }
+  .mug__handle {
+    stroke: #b24f2d;
+  }
+  .mug__specks circle {
+    fill: #f4e2d0;
+    opacity: 0.85;
+  }
+  /* Before: a slow bar crawling across the top of the photo, like a heavy image arriving. */
+  .pp__load {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--warn-dot) 0 30%, transparent 30%);
+    background-size: 300% 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pp__load {
+      animation: crawl 3.2s linear infinite;
+    }
+  }
+  @keyframes crawl {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -50% 0;
+    }
+  }
+  .pp__photo-badge {
+    position: absolute;
+    left: calc(var(--u) * 1.6);
+    bottom: calc(var(--u) * 1.6);
+  }
+  .pp__thumbs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(var(--u) * 1.6);
+  }
+  .pp__thumbs > span:not(.pp__lazy) {
+    aspect-ratio: 1;
+    border-radius: calc(var(--u) * 1);
+    background: linear-gradient(160deg, #ead5bd, #d9bc9c);
+    opacity: 0.8;
+  }
+  .pp__lazy {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    display: none;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: clamp(0.5625rem, 1.4cqi, 0.6875rem);
+  }
+  .pp__info {
+    display: grid;
+    align-content: start;
+    gap: calc(var(--u) * 2);
+    min-width: 0;
+  }
+  .pp__crumb {
+    width: 40%;
+  }
+  .pp__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(0.9375rem, 3.6cqi, 1.875rem);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+  .pp__stars {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-text);
+    font-size: clamp(0.625rem, 1.7cqi, 0.875rem);
+    letter-spacing: 0.08em;
+  }
+  .pp__stars-n {
+    color: var(--text-3);
+    letter-spacing: 0;
+  }
+  .pp__price {
+    width: 30%;
+    height: calc(var(--u) * 2.2);
+    background: var(--text-2);
+    opacity: 0.55;
+  }
+  .pp__swatches {
+    display: flex;
+    gap: calc(var(--u) * 1.4);
+  }
+  .pp__sw {
+    width: calc(var(--u) * 3.6);
+    height: calc(var(--u) * 3.6);
+    min-width: 12px;
+    min-height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--line-strong);
+  }
+  .pp__sw--0 {
+    background: #c25a35;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text);
+  }
+  .pp__sw--1 {
+    background: #b9b2a6;
+  }
+  .pp__sw--2 {
+    background: #6f7a4f;
+  }
+  .pp__atc {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: calc(var(--u) * 7);
+    padding: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: clamp(0.6875rem, 2cqi, 1rem);
+    font-weight: 600;
+  }
+  .pp__upsell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(var(--u) * 1.6);
+    margin-top: calc(var(--u) * 1);
+  }
+  .pp__upsell span {
+    height: calc(var(--u) * 8);
+    border-radius: calc(var(--u) * 1);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  /* Chat bubble, bottom right of the page. */
+  .pp__chat {
+    position: absolute;
+    right: calc(var(--u) * 3);
+    bottom: calc(var(--u) * 2.4);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px 6px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    font-size: clamp(0.5625rem, 1.5cqi, 0.6875rem);
+    transition: transform 700ms var(--ease-out-quint);
+  }
+  .pp__chat-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--warn-dot);
+    border-right-color: transparent;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pp__chat-dot {
+      animation: spin 1.1s linear infinite;
+    }
+  }
+  @keyframes spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+  .pp__chat-label {
+    color: var(--warn);
+  }
+  .pp__chat-label--ok {
+    display: none;
+    color: var(--text-2);
+  }
+
+  /* Sticky add to cart: hidden below the page until its fix applies. */
+  .pp__sticky {
+    position: absolute;
+    left: calc(var(--u) * 2);
+    right: calc(var(--u) * 2);
+    bottom: calc(var(--u) * 1.6);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 3);
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-lift);
+    font-size: clamp(0.625rem, 1.7cqi, 0.875rem);
+    font-weight: 600;
+    transform: translateY(calc(100% + var(--u) * 4));
+    transition: transform 760ms var(--ease-spring);
+  }
+  .pp__sticky-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pp__sticky-btn {
+    flex: none;
+    padding: calc(var(--u) * 1.2) calc(var(--u) * 3);
+    border-radius: var(--radius-pill);
+    background: var(--accent-fill);
+    color: var(--on-accent);
+  }
+
+  /* Scripts strip under the page. */
+  .pp__scripts {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .pp__scripts-label {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+  }
+  .pp__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chipjs {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    color: var(--text-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: clamp(0.625rem, 1.5cqi, 0.75rem);
+    transition:
+      background-color 500ms var(--ease-out-quint),
+      color 500ms var(--ease-out-quint),
+      opacity 500ms var(--ease-out-quint);
+  }
+  .chipjs--fix .chipjs__name::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--warn-dot);
+    vertical-align: 1px;
+  }
+  .chipjs:has(.hs) {
+    padding-right: 24px;
+  }
+  .chipjs__after {
+    display: none;
+    color: var(--accent-text);
+  }
+
+  /* ---------- fixes applied (data-fixes on the player) ---------- */
+  .td[data-fixes~='img'] .pp__mug {
+    filter: none;
+    opacity: 1;
+  }
+  .td[data-fixes~='img'] .pp__load {
+    display: none;
+  }
+  .td[data-fixes~='img'] [data-anchor='img'] .pp__badge--app,
+  .td[data-fixes~='section'] [data-anchor='section'] .pp__badge--app {
+    display: none;
+  }
+  .td[data-fixes~='img'] [data-anchor='img'] .pp__badge--ok,
+  .td[data-fixes~='section'] [data-anchor='section'] .pp__badge--ok {
+    display: inline-flex;
+  }
+  .td[data-fixes~='img'] .pp__lazy {
+    display: block;
+  }
+  .td[data-fixes~='chat'] .pp__chat-dot {
+    animation: none;
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .td[data-fixes~='chat'] .pp__chat-label {
+    display: none;
+  }
+  .td[data-fixes~='chat'] .pp__chat-label--ok {
+    display: inline;
+  }
+  .td[data-fixes~='sticky'] .pp__sticky {
+    transform: none;
+  }
+  .td[data-fixes~='sticky'] .pp__chat {
+    transform: translateY(calc(var(--u) * -9));
+  }
+  .td[data-fixes~='dead'] .chipjs[data-fix='dead'],
+  .td[data-fixes~='section'] .chipjs[data-fix='section'],
+  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] {
+    background: transparent;
+  }
+  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__name,
+  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__name {
+    color: var(--text-3);
+    text-decoration: line-through 1.5px;
+  }
+  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__name::before,
+  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__name::before,
+  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] .chipjs__name::before {
+    background: var(--accent);
+  }
+  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__after,
+  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__after,
+  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] .chipjs__after {
+    display: inline;
+  }
+  .td.is-instant *,
+  .td.is-instant {
+    transition: none !important;
+  }
+
+  /* ---------- hotspots ---------- */
+  .hs {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-fill);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 3px var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    transition:
+      transform 520ms var(--ease-spring),
+      background-color 300ms var(--ease-out-quint);
+  }
+  .pp__photo .hs {
+    top: 8px;
+    right: 8px;
+  }
+  .pp__announce .hs {
+    top: 50%;
+    right: 10px;
+    margin-top: -14px;
+    box-shadow: 0 0 0 2px var(--btn-bg);
+  }
+  .pp__chat .hs {
+    top: -12px;
+    right: -6px;
+  }
+  .is-live .hs {
+    cursor: pointer;
+  }
+  .is-live .hs.is-current {
+    transform: scale(1.18);
+  }
+  .is-live .hs.is-current::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-live .hs.is-current::after {
+      animation: ping 1.6s var(--ease-out-quint) infinite;
+    }
+  }
+  @keyframes ping {
+    from {
+      opacity: 1;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.6);
+    }
+  }
+  .is-live .hs.is-pending {
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow:
+      0 0 0 3px var(--bg),
+      inset 0 0 0 1.5px var(--text);
+  }
+  @media (hover: hover) {
+    .is-live .hs:hover {
+      transform: scale(1.18);
+    }
+  }
+
+  /* =========================================================
+     Steps (no JS: all open, a plain list)
+     ========================================================= */
+  .td__steps {
+    position: relative; /* the cards' offsetParent, for the stack's scroll maths */
+    display: grid;
+    margin: 0;
+    border-top: 1px dotted var(--line-strong);
+  }
+  .st {
+    position: relative;
+    border-bottom: 1px dotted var(--line-strong);
+  }
+  .st::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .st__btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--tap);
+    padding: 12px 4px 12px 14px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+  }
+  /* No JS: the step "buttons" are inert headings, so they must not look clickable or greyed. */
+  .st__btn:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+  .st__num {
+    color: var(--text-3);
+  }
+  .st__title {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+  .st__kind {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .st__kind--conversion {
+    color: var(--accent-text);
+  }
+  .st__text {
+    padding: 0 4px 16px 14px;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .td__note {
+    font-size: 0.8125rem;
+  }
+
+  /* ---------- live (JS) ---------- */
+  .is-live .st__btn {
+    cursor: pointer;
+  }
+  .is-live .st[aria-current='step']::before {
+    transform: scaleY(1);
+  }
+  .is-live .st[aria-current='step'] .st__num {
+    color: var(--accent-text);
+  }
+  .is-live .st:not([aria-current='step']) .st__title {
+    color: var(--text-2);
+  }
+  @media (hover: hover) {
+    .is-live .st:not([aria-current='step']) .st__btn:hover .st__title {
+      color: var(--text);
+    }
+  }
+  /* Accordion on desktop: only the current step opens; height glides via grid rows. */
+  @media (min-width: 1100px) {
+    .is-live .st__body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 560ms var(--ease-out-quint);
+    }
+    .is-live .st[aria-current='step'] .st__body {
+      grid-template-rows: 1fr;
+    }
+    .is-live .st__body-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .is-live .st__text {
+      opacity: 0;
+      transform: translateY(6px);
+      transition:
+        opacity 300ms var(--ease-out-quint),
+        transform 560ms var(--ease-out-quint);
+    }
+    .is-live .st[aria-current='step'] .st__text {
+      opacity: 1;
+      transform: none;
+      transition-delay: 120ms;
+    }
+  }
+
+  /* ---------- below 1100px: a swipeable card stack ---------- */
+  @media (max-width: 1099px) {
+    .is-live .td__steps {
+      display: flex;
+      gap: var(--space-3);
+      margin-inline: calc(-1 * var(--margin));
+      padding: 4px var(--margin) 8px;
+      border-top: 0;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--margin);
+      scrollbar-width: none;
+    }
+    .is-live .td__steps::-webkit-scrollbar {
+      display: none;
+    }
+    .is-live .st {
+      flex: 0 0 min(86%, 30rem);
+      scroll-snap-align: start;
+      border-bottom: 0;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      box-shadow: inset 0 0 0 1px var(--line);
+      transition:
+        box-shadow 400ms var(--ease-out-quint),
+        background-color 400ms var(--ease-out-quint);
+    }
+    /* Other cards step back with a quieter surface, never with opacity: text keeps full
+       contrast. */
+    .is-live .st:not([aria-current='step']) {
+      background: var(--surface-1);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .is-live .st[aria-current='step'] {
+      box-shadow:
+        inset 0 0 0 1.5px var(--line-strong),
+        var(--shadow-soft);
+    }
+    .is-live .st::before {
+      top: 14px;
+      bottom: auto;
+      height: 22px;
+    }
+    .td__dots {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+    }
+    .td__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--line-strong);
+      transition:
+        background-color 300ms var(--ease-out-quint),
+        width 420ms var(--ease-out-quint);
+    }
+    .td__dot.is-on {
+      background: var(--accent);
+    }
+    .td__dot.is-current {
+      width: 20px;
+      border-radius: 4px;
+    }
+  }
+
+  /* ---------- controls ---------- */
+  .td__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctl {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      background-color var(--dur-hover) var(--ease-out-quint);
+  }
+  .ctl svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ctl--play {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+  }
+  .ctl--play .ctl__play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .ctl__play {
+    display: none;
+  }
+  .ctl--play[data-state='paused'] .ctl__play {
+    display: block;
+  }
+  .ctl--play[data-state='paused'] .ctl__pause {
+    display: none;
+  }
+  @media (hover: hover) {
+    .ctl:not(.ctl--play):hover {
+      background: var(--surface-1);
+    }
+  }
+  .ctl:active {
+    transform: scale(0.94);
+  }
+  .td__count {
+    margin-left: 6px;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .td__dots {
+    display: none;
+  }
+  @media (max-width: 1099px) {
+    .td__dots {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/shopify/base';
+
+  const td = document.querySelector<HTMLElement>('[data-td]');
+  if (td) {
+    const list = td.querySelector<HTMLElement>('[data-td-steps]')!;
+    const steps = [...td.querySelectorAll<HTMLElement>('[data-st]')];
+    const segs = [...td.querySelectorAll<HTMLElement>('[data-seg]')];
+    const dots = [...td.querySelectorAll<HTMLElement>('[data-dot]')];
+    const spots = [...td.querySelectorAll<HTMLElement>('[data-hs]')];
+    const playBtn = td.querySelector<HTMLButtonElement>('[data-play]')!;
+    const count = td.querySelector<HTMLElement>('[data-td-count]');
+    const fixesNum = td.querySelector<HTMLElement>('[data-td-fixes]');
+    const barTrack = td.querySelector<HTMLElement>('.meter__bar-track');
+    const n = steps.length;
+    // Per-step state comes from the markup, so no page copy is bundled into this script.
+    const STEPS = steps.map((st) => ({
+      fix: st.dataset.fix ?? null,
+      meter: Number(st.dataset.meter ?? 0),
+      title: st.dataset.title ?? '',
+    }));
+    const reduced = prefersReduced();
+    const stacked = window.matchMedia('(max-width: 1099px)');
+
+    let active = n - 1;
+    let playing = false;
+    let wantsPlay = !reduced; // the visitor's intent; visibility only gates it
+    let started = false;
+    let programmatic = 0; // timestamp until which list scrolls are ours, not the visitor's
+
+    /** Restart the current segment's CSS animation from zero. */
+    const restartFill = () => {
+      const fill = segs[active]?.querySelector<HTMLElement>('[data-seg-fill]');
+      if (!fill) return;
+      fill.style.animation = 'none';
+      void fill.offsetWidth; // flush, so the next rule starts a fresh animation
+      fill.style.animation = '';
+    };
+
+    /** Keep the current card in view in the phone stack, scrolling only the list. */
+    const scrollCard = (smooth: boolean) => {
+      if (!stacked.matches) return;
+      const card = steps[active];
+      if (!card) return;
+      const pad = parseFloat(getComputedStyle(list).scrollPaddingLeft) || 0;
+      const left = card.offsetLeft - pad; // the list is the cards' offsetParent
+      if (Math.abs(list.scrollLeft - left) < 2) return;
+      programmatic = performance.now() + 900;
+      list.scrollTo({ left, behavior: smooth && !reduced ? 'smooth' : 'auto' });
+    };
+
+    const syncBar = () => {
+      if (barTrack) td.style.setProperty('--track-w', `${barTrack.clientWidth}px`);
+    };
+
+    const render = (i: number, smooth = true) => {
+      active = (i + n) % n;
+      const s = STEPS[active]!;
+      const fixes = STEPS.slice(0, active + 1)
+        .map((x) => x.fix)
+        .filter(Boolean);
+      td.dataset.step = String(active);
+      td.dataset.fixes = fixes.join(' ');
+      td.style.setProperty('--meter', String(s.meter));
+      if (fixesNum) fixesNum.textContent = String(fixes.length);
+      steps.forEach((st, k) => {
+        if (k === active) st.setAttribute('aria-current', 'step');
+        else st.removeAttribute('aria-current');
+      });
+      segs.forEach((g, k) => {
+        g.classList.toggle('is-past', k < active);
+        g.classList.toggle('is-current', k === active);
+      });
+      dots.forEach((d, k) => {
+        d.classList.toggle('is-on', k <= active);
+        d.classList.toggle('is-current', k === active);
+      });
+      spots.forEach((h) => {
+        const k = Number(h.dataset.hs);
+        h.classList.toggle('is-current', k === active);
+        h.classList.toggle('is-pending', k > active);
+      });
+      if (count) count.textContent = String(active + 1);
+      // The last step rests longer so the finished page is seen before the loop.
+      td.style.setProperty('--dur', active === n - 1 ? 'calc(var(--step-ms) * 1.5)' : 'var(--step-ms)');
+      restartFill();
+      scrollCard(smooth);
+    };
+
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      td.classList.toggle('is-playing', on);
+      playBtn.dataset.state = wantsPlay ? 'playing' : 'paused';
+      playBtn.setAttribute('aria-label', wantsPlay ? 'Pause the walkthrough' : 'Play the walkthrough');
+    };
+
+    // The segment finishing is the clock: advance, loop after the last step.
+    td.addEventListener('animationend', (e) => {
+      if (!playing || reduced) return;
+      if (!(e.target instanceof HTMLElement) || !e.target.matches('[data-seg-fill]')) return;
+      render(active + 1);
+    });
+
+    // Announce only what the visitor asked for (never autoplay), once, after it settles.
+    const live = td.querySelector<HTMLElement>('[data-td-live]');
+    let liveTimer: number | undefined;
+    const announce = () => {
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        const s = STEPS[active]!;
+        if (live) live.textContent = `Step ${active + 1} of ${n}: ${s.title}`;
+      }, 250);
+    };
+    const takeControl = (i: number) => {
+      wantsPlay = false;
+      setPlaying(false);
+      render(i);
+      announce();
+    };
+    steps.forEach((st, i) => st.querySelector('[data-st-btn]')?.addEventListener('click', () => takeControl(i)));
+    spots.forEach((h) => h.addEventListener('click', () => takeControl(Number(h.dataset.hs))));
+    td.querySelector('[data-prev]')?.addEventListener('click', () => takeControl(active - 1));
+    td.querySelector('[data-next]')?.addEventListener('click', () => takeControl(active + 1));
+    playBtn.addEventListener('click', () => {
+      wantsPlay = !wantsPlay;
+      if (wantsPlay && active === n - 1) render(0);
+      setPlaying(wantsPlay);
+    });
+    if (reduced) playBtn.hidden = true;
+
+    // Swiping the card stack is a step choice too: whichever card snaps in becomes current.
+    let swipeTimer: number | undefined;
+    /** Keyboard focus inside the stack: Tab scrolls the list, and that is not a swipe. */
+    const keyboardInList = (): boolean => {
+      try {
+        return list.querySelector(':focus-visible') !== null;
+      } catch {
+        return false;
+      }
+    };
+    const onSwipe = () => {
+      if (!stacked.matches || performance.now() < programmatic || keyboardInList()) return;
+      window.clearTimeout(swipeTimer);
+      swipeTimer = window.setTimeout(() => {
+        const pad = parseFloat(getComputedStyle(list).scrollPaddingLeft) || 0;
+        const x = list.scrollLeft + pad;
+        let best = active;
+        let dist = Infinity;
+        steps.forEach((st, k) => {
+          const d = Math.abs(st.offsetLeft - x);
+          if (d < dist) {
+            dist = d;
+            best = k;
+          }
+        });
+        if (best !== active) takeControl(best);
+      }, 120);
+    };
+    list.addEventListener('scroll', onSwipe, { passive: true });
+    // Tabbing to a card makes it the current step (clicks are handled by the click listener).
+    steps.forEach((st, i) =>
+      st.addEventListener('focusin', (e) => {
+        if (i === active) return;
+        let kbd = false;
+        try {
+          kbd = e.target instanceof Element && e.target.matches(':focus-visible');
+        } catch {
+          kbd = false;
+        }
+        if (kbd) takeControl(i);
+      }),
+    );
+
+    // Go live without animating the first frame from the server's "after" state.
+    td.classList.add('is-live', 'is-instant');
+    td.querySelectorAll<HTMLElement>('[data-td-controls], [data-td-segs]').forEach((el) => (el.hidden = false));
+    document.querySelectorAll<HTMLElement>('[data-td-js-only]').forEach((el) => (el.hidden = false));
+    steps.forEach((st) => st.querySelector<HTMLButtonElement>('[data-st-btn]')?.removeAttribute('disabled'));
+    // Under reduced motion it never plays, so it rests on the finished page.
+    const first = reduced ? n - 1 : 0;
+    syncBar();
+    render(first, false);
+    setPlaying(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => td.classList.remove('is-instant')));
+    if ('ResizeObserver' in window && barTrack) new ResizeObserver(syncBar).observe(barTrack);
+    stacked.addEventListener('change', () => scrollCard(false));
+
+    // Play only while a third of the player is visible, or, when the player is taller than
+    // the screen (a landscape phone), while it covers a third of the viewport. The visitor's
+    // pause always wins.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          const visible =
+            e.isIntersecting && (e.intersectionRatio >= 0.33 || e.intersectionRect.height >= window.innerHeight / 3);
+          if (visible && !started) {
+            started = true;
+            render(first, false);
+          }
+          setPlaying(visible && wantsPlay);
+        },
+        { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
+      ).observe(td);
+    }
+  }
+</script>

@@ -1,0 +1,127 @@
+---
+/**
+ * FAQ: native <details>, so it works without JS; the same data feeds the FAQPage JSON-LD.
+ * The plus turns into a minus on the spring; the answer fades up (out-quint).
+ */
+import { FAQ } from '../../data/shopify/content';
+---
+
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+  <div class="container faq__grid">
+    <div class="head faq__head">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title">Questions store owners ask first.</h2>
+    </div>
+    <div class="faq__list">
+      {
+        FAQ.map((f) => (
+          <details class="qa">
+            <summary class="qa__q">
+              <span>{f.q}</span>
+              <span class="qa__icon" aria-hidden="true" />
+            </summary>
+            <p class="qa__a">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-4) var(--space-8);
+  }
+  @media (min-width: 1024px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--nav-h) + 40px);
+    }
+  }
+  .faq__head {
+    margin-bottom: 0;
+  }
+  .faq__list {
+    border-top: 2px solid var(--text);
+  }
+  .qa {
+    border-bottom: 1.5px dotted var(--line-strong);
+  }
+  .qa__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 64px;
+    padding: var(--space-4) 4px;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.35;
+    cursor: pointer;
+    list-style: none;
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__icon {
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    transition:
+      background-color 400ms var(--ease-out-quint),
+      box-shadow 400ms var(--ease-out-quint);
+  }
+  .qa__icon::before,
+  .qa__icon::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    margin: -1px 0 0 -6px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform 520ms var(--ease-spring);
+  }
+  .qa__icon::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__icon {
+    background: var(--accent-fill);
+    color: var(--on-accent);
+    box-shadow: none;
+  }
+  .qa[open] .qa__icon::after {
+    transform: rotate(0deg);
+  }
+  @media (hover: hover) {
+    .qa__q:hover .qa__icon {
+      box-shadow: inset 0 0 0 1.5px var(--text);
+    }
+  }
+  .qa__a {
+    max-width: 62ch;
+    padding: 0 4px var(--space-5);
+    color: var(--text-2);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .qa[open] .qa__a {
+      animation: qa-in 520ms var(--ease-out-quint);
+    }
+  }
+  @keyframes qa-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+</style>

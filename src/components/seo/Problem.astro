@@ -1,0 +1,164 @@
+---
+/**
+ * The problem: "Content isn't your problem." Then a crawl-report style sheet of typical
+ * findings in two groups (can't be crawled / can't scale), 3 + 3, status codes in mono.
+ * These are the kinds of finding a crawl turns up, not any client's data.
+ */
+import { PROBLEM } from '../../data/seo/content';
+---
+
+<section class="section section--rule problem" id="problem" aria-labelledby="problem-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow">The problem</p>
+      <h2 id="problem-title">
+        {PROBLEM.title}
+        <span class="mark" data-mark>{PROBLEM.titleMarked}</span>
+      </h2>
+      <p class="lede">{PROBLEM.body}</p>
+    </div>
+
+    <div class="report" data-reveal>
+      <div class="report__bar mono" aria-hidden="true">
+        <span class="report__dots"><span></span><span></span><span></span></span>
+        <span>crawl-report · typical findings</span>
+      </div>
+      <div class="report__groups">
+        {
+          PROBLEM.groups.map((g, gi) => (
+            <div class="report__group">
+              <h3 class="report__label">
+                <span class="report__badge mono">{gi === 0 ? 'crawl' : 'scale'}</span>
+                {g.label}
+              </h3>
+              <ul class="report__rows" role="list" data-reveal-stagger>
+                {g.items.map((it) => (
+                  <li class="report__row">
+                    <code class="report__code">{it.code}</code>
+                    <p class="report__text">{it.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <p class="problem__resolution">
+      <span class="problem__arrow" aria-hidden="true">↳</span>
+      {PROBLEM.resolution}
+    </p>
+  </div>
+</section>
+
+<style>
+  .problem .head > h2 {
+    max-width: 22ch;
+  }
+  .report {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .report__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 12px var(--space-5);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-1);
+    color: var(--text-3);
+  }
+  .report__dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .report__dots span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .report__groups {
+    display: grid;
+  }
+  @media (min-width: 900px) {
+    .report__groups {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .report__group + .report__group {
+      border-left: 1px solid var(--line);
+    }
+  }
+  .report__group {
+    padding: var(--space-5);
+    min-width: 0;
+  }
+  .report__group + .report__group {
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 900px) {
+    .report__group + .report__group {
+      border-top: 0;
+    }
+  }
+  .report__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .report__badge {
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .report__rows {
+    display: grid;
+    margin: 0;
+  }
+  .report__row {
+    display: grid;
+    gap: 6px;
+    padding-block: var(--space-4);
+    border-top: 1px dashed var(--line);
+  }
+  .report__code {
+    justify-self: start;
+    max-width: 100%;
+    padding: 3px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .report__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .problem__resolution {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .problem__arrow {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+  }
+</style>

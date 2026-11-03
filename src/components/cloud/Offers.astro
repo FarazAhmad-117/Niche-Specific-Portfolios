@@ -1,0 +1,258 @@
+---
+/**
+ * Services. Five offers from decisions.md, no prices ("scoped on a call"). Laid out as a runbook:
+ * one full-width row per offer, so five never leaves an orphan row. The care plan keeps its
+ * decided label ("On-call / care plan") but says plainly that it is NOT on-call: business hours,
+ * 8AM–5PM EST. The last row is the free call itself, for the visitor who doesn't know which.
+ */
+import { OFFERS, PRICE_LINE } from '../../data/cloud/content';
+import { bookingUrl } from '../../data/cloud/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Services</p>
+      <h2 id="services-title">Five jobs, each with a clear end.</h2>
+      <p class="lede">Scope is agreed before any work starts. Everything is built in your accounts and handed back documented.</p>
+    </div>
+
+    <ol class="runbook" role="list" data-reveal-stagger>
+      {
+        OFFERS.map((o, i) => (
+          <li class:list={['offer', { 'offer--care': o.id === 'care' }]} id={`service-${o.id}`}>
+            <span class="offer__idx mono" aria-hidden="true">
+              0{i + 1}
+            </span>
+            <div class="offer__lead">
+              <h3 class="offer__name">{o.name}</h3>
+              {o.tag && <span class="status offer__tag">{o.tag}</span>}
+              <p class="offer__for">
+                <span class="offer__for-label mono">Pick this if</span>
+                {o.bestFor}
+              </p>
+            </div>
+            <div class="offer__detail">
+              <p class="offer__desc">{o.description}</p>
+              <ul class="offer__gets" role="list">
+                {o.gets.map((g) => (
+                  <li>{g}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="offer__foot">
+              <span class="offer__price mono">{o.priceLine}</span>
+              <a class="offer__cta" href={bookingUrl(`offer-${o.id}`)}>
+                {o.cta}
+                <span class="visually-hidden">: {o.name}</span>
+                <span class="offer__arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="unsure inverse">
+      <div>
+        <h3 class="unsure__title">Not sure which?</h3>
+        <p class="unsure__text">
+          Start with the free 30-minute call. Bring what you run and what worries you; you leave with a clear next step.
+          Everything else is {PRICE_LINE.toLowerCase()}.
+        </p>
+      </div>
+      <a class="btn btn--inv" href={bookingUrl('offer-unsure')}>
+        <span class="btn__led" aria-hidden="true"></span>
+        <span>Book a scoping call</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .runbook {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .offer {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-2);
+    border-bottom: 1px solid var(--line);
+    transition: background-color 500ms var(--ease-out-quint);
+  }
+  @media (min-width: 1024px) {
+    .offer {
+      grid-template-columns: 3.5rem minmax(0, 1fr) minmax(0, 1.15fr) 12rem;
+      align-items: start;
+      gap: var(--space-6);
+      padding-inline: var(--space-4);
+    }
+  }
+  /* A mint rail grows down the left edge on hover/focus, like a selected row. */
+  .offer::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    bottom: -1px;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 700ms var(--ease-out-quint);
+  }
+  @media (hover: hover) {
+    .offer:hover {
+      background: var(--surface-2);
+    }
+    .offer:hover::before {
+      transform: scaleY(1);
+    }
+    .offer:hover .offer__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .offer:focus-within {
+    background: var(--surface-2);
+  }
+  .offer:focus-within::before {
+    transform: scaleY(1);
+  }
+  .offer__idx {
+    color: var(--accent-text);
+    padding-top: 0.45rem;
+  }
+  .offer__lead {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+  .offer__name {
+    font-family: var(--font-display);
+    font-stretch: 110%;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 1.25rem + 0.9vw, 2.125rem);
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .offer__tag {
+    white-space: normal;
+    background: var(--surface-1);
+    color: var(--text);
+  }
+  .offer__for {
+    display: grid;
+    gap: 2px;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .offer__for-label {
+    color: var(--text-3);
+    text-transform: uppercase;
+    font-size: 0.625rem;
+  }
+  .offer__detail {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .offer__desc {
+    color: var(--text-2);
+  }
+  .offer__gets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .offer__gets li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .offer__gets li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--ok);
+  }
+  .offer__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .offer__foot {
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      padding-top: 0.4rem;
+    }
+  }
+  .offer__price {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .offer__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--text);
+  }
+  /* Stretch the link over the whole row, keep the text the only visible label. */
+  .offer__cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .offer__cta:focus-visible {
+    outline: none;
+  }
+  .offer:has(.offer__cta:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+  .offer__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 520ms var(--ease-out-expo);
+  }
+
+  .unsure {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+    margin-top: var(--space-6);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+    border-radius: var(--radius-m);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  @media (min-width: 900px) {
+    .unsure {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+  .unsure__title {
+    margin-bottom: var(--space-2);
+  }
+  .unsure__text {
+    max-width: 62ch;
+    opacity: 0.82;
+  }
+</style>

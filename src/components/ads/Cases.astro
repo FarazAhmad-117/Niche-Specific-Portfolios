@@ -1,0 +1,340 @@
+---
+/**
+ * Case studies on the home page: a full 2 × 2 grid. Top row: the offline-conversions groundwork
+ * (my own pipeline, verified facts only) and the example "6 rules" teardown, both linked to
+ * their pages. Bottom row: the two decided client cases, which have no material yet, as dashed,
+ * empty slots with TODO chips, never invented results.
+ *
+ * Page transition: each linked card carries view-transition-name `case-<id>`; the case page
+ * hero box uses the same name, so on navigation the card morphs into the hero while the page
+ * rises in behind it (base.css). Only the box morphs, never the title. Cards are never
+ * reveal-armed: a transition may morph into one at load.
+ */
+import { CASES, PLACEHOLDERS } from '../../data/ads/cases';
+import { caseHref } from '../../lib/ads/paths';
+
+const vt = (id: string) => `view-transition-name: case-${id}`;
+---
+
+<section class="section cases" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Case studies</p>
+      <h2 id="work-title">What I can show you today.</h2>
+      <p class="lede">
+        The lead pipeline my own site runs on, a teardown of the rules I set up first, and two slots for client work that stay
+        empty until a client clears them. No made-up results in the meantime.
+      </p>
+    </div>
+
+    <div class="grid">
+      {
+        CASES.map((c) => (
+          <article class:list={['case', { 'case--ex': c.example }]} id={`card-${c.id}`} style={vt(c.id)}>
+            <div class="case__top">
+              {c.example ? <span class="ex">Example</span> : null}
+              <span class="case__kicker mono">{c.kicker}</span>
+              {c.status && (
+                <span class="chip case__live">
+                  <span class="pip pip--saved" aria-hidden="true" />
+                  {c.status}
+                </span>
+              )}
+            </div>
+            <h3 class="case__name">
+              <a class="case__link" href={caseHref(c.id)}>
+                {c.name}
+              </a>
+            </h3>
+            <p class="case__title">{c.title}</p>
+
+            {c.example ? (
+              <ul class="mini-rules" role="list" aria-label="Three of the six rules">
+                {c.built.slice(0, 3).map((b) =>
+                  b.rule ? (
+                    <li>
+                      <span class="kw">IF</span>
+                      <span class="cond">{b.rule.if}</span>
+                      <span class="kw">THEN</span>
+                      <span class="cond cond--act">{b.rule.then}</span>
+                    </li>
+                  ) : null,
+                )}
+                <li class="mini-rules__more mono">+ 3 more rules</li>
+              </ul>
+            ) : (
+              <ol class="mini-flow" role="list" aria-label={`${c.name}, in order`}>
+                {c.flow.map((s) => (
+                  <li class:list={['mini-flow__step', { 'is-todo': s.todo }]}>
+                    <span class="mini-flow__node" aria-hidden="true" />
+                    <span>{s.label}</span>
+                    {s.todo && <span class="todo">TODO</span>}
+                  </li>
+                ))}
+              </ol>
+            )}
+
+            <div class="case__end">
+              <span class="case__more" aria-hidden="true">
+                {c.example ? 'Read the teardown' : 'Read the case study'} <span class="case__arrow">→</span>
+              </span>
+              {c.pending[0] && <span class="todo">{c.pending[0]}</span>}
+            </div>
+          </article>
+        ))
+      }
+
+      {
+        PLACEHOLDERS.map((p) => (
+          <aside class="case case--slot" aria-label={`${p.title}: placeholder`}>
+            <span class="case__kicker mono">{p.kicker}</span>
+            <p class="slot__title">{p.title}</p>
+            <p class="slot__text">{p.text}</p>
+            <div class="slot__chart" aria-hidden="true">
+              <span class="threshold" />
+            </div>
+            <ul class="slot__todos" role="list">
+              {p.todos.map((t) => (
+                <li class="todo">{t}</li>
+              ))}
+            </ul>
+          </aside>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 900px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .case {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: clamp(1.25rem, 0.9rem + 1.6vw, 2.5rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    /* "All case studies" on a case page lands on its own card: give it air under the nav. */
+    scroll-margin-top: var(--space-4);
+  }
+  /* The title link stretches over the card: the whole card is the target, one tab stop. */
+  .case__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+  }
+  .case__link:focus-visible {
+    outline: none;
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .case:has(.case__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .case:hover .case__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .case__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .case__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .case__live {
+    margin-left: auto;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.625rem, 1.25rem + 1.5vw, 2.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .case__title {
+    color: var(--text-2);
+    font-size: 1.0625rem;
+    font-weight: 550;
+    line-height: 1.4;
+    max-width: 44ch;
+  }
+
+  /* Mini flow: the lead record's steps on a rail; the step not built yet is dashed. */
+  .mini-flow {
+    display: grid;
+    margin: var(--space-2) 0 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .mini-flow__step {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px var(--space-3);
+    min-height: 34px;
+    padding-left: 24px;
+    font-size: var(--fs-small);
+    font-weight: 550;
+  }
+  .mini-flow__step::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent-line);
+  }
+  .mini-flow__step:first-child::before {
+    top: 50%;
+  }
+  .mini-flow__step:last-child::before {
+    bottom: 50%;
+  }
+  .mini-flow__node {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border-radius: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--bg);
+  }
+  .mini-flow__step.is-todo {
+    color: var(--text-3);
+  }
+  .mini-flow__step.is-todo::before {
+    background: none;
+    border-left: 2px dashed var(--line-strong);
+  }
+  .mini-flow__step.is-todo .mini-flow__node {
+    background: var(--bg);
+    box-shadow:
+      0 0 0 3px var(--bg),
+      inset 0 0 0 1.5px var(--line-strong);
+  }
+  .mini-flow .todo {
+    padding: 0 6px;
+    font-size: 0.6875rem;
+  }
+
+  /* Mini rules: three rule sentences. */
+  .mini-rules {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .mini-rules li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .mini-rules__more {
+    color: var(--text-3);
+    padding-top: 4px;
+  }
+
+  .case__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-2);
+  }
+  .case__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 650;
+  }
+  .case__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+
+  /* The client-case slots: dashed, empty bays. Not links. */
+  .case--slot {
+    gap: var(--space-3);
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .slot__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.875rem);
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+  .slot__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 46ch;
+  }
+  /* An empty chart: axes and a threshold, no data. */
+  .slot__chart {
+    position: relative;
+    height: 70px;
+    margin-block: var(--space-2);
+    border-left: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+    background: linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 17px;
+  }
+  .slot__chart .threshold {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 40%;
+    opacity: 0.6;
+  }
+  .slot__todos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+</style>

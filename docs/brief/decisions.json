@@ -1102,8 +1102,8 @@
       "cost-slider": {
         "question": "Savings slider (bill to typical savings)",
         "decided": true,
-        "answer": "Include, labelled as an estimate",
-        "customInstructions": null
+        "answer": "Do not include (changed 2026-11-03)",
+        "customInstructions": "Owner: too big and technical for non-technical visitors, and dollar figures clash with \"no pricing anywhere\". Replaced by a plain-language \"where cloud bills leak\" section with no numbers."
       },
       "priority": {
         "question": "Build priority",

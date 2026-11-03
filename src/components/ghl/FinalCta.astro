@@ -1,0 +1,222 @@
+---
+/**
+ * Final CTA + the shared contact form. The form posts to farazahmad.dev, so a message sent
+ * here goes through the very pipeline in the main case study and lands tagged niche:ghl.
+ */
+import ContactForm from '../shared/ContactForm.astro';
+import { CALL_PROMISE } from '../../data/ghl/content';
+import { CONTACT_EMAIL, bookingUrl } from '../../data/ghl/site';
+---
+
+<section class="section cta" id="contact" aria-labelledby="contact-title">
+  <div class="container">
+    <div class="cta__card">
+      <div class="cta__copy inverse">
+        <p class="eyebrow">Contact</p>
+        <h2 id="contact-title">Tell me what your account should be doing.</h2>
+        <p class="lede">Free 30-minute scoping call. {CALL_PROMISE}.</p>
+        <a class="btn cta__book" href={bookingUrl('final')}>
+          <span class="btn__led" aria-hidden="true"></span>
+          <span>Book a scoping call</span>
+        </a>
+        <p class="cta__mail">
+          Or email <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+      </div>
+
+      <div class="cta__form">
+        <div class="cta__form-head">
+          <p class="cta__form-title">Or write it down</p>
+          <span class="tape">→ MongoDB → GHL · niche:ghl</span>
+        </div>
+        <ContactForm
+          niche="ghl"
+          cta="Send message"
+          fallbackEmail={CONTACT_EMAIL}
+          labels={{ message: 'Agency or business? What’s in the account, and what should it do?' }}
+          messages={{ success: 'Thanks. It’s saved, and on its way into my GoHighLevel tagged niche:ghl. I’ll reply soon.' }}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta__card {
+    display: grid;
+    gap: var(--space-7);
+    padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(46rem 28rem at 100% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
+      var(--btn-bg);
+    color: var(--btn-fg);
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) {
+    .cta__card {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+  .cta__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .cta__copy .eyebrow,
+  .cta__copy .lede,
+  .cta__mail {
+    color: inherit;
+  }
+  .cta__copy .eyebrow::before {
+    background: var(--btn-bg);
+    box-shadow:
+      inset 0 0 0 2px var(--accent-inv),
+      inset 0 0 0 4px var(--btn-bg),
+      inset 0 0 0 10px var(--accent-inv);
+  }
+  .cta__copy .lede,
+  .cta__mail {
+    opacity: 0.82;
+  }
+  .cta__copy h2 {
+    max-width: 14ch;
+  }
+  .cta__book {
+    background: var(--btn-fg);
+    color: var(--btn-bg);
+  }
+  .cta__mail {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .cta__mail .link {
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  }
+
+  /* ---------- the shared form, themed from here ---------- */
+  .cta__form {
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    color: var(--text);
+    --cf-gap: 1rem;
+    --cf-bg: var(--surface-2);
+    --cf-border: var(--line-strong);
+    --cf-radius: var(--radius-s);
+    --cf-pad: 0.8rem 1rem;
+    --cf-focus: var(--focus);
+    --cf-btn-bg: var(--btn-bg);
+    --cf-btn-color: var(--btn-fg);
+    --cf-error: var(--error);
+    --cf-success: var(--success);
+  }
+  .cta__form-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .cta__form-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--fs-h3);
+    letter-spacing: -0.04em;
+  }
+  .cta__form :global(.cf__label) {
+    font-weight: 600;
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__control) {
+    min-height: 48px;
+    transition:
+      border-color var(--dur-hover) var(--ease-out-quint),
+      box-shadow var(--dur-hover) var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__control:focus-visible) {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  /* Same language as .btn: an ink plate with a teal LED, and a teal signal that sweeps across
+     on hover. Colours are set here explicitly because the base reset (button { color:
+     inherit }) outranks the form's zero-specificity defaults. */
+  .cta__form :global(.cf__submit) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 24px 0 38px;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0;
+    transition:
+      transform var(--dur-press) var(--ease-out-quint),
+      color 420ms var(--ease-out-quint) 140ms;
+  }
+  .cta__form :global(.cf__submit)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1000ms var(--ease-out-quint);
+  }
+  .cta__form :global(.cf__submit)::after {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: background-color 420ms var(--ease-out-quint) 140ms;
+  }
+  .cta__form :global(.cf__submit:focus-visible) {
+    color: var(--on-accent);
+  }
+  .cta__form :global(.cf__submit:focus-visible)::before {
+    transform: scaleX(1);
+  }
+  .cta__form :global(.cf__submit:focus-visible)::after {
+    background: var(--on-accent);
+  }
+  @media (hover: hover) {
+    .cta__form :global(.cf__submit:hover:not(:disabled)) {
+      color: var(--on-accent);
+    }
+    .cta__form :global(.cf__submit:hover:not(:disabled))::before {
+      transform: scaleX(1);
+    }
+    .cta__form :global(.cf__submit:hover:not(:disabled))::after {
+      background: var(--on-accent);
+    }
+  }
+  .cta__form :global(.cf__submit:disabled) {
+    opacity: 0.7;
+  }
+  .cta__form :global(.cf__submit:active) {
+    transform: scale(0.97);
+  }
+  .cta__form :global(.cf__status) {
+    font-size: var(--fs-small);
+  }
+  .cta__form :global(.cf__fallback) {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+</style>

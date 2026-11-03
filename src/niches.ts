@@ -29,15 +29,16 @@ export interface Niche {
 // One niche per line: scripts/new-niche.ts edits and appends lines in this format.
 export const NICHES = [
   { slug: 'ai', name: 'AI & Automation', enabled: true, noindex: true },
-  { slug: 'ghl', name: 'GoHighLevel', enabled: false, noindex: true },
-  { slug: 'apps', name: 'App Development', enabled: false, noindex: true },
-  { slug: 'cloud', name: 'Cloud & DevOps', enabled: false, noindex: true },
+  { slug: 'ghl', name: 'Faraz Ahmad · GoHighLevel', enabled: true, noindex: true },
+  { slug: 'apps', name: 'App Development', enabled: true, noindex: true },
+  { slug: 'cloud', name: 'Cloud & DevOps', enabled: true, noindex: true },
   { slug: 'funnels', name: 'Marketing Automation', enabled: true, noindex: true },
-  { slug: 'ads', name: 'Paid Ads', enabled: false, noindex: true },
-  { slug: 'shopify', name: 'Shopify', enabled: false, noindex: true },
-  { slug: 'wp', name: 'WordPress', enabled: false, noindex: true },
-  { slug: 'webflow', name: 'Webflow', enabled: false, noindex: true },
+  { slug: 'ads', name: 'Paid Ads', enabled: true, noindex: true },
+  { slug: 'shopify', name: 'Shopify', enabled: true, noindex: true },
+  { slug: 'wp', name: 'WordPress', enabled: true, noindex: true },
+  { slug: 'webflow', name: 'Webflow', enabled: true, noindex: true },
   { slug: 'seo', name: 'SEO', enabled: true, noindex: true },
+  { slug: 'all', name: "All sites", enabled: true, noindex: true },
 ] as const satisfies readonly Niche[];
 
 export type NicheSlug = (typeof NICHES)[number]['slug'];

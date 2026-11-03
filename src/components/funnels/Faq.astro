@@ -1,0 +1,141 @@
+---
+/**
+ * FAQ. Native <details>, so it works without JS and with find-in-page. Where the browser
+ * supports ::details-content and interpolate-size, the answer's height glides open on
+ * out-quint; elsewhere it opens instantly. Copy is shared with the FAQPage JSON-LD.
+ */
+import { FAQ } from '../../data/funnels/content';
+import { bookingUrl } from '../../data/funnels/site';
+---
+
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+  <div class="container faq__grid">
+    <div class="faq__head">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title">Things people ask first.</h2>
+      <p class="lede">Something else? Ask it on the call; that’s what it’s for.</p>
+      <a class="btn btn--ghost btn--side" href={bookingUrl('faq')}>
+        <span>Book a scoping call</span>
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+    <div class="faq__list" data-reveal-stagger>
+      {
+        FAQ.map((f) => (
+          <details class="qa">
+            <summary class="qa__q">
+              <span>{f.q}</span>
+              <span class="qa__icon" aria-hidden="true" />
+            </summary>
+            <p class="qa__a">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+    }
+  }
+  .faq__head {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .faq__list {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .qa {
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition:
+      background-color 400ms var(--ease-out-quint),
+      box-shadow 400ms var(--ease-out-quint);
+  }
+  .qa[open] {
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+  .qa__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 64px;
+    padding: var(--space-4) var(--space-5);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--radius-l);
+  }
+  .qa__q::-webkit-details-marker {
+    display: none;
+  }
+  .qa__icon {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg);
+    transition:
+      transform 520ms var(--ease-out-expo),
+      background-color 300ms var(--ease-out-quint);
+  }
+  .qa__icon::before,
+  .qa__icon::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    width: 12px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+  .qa__icon::after {
+    transform: rotate(90deg);
+  }
+  .qa[open] .qa__icon {
+    transform: rotate(45deg);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .qa__a {
+    padding: 0 var(--space-5) var(--space-5);
+    color: var(--text-2);
+    max-width: 62ch;
+  }
+  @supports selector(::details-content) {
+    .qa {
+      interpolate-size: allow-keywords;
+    }
+    .qa::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 520ms var(--ease-out-quint),
+        content-visibility 520ms allow-discrete;
+    }
+    .qa[open]::details-content {
+      block-size: auto;
+    }
+  }
+</style>

@@ -1,0 +1,161 @@
+---
+/**
+ * The problem (brief §4 item 3), set as a feature page: the headline, two columns of body copy
+ * with a drop cap and a column rule between them, a pull quote, and the fears as an index
+ * ("In this section"). The 47 is the brief's illustrative number, the same example site the
+ * player opens on.
+ */
+import { PROBLEM } from '../../data/wp/content';
+import { folio } from '../../data/wp/site';
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container">
+    <div class="head" data-draw>
+      <p class="folio">
+        <span class="folio__no">§ {folio('problem')}</span>
+        <span class="folio__name">The problem</span>
+        <span class="stamp">Example · illustrative</span>
+      </p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+    </div>
+
+    <div class="problem__grid">
+      <div class="problem__cols" data-reveal>
+        {PROBLEM.paragraphs.map((p, i) => <p class:list={['problem__p', { 'problem__p--drop': i === 0 }]}>{p}</p>)}
+      </div>
+
+      <aside class="problem__side" data-reveal>
+        <blockquote class="pull">
+          <p>{PROBLEM.pull}</p>
+        </blockquote>
+        <div class="index">
+          <p class="index__label kicker">In this section</p>
+          <ol class="index__list" role="list">
+            {
+              PROBLEM.fears.map((f, i) => (
+                <li>
+                  <span class="index__num mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="index__k kicker">{f.k}</span>
+                  <span class="index__v">{f.v}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <p class="problem__resolve" data-reveal>{PROBLEM.resolution}</p>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: var(--space-8);
+      align-items: start;
+    }
+  }
+  /* Two newspaper columns with a hairline rule between them. */
+  .problem__cols {
+    font-size: 1.0625rem;
+    line-height: 1.68;
+    color: var(--text);
+  }
+  @media (min-width: 720px) {
+    .problem__cols {
+      columns: 2;
+      column-gap: var(--space-6);
+      column-rule: 1px solid var(--line);
+    }
+  }
+  .problem__p + .problem__p {
+    margin-top: var(--space-4);
+  }
+  .problem__p--drop::first-letter {
+    float: left;
+    margin: 0.06em 0.1em 0 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 3.6em;
+    line-height: 0.82;
+    color: var(--accent-text);
+  }
+
+  .problem__side {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .pull {
+    padding: var(--space-4) 0;
+    border-block: 1px solid var(--text);
+  }
+  .pull p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.8125rem);
+    line-height: 1.28;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  .pull p::before {
+    content: '“';
+    color: var(--accent-text);
+  }
+  .pull p::after {
+    content: '”';
+    color: var(--accent-text);
+  }
+  .index__label {
+    margin-bottom: var(--space-2);
+  }
+  .index__list {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .index__list li {
+    display: grid;
+    grid-template-columns: auto 6.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .index__num {
+    color: var(--accent-text);
+  }
+  .index__v {
+    font-size: var(--fs-small);
+    line-height: 1.4;
+  }
+  @media (max-width: 420px) {
+    .index__list li {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .index__k {
+      grid-column: 2;
+    }
+    .index__v {
+      grid-column: 2;
+    }
+  }
+  .problem__resolve {
+    margin-top: var(--space-7);
+    max-width: 34ch;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+  }
+</style>

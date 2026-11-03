@@ -1,0 +1,919 @@
+---
+/**
+ * Hero. Left: who this is and what it does, with the last line of the headline "selected" on
+ * the canvas (a frame with corner handles and its class chip). Right: one example design
+ * system shown at three breakpoints, stacked in depth (tablet behind, desktop in front, the
+ * phone overlapping), and its variables panel.
+ *
+ * Motion (all optional, all off under reduced motion):
+ *  - headline words rise out of their own line boxes, 70ms apart, out-quint; then the
+ *    selection frame draws around "actually run." (in-out-quart), its handles snap on
+ *    (spring) and the class chip lands
+ *  - the panel changes ONE variable per beat (2.8s): color/brand, radius/card, color/surface,
+ *    font/heading. Every frame follows at once; the panel row that changed lights up. Then it
+ *    unwinds one variable per beat, holds, and repeats. Calm by design.
+ *  - on a fine pointer the layers drift a few pixels toward the cursor (translate only)
+ * A visible pause button stops it and shows the finished state (every variable applied).
+ * Without JS, or under reduced motion, the panel renders that finished state.
+ */
+import { HERO, HERO_VARS } from '../../data/webflow/content';
+import { bookingUrl } from '../../data/webflow/site';
+
+const words = HERO.headline.map((line) => line.split(' '));
+const lastLine = words.length - 1;
+let w = 0;
+const frames = [
+  { id: 'tablet', label: 'Tablet', width: '768', cards: 2 },
+  { id: 'desktop', label: 'Desktop', width: '1280', cards: 3 },
+  { id: 'phone', label: 'Phone', width: '390', cards: 1 },
+] as const;
+const all = HERO_VARS.map((v) => v.id).join(' ');
+---
+
+<section class="hero" id="top" data-hero aria-labelledby="hero-title">
+  <div class="hero__inner container">
+    <div class="hero__copy">
+      <p class="eyebrow">{HERO.eyebrow}</p>
+      <h1 id="hero-title" class="hero__title">
+        {
+          words.map((line, li) =>
+            li === lastLine ? (
+              <span class="hero__line hero__line--sel">
+                <span class="hero__selbox">
+                  {line.map((word, wi) => {
+                    const i = w++;
+                    return (
+                      <>
+                        <span class="hero__w" style={`--w:${i}`}>
+                          <span class="hero__wi em">{word}</span>
+                        </span>
+                        {wi < line.length - 1 ? ' ' : ''}
+                      </>
+                    );
+                  })}
+                  <span class="hero__frame" aria-hidden="true">
+                    <span class="hero__handle hero__handle--tl" />
+                    <span class="hero__handle hero__handle--tr" />
+                    <span class="hero__handle hero__handle--bl" />
+                    <span class="hero__handle hero__handle--br" />
+                  </span>
+                  <span class="hero__chip cls" aria-hidden="true">
+                    heading-style-h1 <span class="hero__chip-dim">· is-accent</span>
+                  </span>
+                </span>
+              </span>
+            ) : (
+              <span class="hero__line">
+                {line.map((word, wi) => {
+                  const i = w++;
+                  return (
+                    <>
+                      <span class="hero__w" style={`--w:${i}`}>
+                        <span class="hero__wi">{word}</span>
+                      </span>
+                      {wi < line.length - 1 ? ' ' : ''}
+                    </>
+                  );
+                })}{' '}
+              </span>
+            ),
+          )
+        }
+      </h1>
+      <p class="lede hero__lede">{HERO.lede}</p>
+      <div class="hero__ctas">
+        <a class="btn" href={bookingUrl('hero')}>
+          <span class="btn__dot" aria-hidden="true"></span>
+          <span>{HERO.primary}</span>
+        </a>
+        <a class="btn btn--ghost" href="#build">
+          <span>{HERO.secondary}</span>
+          <span class="btn__arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="hero__note text-3">{HERO.note}</p>
+    </div>
+
+    <figure class="stack" data-stack data-on={all} aria-labelledby="stack-cap">
+      <div class="stack__stage" data-pause-offscreen>
+        <div class="stack__frames">
+        {
+          frames.map((f) => (
+            <div class={`fr fr--${f.id}`} aria-hidden="true">
+              <div class="fr__bar">
+                <span class="fr__dots">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                <span class="fr__label mono">
+                  {f.label} · {f.width}
+                </span>
+              </div>
+              <div class="fr__page">
+                <div class="fr__nav">
+                  <span class="fr__logo" />
+                  <span class="fr__links">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </div>
+                <p class="fr__h">Release notes, for humans.</p>
+                <span class="fr__bars">
+                  <span />
+                  <span />
+                </span>
+                <span class="fr__btn">Start free</span>
+                <div class="fr__cards">
+                  {Array.from({ length: f.cards }, (_, k) => (
+                    <span class="fr__card" style={`--k:${k}`}>
+                      <span class="fr__thumb" />
+                      <span class="fr__line" />
+                      <span class="fr__line fr__line--s" />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))
+        }
+        </div>
+
+        <div class="vars">
+          <div class="vars__head">
+            <span class="vars__title mono">Variables</span>
+            <span class="vars__mode mono" aria-hidden="true">Base mode</span>
+            <button class="vars__pp" type="button" data-stack-pp aria-label="Pause animation" aria-pressed="false" hidden>
+              <svg class="vars__pp-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+              <svg class="vars__pp-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+            </button>
+          </div>
+          <ul class="vars__list" role="list" aria-hidden="true">
+            {
+              HERO_VARS.map((v) => (
+                <li class="vars__row" data-var={v.id}>
+                  <span class={`vars__sw vars__sw--${v.id}`} />
+                  <span class="vars__name mono">{v.name}</span>
+                  <span class="vars__val mono">
+                    <span class="vars__from">{v.from}</span>
+                    <span class="vars__to">{v.to}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+      <figcaption id="stack-cap" class="stack__cap text-3">
+        Illustrative: one design system at three breakpoints. Change a variable once and every frame follows.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: clip;
+    padding-top: calc(var(--nav-h) + clamp(2.5rem, 1.5rem + 4.5vw, 6rem));
+    padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+    background:
+      radial-gradient(52rem 34rem at 88% 12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+      var(--bg);
+  }
+  /* The dotted canvas, fading in behind the panel. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--dot) 1.2px, transparent 1.6px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(70% 80% at 82% 45%, #000, transparent 75%);
+    mask-image: radial-gradient(70% 80% at 82% 45%, #000, transparent 75%);
+    pointer-events: none;
+  }
+
+  /* ---------- layout ---------- */
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+  @media (min-width: 1100px) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+      min-height: min(74svh, 720px);
+    }
+  }
+  .hero__copy {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero__title {
+    margin-top: var(--space-2);
+    margin-bottom: 18px;
+    /* "your team can" is the widest line (about 8.4em in Unbounded 600): cap the size by the
+       column so each line of the headline stays one line. */
+    font-size: min(var(--fs-hero), 11.4cqi);
+  }
+  .hero__line {
+    display: block;
+  }
+  /* Each word rises inside its own clipped box. The padding (cancelled by the negative margin)
+     keeps descenders inside the clip without overflow-clip-margin, which Safari ignores. */
+  .hero__w {
+    position: relative;
+    display: inline-block;
+    overflow: clip;
+    padding: 0.04em 0.06em 0.18em;
+    margin: -0.04em -0.06em -0.18em;
+    vertical-align: top;
+  }
+  .hero__wi {
+    display: inline-block;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__wi {
+      animation: hero-rise 1000ms var(--ease-out-quint) both;
+      animation-delay: calc(80ms + var(--w) * 70ms);
+    }
+  }
+  @keyframes hero-rise {
+    from {
+      transform: translate3d(0, 110%, 0);
+    }
+  }
+
+  /* The selected line: a hairline frame, four square handles, the class chip below. */
+  .hero__line--sel {
+    width: fit-content;
+  }
+  .hero__selbox {
+    position: relative;
+    display: inline-block;
+  }
+  .hero__frame {
+    position: absolute;
+    inset: -0.02em -0.12em -0.06em -0.1em;
+    border: max(1.5px, 0.02em) solid var(--accent);
+    pointer-events: none;
+  }
+  .hero__handle {
+    position: absolute;
+    width: max(8px, 0.12em);
+    height: max(8px, 0.12em);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .hero__handle--tl {
+    left: 0;
+    top: 0;
+    translate: -50% -50%;
+  }
+  .hero__handle--tr {
+    right: 0;
+    top: 0;
+    translate: 50% -50%;
+  }
+  .hero__handle--bl {
+    left: 0;
+    bottom: 0;
+    translate: -50% 50%;
+  }
+  .hero__handle--br {
+    right: 0;
+    bottom: 0;
+    translate: 50% 50%;
+  }
+  .hero__chip {
+    position: absolute;
+    left: -0.1em;
+    top: calc(100% + 0.06em + 8px);
+    font-size: 0.75rem;
+    letter-spacing: 0;
+  }
+  .hero__chip-dim {
+    color: var(--text-3);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__frame {
+      animation: hero-frame 900ms var(--ease-in-out-quart) 900ms both;
+    }
+    .hero__handle {
+      animation: hero-handle var(--dur-snap) var(--ease-spring) 1650ms both;
+    }
+    .hero__chip {
+      animation: hero-chip 700ms var(--ease-out-quint) 1750ms both;
+    }
+  }
+  @keyframes hero-frame {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(-20px -20px -20px -20px);
+    }
+  }
+  @keyframes hero-handle {
+    from {
+      transform: scale(0);
+    }
+  }
+  @keyframes hero-chip {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+
+  .hero__lede {
+    max-width: 46ch;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero__note {
+    margin: 0;
+    font-size: var(--fs-small);
+    max-width: 46ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__lede,
+    .hero__ctas,
+    .hero__note,
+    .stack {
+      animation: hero-lift 900ms var(--ease-out-quint) both;
+    }
+    .hero__lede {
+      animation-delay: 420ms;
+    }
+    .hero__ctas {
+      animation-delay: 520ms;
+    }
+    .hero__note {
+      animation-delay: 600ms;
+    }
+    .stack {
+      animation-delay: 360ms;
+    }
+  }
+  @keyframes hero-lift {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+  }
+
+  /* =========================================================
+     The stack: three breakpoint frames and the variables panel
+     ========================================================= */
+  .stack {
+    /* The example system's variables. Each is "applied" by a flag in data-on. */
+    --v-brand: var(--text);
+    --v-radius: 3px;
+    --v-surface: var(--surface-2);
+    --v-weight: 450;
+    --px: 0;
+    --py: 0;
+    container-type: inline-size;
+    width: 100%;
+    max-width: 580px;
+    justify-self: center;
+    margin: 0;
+  }
+  @media (min-width: 1100px) {
+    .stack {
+      justify-self: end;
+    }
+  }
+  .stack[data-on~='brand'] {
+    --v-brand: var(--accent);
+  }
+  .stack[data-on~='radius'] {
+    --v-radius: 14px;
+  }
+  .stack[data-on~='surface'] {
+    --v-surface: var(--accent-soft);
+  }
+  .stack[data-on~='weight'] {
+    --v-weight: 720;
+  }
+  /* Narrow (phones): the desktop frame with the phone overlapping it in depth; the tablet is
+     left out and the variables panel sits underneath. */
+  .stack__stage {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .stack__frames {
+    position: relative;
+    height: 74cqi;
+  }
+  .fr {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    overflow: hidden;
+    transition: translate 700ms var(--ease-out-quint);
+  }
+  .fr__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+    padding-inline: 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .fr__dots {
+    display: flex;
+    gap: 4px;
+  }
+  .fr__dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .fr__label {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+  .fr__page {
+    display: grid;
+    align-content: start;
+    gap: 7px;
+    padding: 12px 12px 14px;
+  }
+  .fr__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .fr__logo {
+    width: 14px;
+    height: 14px;
+    border-radius: calc(var(--v-radius) * 0.4);
+    background: var(--v-brand);
+    transition:
+      background-color 800ms var(--ease-out-quint),
+      border-radius 800ms var(--ease-out-quint);
+  }
+  .fr__links {
+    display: flex;
+    gap: 5px;
+  }
+  .fr__links span {
+    width: 18px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .fr__h {
+    max-width: 16ch;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: max(11px, 4.1cqi);
+    font-weight: var(--v-weight);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    transition: font-weight 900ms var(--ease-out-quint);
+  }
+  .fr__bars {
+    display: grid;
+    gap: 4px;
+  }
+  .fr__bars span {
+    height: 4px;
+    width: 82%;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .fr__bars span + span {
+    width: 60%;
+  }
+  .fr__btn {
+    justify-self: start;
+    padding: 3px 9px;
+    border-radius: calc(var(--v-radius) * 0.6);
+    background: var(--v-brand);
+    color: var(--bg);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    transition:
+      background-color 800ms var(--ease-out-quint),
+      border-radius 800ms var(--ease-out-quint);
+  }
+  .fr__cards {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 4px;
+  }
+  .fr__card {
+    display: grid;
+    gap: 4px;
+    padding: 5px;
+    border-radius: var(--v-radius);
+    background: var(--v-surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition:
+      background-color 800ms var(--ease-out-quint),
+      border-radius 800ms var(--ease-out-quint);
+    transition-delay: calc(var(--k) * 60ms);
+  }
+  .fr__thumb {
+    height: 22px;
+    border-radius: calc(var(--v-radius) * 0.6);
+    background: color-mix(in srgb, var(--v-brand) 28%, var(--surface-1));
+    transition:
+      background-color 800ms var(--ease-out-quint),
+      border-radius 800ms var(--ease-out-quint);
+    transition-delay: inherit;
+  }
+  .fr__line {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    opacity: 0.5;
+  }
+  .fr__line--s {
+    width: 60%;
+  }
+
+  .fr {
+    position: absolute;
+  }
+  .fr--tablet {
+    display: none;
+  }
+  .fr--desktop {
+    left: 0;
+    top: 0;
+    width: 78cqi;
+    height: 58cqi;
+    z-index: 1;
+  }
+  .fr--phone {
+    right: 0;
+    top: 12cqi;
+    width: 34cqi;
+    height: 62cqi;
+    z-index: 2;
+  }
+  .fr--desktop .fr__h {
+    font-size: max(11px, 4.6cqi);
+  }
+  .fr--phone .fr__cards {
+    --cols: 1;
+  }
+  .fr--tablet .fr__cards {
+    --cols: 2;
+  }
+
+  /* Wide enough to stack in depth: tablet behind, desktop in front, the phone overlapping. */
+  @container (min-width: 500px) {
+    .stack__stage {
+      display: block;
+      height: 88cqi;
+    }
+    .stack__frames {
+      position: static;
+      height: auto;
+    }
+    .fr--desktop .fr__h {
+      font-size: max(11px, 4.1cqi);
+    }
+    .fr--tablet {
+      display: grid;
+      right: 0;
+      top: 0;
+      width: 44cqi;
+      height: 46cqi;
+      translate: calc(var(--px) * 4px) calc(var(--py) * 3px);
+    }
+    .fr--desktop {
+      left: 0;
+      top: 8cqi;
+      width: 74cqi;
+      height: 50cqi;
+      z-index: 1;
+      translate: calc(var(--px) * 8px) calc(var(--py) * 6px);
+    }
+    .fr--phone {
+      right: 4cqi;
+      top: 30cqi;
+      width: 24cqi;
+      height: 46cqi;
+      z-index: 2;
+      translate: calc(var(--px) * 13px) calc(var(--py) * 10px);
+    }
+    .fr--phone .fr__h {
+      font-size: max(11px, 3.1cqi);
+    }
+    .vars {
+      position: absolute;
+      left: 4cqi;
+      top: 60cqi;
+      width: 56cqi;
+      z-index: 3;
+      translate: calc(var(--px) * 16px) calc(var(--py) * 12px);
+    }
+  }
+
+  /* ---------- the variables panel ---------- */
+  .vars {
+    display: grid;
+    gap: 8px;
+    padding: 10px 10px 12px;
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    transition: translate 700ms var(--ease-out-quint);
+  }
+  .vars__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 4px;
+  }
+  .vars__title {
+    color: var(--text);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .vars__mode {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .vars__pp {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -4px -2px -4px auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .vars__pp svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .vars__pp-play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .vars__pp-play,
+  .vars__pp[aria-pressed='true'] .vars__pp-pause {
+    display: none;
+  }
+  .vars__pp[aria-pressed='true'] .vars__pp-play {
+    display: block;
+  }
+  .vars__list {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+  }
+  .vars__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: var(--radius-xs);
+    transition: background-color 500ms var(--ease-out-quint);
+  }
+  /* The row that changed this beat: tinted, with a selection bar on its left edge. */
+  .vars__row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 460ms var(--ease-out-expo);
+  }
+  .vars__row.is-changed {
+    background: var(--accent-soft);
+  }
+  .vars__row.is-changed::before {
+    transform: scaleY(1);
+  }
+  .vars__sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      background-color 800ms var(--ease-out-quint),
+      border-radius 800ms var(--ease-out-quint);
+  }
+  .vars__sw--brand {
+    background: var(--v-brand);
+  }
+  .vars__sw--radius {
+    border-radius: calc(var(--v-radius) * 0.5);
+    background: var(--surface-1);
+  }
+  .vars__sw--surface {
+    background: var(--v-surface);
+  }
+  .vars__sw--weight {
+    background: linear-gradient(90deg, var(--text) calc((var(--v-weight) - 300) / 6 * 1%), var(--surface-1) 0);
+  }
+  .vars__name {
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vars__val {
+    display: grid;
+    color: var(--text);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-align: right;
+  }
+  .vars__from,
+  .vars__to {
+    grid-area: 1 / 1;
+    transition:
+      opacity 300ms var(--ease-out-quint),
+      transform 500ms var(--ease-out-expo);
+  }
+  .vars__to {
+    color: var(--accent-text);
+  }
+  /* Applied rows show the new value; the old one slides away. */
+  .vars__row .vars__to,
+  .stack[data-on~='brand'] [data-var='brand'] .vars__from,
+  .stack[data-on~='radius'] [data-var='radius'] .vars__from,
+  .stack[data-on~='surface'] [data-var='surface'] .vars__from,
+  .stack[data-on~='weight'] [data-var='weight'] .vars__from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  .stack[data-on~='brand'] [data-var='brand'] .vars__to,
+  .stack[data-on~='radius'] [data-var='radius'] .vars__to,
+  .stack[data-on~='surface'] [data-var='surface'] .vars__to,
+  .stack[data-on~='weight'] [data-var='weight'] .vars__to {
+    opacity: 1;
+    transform: none;
+  }
+  .stack__cap {
+    margin-top: var(--space-3);
+    padding-inline: 4px;
+    font-size: 0.8125rem;
+    max-width: 52ch;
+  }
+  /* The server render is the finished state: nothing transitions in on first paint. */
+  .stack[data-static] * {
+    transition: none !important;
+  }
+</style>
+
+<script>
+  import { finePointer, prefersReduced } from '../../lib/webflow/base';
+
+  const stack = document.querySelector<HTMLElement>('[data-stack]');
+  if (stack && !prefersReduced()) {
+    const rows = [...stack.querySelectorAll<HTMLElement>('[data-var]')];
+    const ids = rows.map((r) => r.dataset.var ?? '');
+    const n = ids.length;
+    const BEAT_MS = 2800;
+    const pp = stack.querySelector<HTMLButtonElement>('[data-stack-pp]');
+
+    /*
+     * A beat sequence that changes exactly one thing per beat: apply 1..n, hold, then unwind
+     * n..1, hold. `level` = how many variables are applied (0..n).
+     */
+    const seq: number[] = [];
+    for (let i = 1; i <= n; i++) seq.push(i);
+    seq.push(n); // hold on the finished system
+    for (let i = n - 1; i >= 0; i--) seq.push(i);
+    seq.push(0); // hold on the base
+
+    let beat = -1;
+    let level = n;
+    let timer: number | undefined;
+    let visible = false;
+    let userPaused = false; // the visitor's pause always wins (WCAG 2.2.2)
+
+    const show = (next: number) => {
+      const changed = next > level ? ids[next - 1] : next < level ? ids[next] : null;
+      level = next;
+      stack.dataset.on = ids.slice(0, level).join(' ');
+      rows.forEach((r) => r.classList.toggle('is-changed', r.dataset.var === changed));
+    };
+    const tick = () => {
+      beat = (beat + 1) % seq.length;
+      show(seq[beat]!);
+    };
+    const play = () => {
+      if (timer !== undefined || !visible || document.hidden || userPaused) return;
+      timer = window.setInterval(tick, BEAT_MS);
+    };
+    const pause = () => {
+      window.clearInterval(timer);
+      timer = undefined;
+    };
+
+    if (pp) {
+      pp.hidden = false;
+      pp.addEventListener('click', () => {
+        userPaused = !userPaused;
+        pp.setAttribute('aria-pressed', String(userPaused));
+        if (userPaused) {
+          pause();
+          // Paused means finished: every variable applied, nothing half-changed.
+          beat = n - 1;
+          show(n);
+          rows.forEach((r) => r.classList.remove('is-changed'));
+        } else play();
+      });
+    }
+
+    // Start from the base system, without animating the swap on first paint.
+    stack.dataset.static = '';
+    show(0);
+    beat = seq.length - 1;
+    requestAnimationFrame(() => requestAnimationFrame(() => delete stack.dataset.static));
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => {
+        visible = Boolean(e?.isIntersecting);
+        if (visible) play();
+        else pause();
+      }).observe(stack);
+    } else {
+      visible = true;
+      play();
+    }
+    document.addEventListener('visibilitychange', () => (document.hidden ? pause() : play()));
+
+    // Cursor depth: the layers drift toward the pointer (translate only, once per frame).
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    if (hero && finePointer()) {
+      let px = 0;
+      let py = 0;
+      let queued = false;
+      let heroVisible = true;
+      const paint = () => {
+        queued = false;
+        stack.style.setProperty('--px', px.toFixed(3));
+        stack.style.setProperty('--py', py.toFixed(3));
+      };
+      const onMove = (e: PointerEvent) => {
+        if (!heroVisible || e.pointerType === 'touch') return;
+        const r = stack.getBoundingClientRect();
+        px = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 1.2)));
+        py = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 1.2)));
+        if (!queued) {
+          queued = true;
+          requestAnimationFrame(paint);
+        }
+      };
+      hero.addEventListener('pointermove', onMove, { passive: true });
+      hero.addEventListener('pointerleave', () => {
+        px = 0;
+        py = 0;
+        if (!queued) {
+          queued = true;
+          requestAnimationFrame(paint);
+        }
+      });
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(([e]) => (heroVisible = Boolean(e?.isIntersecting))).observe(hero);
+      }
+    }
+  }
+</script>

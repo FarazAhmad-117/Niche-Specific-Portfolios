@@ -1,0 +1,131 @@
+---
+/**
+ * "Where cloud bills usually leak" (replaces the savings calculator, owner decision 2026-11-03:
+ * too technical for non-technical visitors, and dollar figures clash with "no pricing anywhere").
+ *
+ * Six plain-language items in one complete 3×2 grid (2×3 on tablets, a list on phones), drawn as
+ * line items on a bill: a mono "line item" label, an amber flag with the kind of leak, a short
+ * title and one sentence for a founder. No numbers, no figures, no percentages. One CTA.
+ */
+import { LEAKS } from '../../data/cloud/content';
+import { bookingUrl } from '../../data/cloud/site';
+---
+
+<section class="section leaks" id="leaks" aria-labelledby="leaks-title">
+  <div class="container">
+    <div class="head head--split leaks__head">
+      <p class="eyebrow">Cost leaks</p>
+      <h2 id="leaks-title">Where cloud bills usually leak.</h2>
+      <div class="leaks__aside">
+        <p class="lede">
+          Bills rarely grow from one big mistake. They grow from small things nobody switched off. These are the ones I check
+          first.
+        </p>
+        <a class="btn" href={bookingUrl('cost-leaks')}>
+          <span class="btn__led" aria-hidden="true"></span>
+          <span>Get a cost audit</span>
+        </a>
+      </div>
+    </div>
+
+    <ul class="items" role="list" data-reveal-stagger>
+      {
+        LEAKS.map((l) => (
+          <li class="item">
+            <div class="item__top">
+              <span class="item__k mono" aria-hidden="true">line item</span>
+              <span class="status status--warn item__tag">{l.tag}</span>
+            </div>
+            <h3 class="item__title">{l.title}</h3>
+            <p class="item__text">{l.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .leaks__head {
+    margin-bottom: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  }
+  .leaks__aside {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  @media (min-width: 960px) {
+    .leaks__aside {
+      justify-self: end;
+      max-width: var(--measure-lede);
+    }
+  }
+
+  .items {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  @media (min-width: 640px) {
+    .items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .items {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  /* A bill line item: hairline plate, an amber flag on the left edge, the kind of leak top right. */
+  .item {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 14px 18px 16px;
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 3px;
+    height: 22px;
+    border-radius: 0 2px 2px 0;
+    background: var(--warn);
+  }
+  .item__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .item__k {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .item__tag {
+    min-height: 24px;
+    padding: 2px 8px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text-2);
+  }
+  .item__title {
+    font-size: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  }
+  .item__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+  @media (max-width: 639px) {
+    .leaks__aside .btn {
+      width: 100%;
+    }
+  }
+</style>

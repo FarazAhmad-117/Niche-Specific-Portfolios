@@ -1,0 +1,147 @@
+---
+/**
+ * The problem (brief §4 item 3): "Your infrastructure lives in one person's head." The fears from
+ * the brief as an open incident queue, every ticket assigned to the same one person. Amber and
+ * coral are used here only because this is the "before" state.
+ */
+import { PROBLEM } from '../../data/cloud/content';
+
+const SEV = { bad: 'Sev 1', warn: 'Sev 2' } as const;
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container problem__grid">
+    <div class="problem__copy">
+      <p class="eyebrow">The problem</p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede">{PROBLEM.body}</p>
+      <p class="problem__fix">{PROBLEM.resolution}</p>
+    </div>
+
+    <div class="queue panel panel--ticks" data-reveal>
+      <div class="queue__head">
+        <span class="mono queue__title">Open incidents</span>
+        <span class="queue__count mono"><span class="num">{PROBLEM.tickets.length}</span> open</span>
+      </div>
+      <ul class="queue__list" role="list">
+        {
+          PROBLEM.tickets.map((t) => (
+            <li class="ticket">
+              <span class:list={['status', t.sev === 'bad' ? 'status--bad' : 'status--warn', 'ticket__sev']}>{SEV[t.sev]}</span>
+              <div class="ticket__body">
+                <p class="ticket__title">{t.title}</p>
+                <p class="ticket__note">{t.note}</p>
+              </div>
+              <span class="ticket__who mono">
+                <span class="ticket__id">{t.id}</span>
+                <span>assignee: the one person</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: var(--space-8);
+    }
+  }
+  .problem__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .problem__copy h2 {
+    max-width: 14ch;
+  }
+  .problem__fix {
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--accent);
+    font-family: var(--font-display);
+    font-stretch: 106%;
+    font-weight: 650;
+    font-size: var(--fs-h3);
+    line-height: 1.25;
+  }
+
+  .queue {
+    padding: var(--space-4);
+  }
+  .queue__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .queue__title {
+    color: var(--text-2);
+    text-transform: uppercase;
+  }
+  .queue__count {
+    color: var(--bad-text);
+    font-weight: 600;
+  }
+  .queue__list {
+    display: grid;
+    margin: 0;
+  }
+  .ticket {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px var(--space-4);
+    align-items: start;
+    padding: 14px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ticket:last-child {
+    border-bottom: 0;
+    padding-bottom: 6px;
+  }
+  .ticket__sev {
+    margin-top: 2px;
+  }
+  .ticket__title {
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .ticket__note {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .ticket__who {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    color: var(--text-3);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+  }
+  .ticket__id {
+    color: var(--text-2);
+  }
+  @media (min-width: 720px) {
+    .ticket {
+      grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+    }
+    .ticket__who {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+  }
+</style>

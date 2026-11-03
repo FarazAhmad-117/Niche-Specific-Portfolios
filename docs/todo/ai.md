@@ -83,3 +83,5 @@ The years are the unconfirmed fallbacks from your repo, not dates I can verify.
    `Sitemap:` line; the sitemap already lists home and the four case pages). **The build fails until step 1 is done.**
 3. `npm run check && npm run build`, then re-run mobile Lighthouse on `/` and one case page.
 4. Submit `https://ai.farazahmad.dev/sitemap.xml` in Search Console.
+
+Leadrift screenshot added: Lead Drift case page, a framed figure straight under the hero; confirm the job posts shown are fine to publish.

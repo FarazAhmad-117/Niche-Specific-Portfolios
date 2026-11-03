@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/wp/Layout.astro';
+import Hero from '../../components/wp/Hero.astro';
+import Proof from '../../components/wp/Proof.astro';
+import Problem from '../../components/wp/Problem.astro';
+import BeforeAfter from '../../components/wp/BeforeAfter.astro';
+import Cases from '../../components/wp/Cases.astro';
+import Offers from '../../components/wp/Offers.astro';
+import Included from '../../components/wp/Included.astro';
+import Process from '../../components/wp/Process.astro';
+import About from '../../components/wp/About.astro';
+import Faq from '../../components/wp/Faq.astro';
+import FinalCta from '../../components/wp/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/wp/seo';
+import { abs, homeLd } from '../../lib/wp/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4): what this is → facts → the plugin pile → watch it get lighter
+ * (signature) → proof → how to buy → what's always included → how it runs → who builds it →
+ * questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so both linked cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <BeforeAfter />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

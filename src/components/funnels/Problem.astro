@@ -1,0 +1,119 @@
+---
+/**
+ * The problem, from the lead's side of the screen: four messages a lead might send, each with
+ * the read receipt nobody wants. Bubbles drift in on the spring as the section arrives.
+ */
+import { PROBLEM } from '../../data/funnels/content';
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container problem__grid">
+    <div class="problem__copy">
+      <p class="eyebrow">The problem</p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede">{PROBLEM.body}</p>
+      <p class="problem__resolution">{PROBLEM.resolution}</p>
+    </div>
+
+    <figure class="thread" aria-labelledby="problem-cap">
+      <ul class="thread__list" role="list" data-reveal-stagger>
+        {
+          PROBLEM.messages.map((m) => (
+            <li class="thread__item">
+              <p class="bubble bubble--in">{m.text}</p>
+              <span class="thread__receipt mono">{m.receipt}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <figcaption id="problem-cap" class="thread__cap text-3">Illustrative messages: what leads see when follow-up breaks.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    }
+  }
+  .problem__copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .problem__copy h2 {
+    max-width: 14ch;
+  }
+  .problem__resolution {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: var(--fs-lede);
+  }
+  .problem__resolution::before {
+    content: '';
+    width: 36px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .thread {
+    margin: 0;
+    padding: var(--space-5);
+    border-radius: var(--radius-xl);
+    background: var(--surface-1);
+  }
+  .thread__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .thread__cap {
+    margin-top: var(--space-4);
+    font-size: 0.8125rem;
+  }
+  .thread__item {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+  }
+  .thread__item:nth-child(even) {
+    padding-left: clamp(0px, 4vw, 48px);
+  }
+  .thread__item .bubble {
+    max-width: 32ch;
+  }
+  .thread__receipt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 6px;
+    color: var(--accent-text);
+    font-size: 0.71875rem;
+  }
+  .thread__receipt::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+  }
+  /* The stagger lands each bubble on the spring instead of the default glide. */
+  @media (prefers-reduced-motion: no-preference) {
+    .thread__list.is-armed.is-revealed > * {
+      transition:
+        opacity 500ms var(--ease-out-quint),
+        transform var(--dur-bubble) var(--ease-spring);
+      transition-delay: calc(var(--i, 0) * 140ms);
+    }
+    .thread__list.is-armed:not(.is-revealed) > * {
+      transform: translate3d(-12px, 22px, 0) scale(0.94);
+    }
+  }
+</style>

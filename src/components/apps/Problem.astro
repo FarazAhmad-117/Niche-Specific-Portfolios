@@ -1,0 +1,142 @@
+---
+/**
+ * The problem: "Most MVPs die in the rewrite." The fears from the brief as a revision table:
+ * each issue struck through in redline, each answer written in ink blue beside it, the way a
+ * checker marks up a drawing.
+ */
+import { PROBLEM } from '../../data/apps/content';
+---
+
+<section class="section problem" id="problem" aria-labelledby="problem-title">
+  <div class="container problem__grid">
+    <div class="problem__head">
+      <p class="eyebrow"><span class="eyebrow__no">01</span>The problem</p>
+      <h2 id="problem-title">{PROBLEM.title}</h2>
+      <p class="lede">{PROBLEM.body}</p>
+      <p class="problem__fix">{PROBLEM.resolution}</p>
+    </div>
+
+    <div class="revs">
+      <div class="revs__head" aria-hidden="true">
+        <span class="label">Rev</span>
+        <span class="label">Marked up</span>
+        <span class="label">How I build instead</span>
+      </div>
+      <ol class="revs__list" role="list" data-reveal-stagger>
+        {
+          PROBLEM.revisions.map((r, i) => (
+            <li class="rev">
+              <span class="rev__no mono" aria-hidden="true">
+                {String.fromCharCode(65 + i)}
+              </span>
+              <p class="rev__issue">
+                <span class="visually-hidden">Problem: </span>
+                <span class="rev__strike">{r.issue}</span>
+              </p>
+              <p class="rev__fix">
+                <span class="visually-hidden">Instead: </span>
+                {r.fix}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .problem__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 1024px) {
+    .problem__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: var(--space-8);
+      align-items: start;
+    }
+    .problem__head {
+      position: sticky;
+      top: calc(var(--nav-h) + 48px);
+    }
+  }
+  .problem__head {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .problem__head h2 {
+    max-width: 13ch;
+  }
+  .problem__fix {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-stretch: 106%;
+    font-size: var(--fs-h3);
+    line-height: 1.2;
+    color: var(--accent-text);
+  }
+
+  .revs {
+    border-top: 1.5px solid var(--text);
+  }
+  .revs__head {
+    display: none;
+  }
+  @media (min-width: 720px) {
+    .revs__head {
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: var(--space-4);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--line-strong);
+      color: var(--text-3);
+    }
+  }
+  .revs__list {
+    margin: 0;
+  }
+  .rev {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-4) 0 var(--space-5);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  @media (min-width: 720px) {
+    .rev {
+      grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1.15fr);
+      align-items: baseline;
+    }
+  }
+  .rev__no {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--text-2);
+    border-radius: 50%;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    transform: translateY(-2px);
+  }
+  .rev__issue {
+    color: var(--text-2);
+  }
+  .rev__strike {
+    text-decoration: line-through 1.5px var(--redline);
+  }
+  .rev__fix {
+    grid-column: 2;
+    font-weight: 500;
+    color: var(--text);
+    padding-left: 14px;
+    border-left: 2px solid var(--accent);
+  }
+  @media (min-width: 720px) {
+    .rev__fix {
+      grid-column: 3;
+    }
+  }
+</style>

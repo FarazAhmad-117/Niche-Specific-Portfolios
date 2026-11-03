@@ -1,0 +1,289 @@
+/*
+ * funnels niche design tokens. Concept "Flow" (docs/brief/funnels.md §6): warm, human,
+ * conversational; messages moving through time. Global: imported once by the Layout.
+ *
+ * Deliberately not the ai niche: no hard grid, no hairline console, no lime. Soft radii,
+ * curves, paper-warm neutrals and one rose accent.
+ */
+
+/* ---------- fonts ---------- */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("../../assets/fonts/CabinetGrotesk-Extrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("../../assets/fonts/Satoshi-Variable.woff2") format("woff2-variations"),
+    url("../../assets/fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2-variations"),
+    url("../../assets/fonts/JetBrainsMono-Variable-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Clash Display";
+  src: url("../../assets/fonts/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* Metric-matched fallbacks keep the swap from shifting the hero. */
+@font-face {
+  font-family: "Cabinet Fallback";
+  src: local("Arial Black"), local("Arial Bold"), local("Arial"), local("Helvetica Neue"), local("Roboto");
+  size-adjust: 96%;
+  ascent-override: 96%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Satoshi Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 101%;
+  ascent-override: 97%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
+/* ---------- primitives (never used directly in components) ---------- */
+:root {
+  --cream-50: #fdfaf5;
+  --cream-100: #f7f2ea;
+  --cream-200: #efe7da;
+  --cream-300: #e2d7c5;
+  --cream-400: #cbbda7;
+  --ink-950: #1c1916;
+  --ink-800: #2e2a26;
+  --ink-700: #4a443d;
+  --ink-600: #6a6258;
+  --plum-950: #151013;
+  --plum-900: #1e171b;
+  --plum-850: #271e23;
+  --plum-800: #372b31;
+  --plum-600: #5c4c54;
+  --sand-300: #d6ccc0;
+  --sand-400: #b3a89c;
+  --rose-100: #ffe1eb;
+  --rose-300: #ff8db3;
+  --rose-400: #ff6b9c;
+  --rose-500: #ff3d7f;
+  --rose-600: #e62a6b;
+  --rose-700: #c2185b;
+  --rose-900: #4a1027;
+  --green-700: #1e6b45;
+  --green-300: #7fdcaa;
+  --red-700: #b42318;
+  --red-300: #ff9a8c;
+
+  --font-display: "Cabinet Grotesk", "Cabinet Fallback", system-ui, sans-serif;
+  --font-body: "Satoshi", "Satoshi Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "Courier New", monospace;
+  --font-signature: "Clash Display", var(--font-display);
+}
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--cream-100);
+  --surface-1: var(--cream-200);
+  --surface-2: var(--cream-50);
+  --line: var(--cream-300);
+  --line-strong: var(--cream-400);
+  --text: var(--ink-950);
+  --text-2: var(--ink-700);
+  --text-3: var(--ink-600);
+  --accent: var(--rose-500); /* fills, strokes, dots. Never small text on cream. */
+  --accent-soft: var(--rose-100);
+  --accent-text: var(--rose-700); /* 5.1:1 on cream */
+  --on-accent: var(--ink-950);
+  --success: var(--green-700);
+  --error: var(--red-700);
+  --focus: var(--rose-700);
+  /* Conversation surfaces. Outgoing = your system speaking, incoming = the lead. */
+  --bubble-out: var(--ink-950);
+  --bubble-out-text: var(--cream-100);
+  --bubble-in: var(--cream-50);
+  --bubble-in-text: var(--ink-950);
+  --event-bg: var(--cream-200);
+  --btn-bg: var(--ink-950);
+  --btn-fg: var(--cream-100);
+  /* On inverted (--btn-bg) cards: rose text and focus rings that still clear 4.5:1 / 3:1. */
+  --accent-inv: var(--rose-500);
+  --focus-inv: var(--rose-300);
+  --shadow-soft: 0 1px 0 rgb(28 25 22 / 0.04), 0 18px 40px -22px rgb(74 40 20 / 0.32);
+  --shadow-lift: 0 1px 0 rgb(28 25 22 / 0.05), 0 28px 60px -28px rgb(74 40 20 / 0.42);
+  --grain-opacity: 0.05;
+  --theme-color: #f7f2ea;
+}
+
+/* ---------- DARK: written once for the explicit choice, once for the system preference ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--plum-950);
+  --surface-1: var(--plum-900);
+  --surface-2: var(--plum-850);
+  --line: var(--plum-800);
+  --line-strong: var(--plum-600);
+  --text: var(--cream-100);
+  --text-2: var(--sand-300);
+  --text-3: var(--sand-400);
+  --accent: var(--rose-500);
+  --accent-soft: var(--rose-900);
+  --accent-text: var(--rose-300);
+  --on-accent: var(--ink-950);
+  --success: var(--green-300);
+  --error: var(--red-300);
+  --focus: var(--rose-300);
+  --bubble-out: var(--cream-100);
+  --bubble-out-text: var(--ink-950);
+  --bubble-in: var(--plum-850);
+  --bubble-in-text: var(--cream-100);
+  --event-bg: var(--plum-900);
+  --btn-bg: var(--cream-100);
+  --btn-fg: var(--ink-950);
+  --accent-inv: var(--rose-700);
+  --focus-inv: var(--rose-700);
+  --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 18px 40px -22px rgb(0 0 0 / 0.7);
+  --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 28px 60px -28px rgb(0 0 0 / 0.8);
+  --grain-opacity: 0.07;
+  --theme-color: #151013;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--plum-950);
+    --surface-1: var(--plum-900);
+    --surface-2: var(--plum-850);
+    --line: var(--plum-800);
+    --line-strong: var(--plum-600);
+    --text: var(--cream-100);
+    --text-2: var(--sand-300);
+    --text-3: var(--sand-400);
+    --accent: var(--rose-500);
+    --accent-soft: var(--rose-900);
+    --accent-text: var(--rose-300);
+    --on-accent: var(--ink-950);
+    --success: var(--green-300);
+    --error: var(--red-300);
+    --focus: var(--rose-300);
+    --bubble-out: var(--cream-100);
+    --bubble-out-text: var(--ink-950);
+    --bubble-in: var(--plum-850);
+    --bubble-in-text: var(--cream-100);
+    --event-bg: var(--plum-900);
+    --btn-bg: var(--cream-100);
+    --btn-fg: var(--ink-950);
+    --accent-inv: var(--rose-700);
+    --focus-inv: var(--rose-700);
+    --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.3), 0 18px 40px -22px rgb(0 0 0 / 0.7);
+    --shadow-lift: 0 1px 0 rgb(0 0 0 / 0.3), 0 28px 60px -28px rgb(0 0 0 / 0.8);
+    --grain-opacity: 0.07;
+    --theme-color: #151013;
+  }
+}
+
+/* ---------- type scale ---------- */
+:root {
+  --fs-hero: clamp(3rem, 1.6rem + 6.2vw, 8.25rem);
+  --fs-h2: clamp(2.25rem, 1.55rem + 3.1vw, 5rem);
+  --fs-h3: clamp(1.375rem, 1.25rem + 0.55vw, 1.875rem);
+  --fs-metric: clamp(3.25rem, 2.2rem + 4.6vw, 7rem);
+  --fs-lede: clamp(1.125rem, 1.05rem + 0.35vw, 1.4rem);
+  --fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.125rem);
+  --fs-small: 0.9375rem;
+  --fs-mono: clamp(0.75rem, 0.73rem + 0.08vw, 0.8125rem);
+
+  --lh-display: 0.9;
+  --lh-heading: 0.98;
+  --lh-body: 1.6;
+
+  --tr-display: -0.035em;
+  --tr-heading: -0.03em;
+  --tr-mono: 0.04em;
+
+  --measure: 62ch;
+  --measure-lede: 48ch;
+}
+
+/* ---------- space, shape, layering ---------- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  /* Applied top and bottom, so the gap between two sections is twice this. */
+  --space-section: clamp(3.5rem, 2.6rem + 4vw, 7rem);
+
+  /* Soft, conversational shapes: everything is a bubble or a pill. */
+  --radius-s: 10px;
+  --radius-m: 18px;
+  --radius-l: 28px;
+  --radius-xl: 40px;
+  --radius-pill: 999px;
+  /* A message bubble keeps one tight "tail" corner. */
+  --radius-tail: 6px;
+
+  --z-raised: 1;
+  --z-nav: 50;
+  --z-sticky-cta: 60;
+  --z-menu: 80;
+  --z-skip: 100;
+
+  --nav-h: 64px;
+  --tap: 44px;
+  --sticky-cta-h: 56px;
+  --anchor-gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+
+  --margin: clamp(1rem, 0.4rem + 3vw, 4.5rem);
+  --container-max: 1440px;
+}
+
+/*
+ * ---------- motion ----------
+ * One curve per job, so the whole site moves with the same hand:
+ *  - out-quint   reveals and long glides: quick to leave, very soft landing
+ *  - out-expo    hovers on big shapes (fills, arrows): snappy then still
+ *  - in-out-quart wipes and swaps where both ends are on screen (theme, tabs)
+ *  - spring      a message arriving: a real damped spring (zeta 0.62, ~8% overshoot),
+ *                sampled into linear(). Browsers without linear() get a back-out bezier.
+ *  - sine        ambient loops (the travelling lead dot), never jerky at the turn.
+ */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-press: 140ms;
+  --dur-hover: 260ms;
+  --dur-reveal: 900ms;
+  --dur-bubble: 640ms;
+  --dur-draw: 1400ms;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.046, 0.1589, 0.3069, 0.4655, 0.6176, 0.7521, 0.8634, 0.9496, 1.0115, 1.0519, 1.0744, 1.0831,
+      1.0817, 1.0737, 1.062, 1.0489, 1.0359, 1.0241, 1.0142, 1.0063, 1.0005, 0.9966, 0.9942, 0.9932, 0.9936,
+      0.9956, 0.9977, 0.9993, 1.0002, 1.0006, 1
+    );
+  }
+}

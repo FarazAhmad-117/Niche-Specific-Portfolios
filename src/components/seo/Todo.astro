@@ -1,0 +1,19 @@
+---
+/**
+ * Renders a Field: verified text as-is, a todo() placeholder as the dashed `TODO · …` chip
+ * (styles in src/styles/seo/base.css › .todo). Never animated, never yellow-filled.
+ *
+ * Props
+ *   value: Field     a string or a todo(...) from src/data/seo/todo.ts
+ *   class?: string   applied to the chip only
+ */
+import { isTodo, type Field } from '../../data/seo/todo';
+
+interface Props {
+  value: Field;
+  class?: string;
+}
+const { value, class: className } = Astro.props;
+---
+
+{isTodo(value) ? <span class:list={['todo', className]} data-todo={value.id}>{value.label}</span> : value}

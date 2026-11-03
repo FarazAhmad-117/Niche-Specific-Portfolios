@@ -1,0 +1,670 @@
+---
+/**
+ * Hero. Left: who this is and what it does, in one look. Right: the real pipeline behind this
+ * site's own form, drawn as a rack of ports. A lead comes in at the top jack and is patched
+ * through, one port per beat: saved to MongoDB, contact upserted, tagged niche:ghl, a note,
+ * an open opportunity. Only the contact is an example, and the caption says so.
+ *
+ * Motion (all optional, all off under reduced motion):
+ *  - headline words rise out of their own line boxes, 70ms apart, out-quint; a patch cable
+ *    draws under "developer." (in-out-quart) and its jack seats on the spring
+ *  - the rack changes once per beat (2.8s): the teal bus extends and a packet slides down it
+ *    (in-out-quart), then that port's branch draws, its jack seats (spring) and its LED lights.
+ *    Calm by design: one port at a time, a held "Delivered" state, then a quiet reset.
+ * Without JS, or under reduced motion, the rack shows its finished state (every port lit).
+ */
+import { HERO, HERO_PORTS } from '../../data/ghl/content';
+import { bookingUrl } from '../../data/ghl/site';
+
+const words = HERO.headline.map((line) => line.split(' '));
+let w = 0;
+const last = HERO_PORTS.length - 1;
+---
+
+<section class="hero" id="top" data-hero aria-labelledby="hero-title">
+  <div class="hero__inner container">
+    <div class="hero__copy">
+      <p class="eyebrow">{HERO.eyebrow}</p>
+      <h1 id="hero-title" class="hero__title">
+        {
+          words.map((line, li) => (
+            <span class="hero__line">
+              {line.map((word, wi) => {
+                const i = w++;
+                const isLast = li === words.length - 1 && wi === line.length - 1;
+                return (
+                  <>
+                    <span class="hero__w" style={`--w:${i}`}>
+                      <span class:list={['hero__wi', { em: isLast }]}>
+                        {word}
+                        {isLast && <span class="hero__patch" aria-hidden="true" />}
+                      </span>
+                      {isLast && <span class="hero__plug" aria-hidden="true" />}
+                    </span>
+                    {wi < line.length - 1 ? ' ' : ''}
+                  </>
+                );
+              })}{' '}
+            </span>
+          ))
+        }
+      </h1>
+      <p class="lede hero__lede">{HERO.lede}</p>
+      <div class="hero__ctas">
+        <a class="btn" href={bookingUrl('hero')}>
+          <span class="btn__led" aria-hidden="true"></span>
+          <span>{HERO.primary}</span>
+        </a>
+        <a class="btn btn--ghost" href="#switchboard">
+          <span>{HERO.secondary}</span>
+          <span class="btn__arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="hero__note text-3">{HERO.note}</p>
+    </div>
+
+    <figure class="rack" data-rack data-done style={`--stage:${last};--n:${HERO_PORTS.length}`} aria-labelledby="rack-cap">
+      <div class="rack__depth" aria-hidden="true"></div>
+      <div class="rack__panel" data-pause-offscreen>
+        <div class="rack__head">
+          <span class="tape tape--accent">Lead in</span>
+          <span class="rack__src mono">Website form → GoHighLevel</span>
+          <span class="rack__status mono" data-rack-status>
+            <span class="led led--breathe"></span>
+            <span data-rack-status-text>Delivered</span>
+          </span>
+          <button class="rack__pp" type="button" data-rack-pp aria-label="Pause the pipeline animation" aria-pressed="false" hidden>
+            <svg class="rack__pp-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+            <svg class="rack__pp-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
+          </button>
+        </div>
+
+        <div class="rack__body">
+          <span class="rack__bus" aria-hidden="true">
+            <span class="rack__bus-fill"></span>
+            <span class="rack__packet"></span>
+          </span>
+          <div class="rack__from">
+            <span class="rack__jack rack__jack--src" aria-hidden="true"></span>
+            <span class="rack__from-text">
+              <strong>Form posted</strong>
+              <span class="text-3">Sam Rivera · example contact</span>
+            </span>
+          </div>
+          <ol class="rack__ports" role="list">
+            {
+              HERO_PORTS.map((p, i) => (
+                <li class="port is-on" data-port={i}>
+                  <span class="port__branch" aria-hidden="true" />
+                  <span class="port__jack" aria-hidden="true" />
+                  <span class="port__label tape">{p.label}</span>
+                  <span class="port__value">
+                    <span class="port__main">{p.value}</span>
+                    <span class="port__detail">{p.detail}</span>
+                  </span>
+                  <span class="led port__led" aria-hidden="true" />
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <div class="rack__foot mono">
+          <span>Failed send → retry from admin</span>
+          <span class="rack__count num" aria-hidden="true"><span data-rack-count>{HERO_PORTS.length}</span>/{HERO_PORTS.length}</span>
+        </div>
+      </div>
+      <figcaption id="rack-cap" class="rack__cap text-3">
+        The real pipeline behind this site’s form. The contact is an example.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: clip;
+    padding-top: calc(var(--nav-h) + clamp(3rem, 2rem + 5vw, 6.5rem));
+    padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+    background:
+      radial-gradient(56rem 36rem at 92% 6%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+      var(--bg);
+  }
+  /* A faint field of patch holes behind the rack, fading toward the copy. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--line-strong) 55%, transparent) 1.2px, transparent 1.6px);
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(70% 80% at 85% 40%, #000, transparent 75%);
+    mask-image: radial-gradient(70% 80% at 85% 40%, #000, transparent 75%);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* ---------- layout ---------- */
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+  @media (min-width: 1100px) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
+      min-height: min(76svh, 740px);
+    }
+  }
+  .hero__copy {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero__title {
+    margin-top: var(--space-2);
+    /* "GoHighLevel," is one unbreakable expanded word (7.13em): cap the size by the column. */
+    font-size: min(var(--fs-hero), 13.4cqi);
+  }
+  .hero__line {
+    display: block;
+  }
+  /* Each word rises inside its own clipped box. The padding (cancelled by the negative margin)
+     keeps descenders and the patch cable inside the clip without overflow-clip-margin, which
+     Safari ignores. */
+  .hero__w {
+    position: relative;
+    display: inline-block;
+    overflow: clip;
+    padding: 0.04em 0.08em 0.3em;
+    margin: -0.04em -0.08em -0.3em;
+    vertical-align: top;
+  }
+  .hero__wi {
+    position: relative;
+    display: inline-block;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__wi {
+      animation: rise 1000ms var(--ease-out-quint) both;
+      animation-delay: calc(80ms + var(--w) * 70ms);
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translate3d(0, 110%, 0);
+    }
+  }
+  /* The patch cable under the accent word, ending in a jack that seats. */
+  /* Sits behind the glyphs, so descenders cross it like a cable passing behind a panel. */
+  .hero__patch {
+    position: absolute;
+    z-index: -1;
+    left: 0.03em;
+    right: 0.14em;
+    bottom: 0.02em;
+    height: 0.055em;
+    border-radius: 0.03em;
+    background: var(--accent);
+    transform-origin: left center;
+  }
+  .hero__wi:has(.hero__patch) {
+    isolation: isolate;
+  }
+  .hero__plug {
+    position: absolute;
+    right: 0.02em;
+    bottom: 0.23em;
+    width: 0.2em;
+    height: 0.2em;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 0.035em var(--accent),
+      inset 0 0 0 0.06em var(--bg),
+      inset 0 0 0 1em var(--accent);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__patch {
+      animation: draw 900ms var(--ease-in-out-quart) 950ms both;
+    }
+    .hero__plug {
+      animation: plug-seat var(--dur-seat) var(--ease-spring) 1750ms both;
+    }
+  }
+  @keyframes draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes plug-seat {
+    from {
+      transform: scale(0);
+    }
+  }
+  .hero__lede {
+    max-width: 46ch;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero__note {
+    margin: 0;
+    font-size: var(--fs-small);
+    max-width: 46ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__lede,
+    .hero__ctas,
+    .hero__note,
+    .rack {
+      animation: lift 900ms var(--ease-out-quint) both;
+    }
+    .hero__lede {
+      animation-delay: 420ms;
+    }
+    .hero__ctas {
+      animation-delay: 520ms;
+    }
+    .hero__note {
+      animation-delay: 600ms;
+    }
+    .rack {
+      animation-delay: 360ms;
+    }
+  }
+  @keyframes lift {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+  }
+
+  /* =========================================================
+     The rack
+     ========================================================= */
+  .rack {
+    --row: 58px;
+    position: relative;
+    width: 100%;
+    max-width: 470px;
+    justify-self: center;
+    margin: 0;
+    padding: 14px 0 0 14px;
+  }
+  @media (min-width: 1100px) {
+    .rack {
+      justify-self: end;
+    }
+  }
+  /* A second unit behind the panel: depth, and "one lead out of many". */
+  .rack__depth {
+    position: absolute;
+    inset: 0 14px 44px 0;
+    border-radius: var(--radius-xl);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .rack__panel {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+  }
+  .rack__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .rack__src {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .rack__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .rack:not([data-done]) .rack__status .led {
+    background: var(--line-strong);
+    box-shadow: none;
+    animation: none;
+  }
+
+  .rack__body {
+    position: relative;
+    padding-left: 4px;
+  }
+  /* The bus: from the source jack down to the last port. Its teal fill grows to the current
+     port and the packet rides its leading edge. */
+  .rack__bus {
+    position: absolute;
+    left: 16px;
+    top: calc(var(--row) / 2);
+    height: calc(var(--row) * var(--n));
+    width: 2px;
+    border-radius: 1px;
+    background: var(--cable-off);
+  }
+  .rack__bus-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--accent);
+    transform-origin: top;
+    transform: scaleY(calc((var(--stage) + 1) / var(--n)));
+    transition: transform 900ms var(--ease-in-out-quart);
+  }
+  .rack__packet {
+    position: absolute;
+    left: -4px;
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+    transform: translateY(calc(var(--row) * (var(--stage) + 1)));
+    transition: transform 900ms var(--ease-in-out-quart);
+  }
+  .rack[data-done] .rack__packet,
+  .rack[data-idle] .rack__packet {
+    opacity: 0;
+  }
+  .rack__from {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    height: var(--row);
+  }
+  .rack__jack {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 2px var(--line-strong),
+      inset 0 0 0 7px var(--surface-2),
+      inset 0 0 0 13px var(--text);
+  }
+  .rack__from-text {
+    display: grid;
+    line-height: 1.25;
+  }
+  .rack__from-text .text-3 {
+    font-size: 0.8125rem;
+  }
+  .rack__ports {
+    display: grid;
+    margin: 0;
+  }
+  .port {
+    position: relative;
+    display: grid;
+    grid-template-columns: 26px 7.25rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    height: var(--row);
+    padding-left: 30px;
+    border-top: 1px dashed var(--line);
+  }
+  .port__branch {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    width: 28px;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 420ms var(--ease-out-quint);
+  }
+  .port__jack {
+    position: relative;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 2px var(--line-strong),
+      inset 0 0 0 5px var(--surface-2),
+      inset 0 0 0 10px var(--cable-off);
+    transition: box-shadow 300ms var(--ease-out-quint);
+  }
+  .port__label {
+    justify-self: start;
+  }
+  .port__value {
+    display: grid;
+    min-width: 0;
+    line-height: 1.2;
+  }
+  .port__main {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    overflow-wrap: anywhere;
+  }
+  .port__detail {
+    color: var(--text-3);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+  /* An unlit port stays readable (no opacity on text): only its value colour steps down, to
+     text-3, which still clears 4.5:1. */
+  .port__main {
+    color: var(--text-3);
+    transition: color 420ms var(--ease-out-quint);
+  }
+  .port__led {
+    background: var(--line-strong);
+    box-shadow: none;
+    transition:
+      background-color 300ms var(--ease-out-quint),
+      box-shadow 300ms var(--ease-out-quint);
+  }
+  /* A lit port: branch drawn, jack seated, label and value up, LED on. */
+  .port.is-on .port__branch {
+    transform: scaleX(1);
+  }
+  .port.is-on .port__jack {
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 5px var(--surface-2),
+      inset 0 0 0 10px var(--accent);
+    animation: seat var(--dur-seat) var(--ease-spring) 180ms both;
+  }
+  .port.is-on .port__main {
+    color: var(--text);
+    transition-delay: 260ms;
+  }
+  .port.is-on .port__led {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition-delay: 320ms;
+  }
+  /* The server render is the finished state: nothing animates in on first paint. */
+  .rack[data-static] .port.is-on .port__jack {
+    animation: none;
+  }
+  @keyframes seat {
+    from {
+      transform: scale(0.4);
+    }
+  }
+  .rack__pp {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -6px -6px -6px 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .rack__pp svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .rack__pp-play path {
+    fill: currentColor;
+    stroke: none;
+  }
+  .rack__pp-play,
+  .rack__pp[aria-pressed='true'] .rack__pp-pause {
+    display: none;
+  }
+  .rack__pp[aria-pressed='true'] .rack__pp-play {
+    display: block;
+  }
+  .rack__foot {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .rack__count {
+    color: var(--text);
+  }
+  .rack__cap {
+    margin-top: var(--space-3);
+    padding-inline: 4px;
+    font-size: 0.8125rem;
+  }
+  @media (max-width: 480px) {
+    .rack {
+      --row: 56px;
+      padding: 10px 0 0 10px;
+    }
+    .rack__panel {
+      padding: var(--space-4) var(--space-4) var(--space-3);
+    }
+    .port {
+      grid-template-columns: 22px 5.5rem minmax(0, 1fr) auto;
+      gap: var(--space-2);
+    }
+    .port__label {
+      padding-inline: 8px;
+      font-size: 0.625rem;
+    }
+    .port__main {
+      font-size: 0.875rem;
+    }
+    .port__detail {
+      font-size: 0.6875rem;
+    }
+    .rack__src {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/ghl/base';
+
+  const rack = document.querySelector<HTMLElement>('[data-rack]');
+  if (rack) {
+    const ports = [...rack.querySelectorAll<HTMLElement>('[data-port]')];
+    const statusText = rack.querySelector<HTMLElement>('[data-rack-status-text]');
+    const count = rack.querySelector<HTMLElement>('[data-rack-count]');
+    const n = ports.length;
+    const last = n - 1;
+
+    /** -1 = only the lead is in; 0..last = that port is the newest lit one. */
+    const show = (i: number) => {
+      rack.style.setProperty('--stage', String(i));
+      ports.forEach((p, k) => p.classList.toggle('is-on', k <= i));
+      if (count) count.textContent = String(Math.max(0, i + 1));
+      const done = i === last;
+      if (done) rack.dataset.done = '';
+      else delete rack.dataset.done;
+      if (statusText) statusText.textContent = done ? 'Delivered' : i < 0 ? 'Lead in' : 'Routing';
+    };
+
+    // The finished state is the server render; reduced motion keeps it.
+    if (!prefersReduced()) {
+      const BEAT_MS = 2800;
+      const HOLD = 2; // extra beats on "Delivered" before the loop restarts
+      let beat = -1;
+      let timer: number | undefined;
+      let visible = false;
+      let userPaused = false; // the visitor's pause always wins (WCAG 2.2.2)
+      const pp = rack.querySelector<HTMLButtonElement>('[data-rack-pp]');
+      const tick = () => {
+        beat = beat + 1 > n + HOLD - 1 ? -1 : beat + 1;
+        if (beat === -1) rack.dataset.idle = '';
+        else delete rack.dataset.idle;
+        show(Math.min(beat, last));
+      };
+      const play = () => {
+        if (timer !== undefined || !visible || document.hidden || userPaused) return;
+        timer = window.setInterval(tick, BEAT_MS);
+      };
+      const pause = () => {
+        window.clearInterval(timer);
+        timer = undefined;
+      };
+      if (pp) {
+        pp.hidden = false;
+        pp.addEventListener('click', () => {
+          userPaused = !userPaused;
+          pp.setAttribute('aria-pressed', String(userPaused));
+          pp.setAttribute('aria-label', userPaused ? 'Play the pipeline animation' : 'Pause the pipeline animation');
+          if (userPaused) {
+            pause();
+            // Paused means finished: every port lit, nothing half-drawn.
+            beat = last;
+            delete rack.dataset.idle;
+            show(last);
+          } else play();
+        });
+      }
+      rack.dataset.static = '';
+      rack.dataset.idle = '';
+      show(-1);
+      // Let the first paint settle before jacks start seating.
+      requestAnimationFrame(() => delete rack.dataset.static);
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(([e]) => {
+          visible = Boolean(e?.isIntersecting);
+          if (visible) play();
+          else pause();
+        }).observe(rack);
+      } else {
+        visible = true;
+        play();
+      }
+      document.addEventListener('visibilitychange', () => (document.hidden ? pause() : play()));
+    }
+  }
+</script>

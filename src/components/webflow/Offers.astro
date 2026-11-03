@@ -1,0 +1,175 @@
+---
+/**
+ * Offers (brief §2, decisions › webflow › Offers to show), as a studio index: one row per
+ * offer, always full width, so five offers never leave a half-empty grid row. No prices: each
+ * row says "Scoped on a call". On hover a violet tint wipes in under the row (out-quint) and
+ * the number gets selected.
+ */
+import { OFFERS } from '../../data/webflow/content';
+import { bookingUrl } from '../../data/webflow/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Services</p>
+      <h2 id="services-title">Five ways to work together.</h2>
+      <p class="lede">From your Figma file to a site your team runs, and the code Webflow can’t write for itself. Every one starts with a free scoping call.</p>
+    </div>
+
+    <ol class="idx" role="list">
+      {
+        OFFERS.map((o, i) => (
+          <li class="row" id={`offer-${o.id}`}>
+            <span class="row__num mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div class="row__main">
+              <h3 class="row__name">{o.name}</h3>
+              <p class="row__for">{o.forWho}</p>
+            </div>
+            <p class="row__desc">{o.description}</p>
+            <ul class="row__gets" role="list">
+              {o.gets.map((g) => (
+                <li>{g}</li>
+              ))}
+            </ul>
+            <p class="row__price mono">{o.priceLine}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="offers__cta">
+      <a class="btn" href={bookingUrl('services')}>
+        <span class="btn__dot" aria-hidden="true"></span>
+        <span>Book a scoping call</span>
+      </a>
+      <p class="text-3">No price list. You know what is involved before anything is agreed.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .idx {
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .row {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    gap: var(--space-3) var(--space-5);
+    padding: var(--space-5) var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  @media (min-width: 1100px) {
+    .row {
+      grid-template-columns: 3rem minmax(0, 1.05fr) minmax(0, 1.2fr) minmax(0, 0.95fr) 8.5rem;
+      align-items: start;
+    }
+  }
+  @media (min-width: 720px) and (max-width: 1099px) {
+    .row {
+      grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .row__desc {
+      grid-column: 2 / -1;
+    }
+    .row__gets {
+      grid-column: 2;
+    }
+    .row__price {
+      grid-column: 3;
+    }
+  }
+  .row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--accent) 7%, var(--bg));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 1000ms var(--ease-out-quint);
+  }
+  @media (hover: hover) {
+    .row:hover::before {
+      transform: scaleX(1);
+    }
+    .row:hover .row__num {
+      color: var(--accent-text);
+      box-shadow: inset 0 0 0 1.5px var(--accent);
+    }
+  }
+  .row__num {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-xs);
+    color: var(--text-3);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition:
+      color 300ms var(--ease-out-quint),
+      box-shadow 300ms var(--ease-out-quint);
+  }
+  .row__main {
+    display: grid;
+    gap: 6px;
+  }
+  .row__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .row__for {
+    color: var(--text-3);
+    font-size: 0.875rem;
+  }
+  .row__desc {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .row__gets {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .row__gets li {
+    position: relative;
+    padding-left: 18px;
+  }
+  .row__gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.45em;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--accent);
+  }
+  .row__price {
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  @media (min-width: 1100px) {
+    .row__price {
+      text-align: right;
+    }
+  }
+  .offers__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-6);
+  }
+  .offers__cta p {
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+</style>

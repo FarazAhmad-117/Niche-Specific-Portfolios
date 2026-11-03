@@ -1,0 +1,404 @@
+---
+/**
+ * Architecture drawing. Nodes are HTML boxes placed on a column/row grid (in % of the plot),
+ * wires are one SVG in a 0–100 box stretched over the plot (preserveAspectRatio none, with
+ * non-scaling strokes), so the drawing scales to any width without the text shrinking.
+ * Wires run centre to centre under opaque boxes, with a drawn arrowhead at the box edge.
+ *
+ * Wide screens get the plot. Phones (and `variant="stages"`) get the same nodes as a stage
+ * list, top to bottom, which is also what assistive tech reads when it is shown.
+ *
+ * draw: arm the "assemble" animation (nodes pop in by column, then the wires are plotted
+ *       left to right) when it scrolls in; driven by [data-draw] in lib/apps/base.ts.
+ */
+import type { Diagram } from '../../data/apps/cases';
+
+interface Props {
+  diagram: Diagram;
+  label: string;
+  variant?: 'plot' | 'stages';
+  draw?: boolean;
+  caption?: boolean;
+  class?: string;
+  /** Row height of the plot (CSS length). */
+  rowH?: string;
+}
+const { diagram: d, label, variant = 'plot', draw = false, caption = true, class: className, rowH = '7.25rem' } = Astro.props;
+
+const byId = new Map(d.nodes.map((n) => [n.id, n]));
+const cx = (col: number) => ((col + 0.5) / d.cols) * 100;
+const cy = (row: number) => ((row + 0.5) / d.rows) * 100;
+// Box size in % of the plot (must match the CSS below).
+const HW = 39 / d.cols; // half width
+const HH = 31 / d.rows; // half height
+
+type Dir = 'r' | 'l' | 'u' | 'd';
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+const wires = d.edges.map((e) => {
+  const a = byId.get(e.from);
+  const b = byId.get(e.to);
+  if (!a || !b) throw new Error(`[apps] diagram edge ${e.from} → ${e.to}: unknown node`);
+  const x1 = cx(a.col),
+    y1 = cy(a.row),
+    x2 = cx(b.col),
+    y2 = cy(b.row);
+  let path: string;
+  let dir: Dir;
+  let lx: number, ly: number;
+  if (a.row === b.row) {
+    path = `M${r2(x1)} ${r2(y1)}H${r2(x2)}`;
+    dir = x2 > x1 ? 'r' : 'l';
+    lx = (x1 + x2) / 2;
+    ly = y1;
+  } else if (a.col === b.col) {
+    path = `M${r2(x1)} ${r2(y1)}V${r2(y2)}`;
+    dir = y2 > y1 ? 'd' : 'u';
+    lx = x1;
+    ly = (y1 + y2) / 2;
+  } else if (e.via === 'gap') {
+    // Into the gap between the rows, along it, then into the target from above/below.
+    const ym = ((b.row > a.row ? a.row + 1 : a.row) / d.rows) * 100;
+    path = `M${r2(x1)} ${r2(y1)}V${r2(ym)}H${r2(x2)}V${r2(y2)}`;
+    dir = y2 > ym ? 'd' : 'u';
+    lx = (x1 + x2) / 2;
+    ly = ym;
+  } else if (a.col > b.col) {
+    // A branch back to an earlier column leaves its own node vertically, so it never seems to
+    // start on the wire coming into that node.
+    path = `M${r2(x1)} ${r2(y1)}V${r2(y2)}H${r2(x2)}`;
+    dir = 'l';
+    lx = (x1 + x2) / 2;
+    ly = y2;
+  } else {
+    const xm = ((a.col + 1) / d.cols) * 100;
+    path = `M${r2(x1)} ${r2(y1)}H${r2(xm)}V${r2(y2)}H${r2(x2)}`;
+    dir = x2 > xm ? 'r' : 'l';
+    lx = xm;
+    ly = (y1 + y2) / 2;
+  }
+  const ax = dir === 'r' ? x2 - HW : dir === 'l' ? x2 + HW : x2;
+  const ay = dir === 'd' ? y2 - HH : dir === 'u' ? y2 + HH : y2;
+  return { ...e, path, dir, ax: r2(ax), ay: r2(ay), lx: r2(lx), ly: r2(ly), col: Math.max(a.col, b.col) };
+});
+
+const stages = d.stages.map((title, col) => ({
+  title,
+  nodes: d.nodes.filter((n) => n.col === col).sort((p, q) => p.row - q.row),
+}));
+const summary = `${label}. ${d.edges.map((e) => `${byId.get(e.from)?.label} to ${byId.get(e.to)?.label}${e.label ? ` (${e.label})` : ''}`).join('; ')}.`;
+---
+
+<figure
+  class:list={['dg', `dg--${variant}`, className]}
+  data-draw={draw ? '' : undefined}
+  style={`--cols:${d.cols};--rows:${d.rows};--row-h:${rowH}`}
+>
+  {
+    variant === 'plot' && (
+      <div class="dg__plot" role="img" aria-label={summary}>
+        <svg class="dg__wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {wires.map((w) => (
+            <path d={w.path} class:list={['dg__wire', { 'is-dashed': w.dashed }]} vector-effect="non-scaling-stroke" />
+          ))}
+        </svg>
+        {wires.map((w) => (
+          <span class={`dg__head dg__head--${w.dir}`} style={`left:${w.ax}%;top:${w.ay}%;--c:${w.col}`} aria-hidden="true" />
+        ))}
+        {d.nodes.map((n) => (
+          <div
+            class:list={['dg__node', `dg__node--${n.tone ?? 'core'}`]}
+            style={`left:${r2(cx(n.col) - HW)}%;top:${r2(cy(n.row) - HH)}%;width:${r2(HW * 2)}%;height:${r2(HH * 2)}%;--c:${n.col}`}
+            aria-hidden="true"
+          >
+            <span class="dg__label">{n.label}</span>
+            {n.sub && <span class="dg__sub">{n.sub}</span>}
+          </div>
+        ))}
+        {wires
+          .filter((w) => w.label)
+          .map((w) => (
+            <span class="dg__elabel" style={`left:${w.lx}%;top:${w.ly}%;--c:${w.col}`} aria-hidden="true">
+              {w.label}
+            </span>
+          ))}
+      </div>
+    )
+  }
+
+  <ol class="dg__stages" role="list" aria-label={label}>
+    {
+      stages.map((s, i) => (
+        <li class="dg__stage">
+          <span class="dg__stage-k label">
+            <span class="dg__stage-no mono">{String.fromCharCode(65 + i)}</span>
+            {s.title}
+          </span>
+          <ul class="dg__stage-nodes" role="list">
+            {s.nodes.map((n) => (
+              <li class:list={['dg__chip', `dg__node--${n.tone ?? 'core'}`]}>
+                <span class="dg__label">{n.label}</span>
+                {n.sub && <span class="dg__sub">{n.sub}</span>}
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ol>
+
+  {caption && <figcaption class="dg__cap mono">{d.source}. Not to scale.</figcaption>}
+</figure>
+
+<style>
+  .dg {
+    margin: 0;
+  }
+  /* ---------- plot ---------- */
+  .dg__plot {
+    position: relative;
+    height: calc(var(--rows) * var(--row-h));
+  }
+  .dg__wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .dg__wire {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-linejoin: miter;
+  }
+  .dg__wire.is-dashed {
+    stroke: var(--text-3);
+    stroke-dasharray: 5 4;
+  }
+  .dg__head {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    transform: translate(-50%, -50%);
+  }
+  .dg__head--r {
+    border-left: 8px solid var(--accent);
+    border-right-width: 0;
+    transform: translate(-100%, -50%);
+  }
+  .dg__head--l {
+    border-right: 8px solid var(--accent);
+    border-left-width: 0;
+    transform: translate(0, -50%);
+  }
+  .dg__head--d {
+    border-top: 8px solid var(--accent);
+    border-bottom-width: 0;
+    transform: translate(-50%, -100%);
+  }
+  .dg__head--u {
+    border-bottom: 8px solid var(--accent);
+    border-top-width: 0;
+    transform: translate(-50%, 0);
+  }
+  .dg__node {
+    position: absolute;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    padding: 6px 12px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+    overflow: hidden;
+  }
+  .dg__label {
+    font-family: var(--font-display);
+    font-weight: 680;
+    font-stretch: 104%;
+    font-size: clamp(0.8125rem, 0.75rem + 0.25vw, 1rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .dg__sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--text-3);
+  }
+  .dg__node--io {
+    box-shadow: inset 0 0 0 1.5px var(--text);
+    background: var(--bg);
+  }
+  .dg__node--ext {
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    background-image: repeating-linear-gradient(135deg, transparent 0 6px, var(--grid-major) 6px 7px);
+  }
+  .dg__node--gate {
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .dg__node--gate .dg__label {
+    color: var(--accent-text);
+  }
+  .dg__elabel {
+    position: absolute;
+    padding: 1px 6px;
+    background: var(--bg);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    /* Sits just above its wire, so it never covers an arrowhead or a box edge. */
+    transform: translate(-50%, calc(-100% - 4px));
+  }
+
+  /* ---------- stage list (phones, and the stages variant) ---------- */
+  .dg__stages {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+  .dg__stage {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding: 0 0 var(--space-4) 26px;
+  }
+  /* The rail and its arrow down to the next stage. */
+  .dg__stage::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 18px;
+    bottom: 2px;
+    width: 1.5px;
+    background: var(--accent);
+  }
+  .dg__stage:last-child::before {
+    display: none;
+  }
+  .dg__stage::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    bottom: 0;
+    border: 5px solid transparent;
+    border-top: 7px solid var(--accent);
+    border-bottom-width: 0;
+  }
+  .dg__stage:last-child::after {
+    display: none;
+  }
+  .dg__stage:last-child {
+    padding-bottom: 0;
+  }
+  .dg__stage-k {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: -26px;
+    color: var(--text-3);
+  }
+  .dg__stage-no {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
+    font-size: 0.625rem;
+    font-stretch: 100%;
+    letter-spacing: 0;
+  }
+  .dg__stage-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .dg__chip {
+    display: grid;
+    gap: 1px;
+    padding: 7px 11px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+  .dg__chip.dg__node--ext {
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  .dg__chip .dg__label {
+    font-size: 0.9375rem;
+  }
+
+  .dg--plot .dg__stages {
+    display: none;
+  }
+  @media (max-width: 899px) {
+    .dg--plot .dg__plot {
+      display: none;
+    }
+    .dg--plot .dg__stages {
+      display: grid;
+    }
+  }
+
+  .dg__cap {
+    margin-top: var(--space-4);
+    color: var(--text-3);
+  }
+
+  /* ---------- assemble on scroll ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .dg.is-armed .dg__node,
+    .dg.is-armed .dg__chip {
+      opacity: 0;
+      transform: translateY(10px) scale(0.94);
+    }
+    .dg.is-armed .dg__wires,
+    .dg.is-armed .dg__stage::before {
+      clip-path: inset(0 100% 0 0);
+    }
+    .dg.is-armed .dg__stage::before {
+      clip-path: inset(0 0 100% 0);
+    }
+    .dg.is-armed .dg__head,
+    .dg.is-armed .dg__elabel,
+    .dg.is-armed .dg__stage::after {
+      opacity: 0;
+    }
+    .dg.is-armed.is-drawn .dg__node,
+    .dg.is-armed.is-drawn .dg__chip {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 420ms var(--ease-out-quint),
+        transform var(--dur-pop) var(--ease-spring);
+      transition-delay: calc(var(--c, 0) * 150ms);
+    }
+    .dg.is-armed.is-drawn .dg__wires,
+    .dg.is-armed.is-drawn .dg__stage::before {
+      clip-path: inset(0 0 0 0);
+      transition: clip-path var(--dur-draw) var(--ease-in-out-quart) 260ms;
+    }
+    .dg.is-armed.is-drawn .dg__head,
+    .dg.is-armed.is-drawn .dg__elabel,
+    .dg.is-armed.is-drawn .dg__stage::after {
+      opacity: 1;
+      transition: opacity 400ms var(--ease-out-quint);
+      transition-delay: calc(400ms + var(--c, 0) * 220ms);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .dg__node,
+    .dg__chip {
+      border: 1px solid CanvasText;
+    }
+    .dg__head {
+      forced-color-adjust: none;
+    }
+  }
+</style>

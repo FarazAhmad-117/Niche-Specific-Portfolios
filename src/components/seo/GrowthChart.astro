@@ -1,0 +1,723 @@
+---
+/**
+ * Signature: the growth chart (brief §4 item 4). A Search Console-style clicks/impressions
+ * graph that draws itself phase by phase, with numbered annotation pins ("Fixed indexation",
+ * "Programmatic pages live", "Content engine live", ...).
+ *
+ * Honesty: until real data is plugged in (src/data/seo/growth.ts), the curve is a shape-only
+ * ILLUSTRATION of a typical engagement: no axis values, no counts, labelled on the chart and in
+ * the caption. With real data it shows the source, the range and the real peaks instead.
+ *
+ * Motion: an in-place interactive, not a pinned scroll. It costs one screen of scrolling.
+ *  - Autoplays once when it comes into view; Pause / Play / Replay button; click any phase.
+ *  - The line draws with a clip-path transition on --ease-draw; pins land on --ease-spring.
+ *  - Server render = the finished chart with every phase written out (no-JS / reduced motion).
+ * Phone: the chart stays on top, the phase buttons sit under it and the explanation card
+ * under those, so the result never scrolls away from the control you pressed.
+ */
+import { GROWTH } from '../../data/seo/content';
+import { areaPath, growthSeries, linePath } from '../../data/seo/growth';
+
+const W = 1000;
+const H = 360;
+const series = growthSeries();
+const phases = GROWTH.phases;
+/** Where each phase's drawing ends: the next phase's start, or the right edge. */
+const ends = phases.map((_, i) => phases[i + 1]?.x ?? 1);
+const clicksD = linePath(series.clicks, W, H);
+const imprD = linePath(series.impressions, W, H);
+const imprArea = areaPath(series.impressions, W, H);
+const fmt = (n: number) => new Intl.NumberFormat('en', { notation: 'compact' }).format(n);
+const pct = (x: number) => `${(x * 100).toFixed(2)}%`;
+---
+
+<section class="section section--sunk growth" id="growth" aria-labelledby="growth-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">How growth looks</p>
+      <h2 id="growth-title">{GROWTH.title}</h2>
+      <p class="lede">{GROWTH.lede}</p>
+    </div>
+
+    <div class="gc" data-gc data-ends={JSON.stringify(ends)} data-phase={phases.length - 1} style="--p: 1">
+      <figure class="gc__card">
+        <div class="gc__top">
+          <ul class="gc__legend mono" role="list">
+            <li><span class="gc__key gc__key--clicks" aria-hidden="true"></span>Clicks</li>
+            <li><span class="gc__key gc__key--impr" aria-hidden="true"></span>Impressions</li>
+          </ul>
+          <div class="gc__tools">
+            {series.real ? <span class="chip">{series.source}</span> : <span class="illus">Illustration · no real data</span>}
+            <button class="gc__play" type="button" data-gc-play hidden>
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <g class="gc__ico gc__ico--pause"><rect x="3" y="2.5" width="3.2" height="11" rx="1"></rect><rect x="9.8" y="2.5" width="3.2" height="11" rx="1"></rect></g>
+                <path class="gc__ico gc__ico--play" d="M4 2.6v10.8a.8.8 0 0 0 1.2.7l8.6-5.4a.8.8 0 0 0 0-1.4L5.2 1.9A.8.8 0 0 0 4 2.6z"></path>
+                <path class="gc__ico gc__ico--replay" d="M8 2.2a5.8 5.8 0 1 1-5.5 4h1.7A4.2 4.2 0 1 0 8 3.8v2L4.8 3 8 .2z"></path>
+              </svg>
+              <span data-gc-play-label>Play</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="gc__plot">
+          {series.real && series.peak && (
+            <p class="gc__peak mono">
+              <span>peak {fmt(series.peak.clicks)} clicks</span>
+              <span>peak {fmt(series.peak.impressions)} impressions</span>
+            </p>
+          )}
+          <div class="gc__data">
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              preserveAspectRatio="none"
+              role="img"
+              aria-label={series.real
+                ? `Clicks and impressions, ${series.range}, with the phases of the work marked.`
+                : 'Illustration, not real data: impressions rise first after indexation is fixed, then clicks follow, stepping up again when programmatic pages and the content engine go live.'}
+            >
+              <defs>
+                <linearGradient id="gc-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="var(--chart-2)" stop-opacity="0.32"></stop>
+                  <stop offset="1" stop-color="var(--chart-2)" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d={imprArea} fill="url(#gc-fill)"></path>
+              <path class="gc__line gc__line--impr" d={imprD}></path>
+              <path class="gc__line gc__line--clicks" d={clicksD}></path>
+            </svg>
+          </div>
+
+          {
+            phases.map((p, i) => (
+              <span
+                class:list={['gc__mark', { 'gc__mark--edge': p.x === 0, 'gc__mark--right': p.x > 0.6 }]}
+                style={`--x: ${pct(p.x)}`}
+                data-gc-mark={i}
+                aria-hidden="true"
+              >
+                <span class="gc__flag mono">{p.flag}</span>
+                <span class="gc__pin mono">{i + 1}</span>
+              </span>
+            ))
+          }
+          <span class="gc__head" aria-hidden="true"></span>
+        </div>
+
+        <figcaption class="gc__caption">
+          {
+            series.real ? (
+              <>Search Console data, {series.range}. {series.source}.</>
+            ) : (
+              <>
+                The shape of a typical engagement, drawn to show the order things happen in. No real
+                numbers: anonymized Search Console screenshots from client work go in the case studies.
+              </>
+            )
+          }
+        </figcaption>
+      </figure>
+
+      <div class="gc__side">
+        <ol class="gc__steps" role="list" aria-label="Phases of the work">
+          {
+            phases.map((p, i) => (
+              <li>
+                <button class="gc__step" type="button" data-gc-step={i} aria-pressed={i === phases.length - 1 ? 'true' : 'false'} aria-controls="gc-panels">
+                  <span class="gc__step-n mono">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="gc__step-t">{p.title}</span>
+                </button>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="gc__panels" id="gc-panels" data-gc-panels>
+          {
+            phases.map((p, i) => (
+              <article class="gc__panel" data-gc-panel={i} aria-labelledby={`gc-p-${p.id}`}>
+                <p class="gc__panel-n mono">Phase {i + 1} of {phases.length}</p>
+                <h3 id={`gc-p-${p.id}`}>{p.title}</h3>
+                <dl class="gc__dl">
+                  <div>
+                    <dt class="mono">What I do</dt>
+                    <dd>{p.did}</dd>
+                  </div>
+                  <div>
+                    <dt class="mono">What you see</dt>
+                    <dd>{p.see}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .growth .head > h2 {
+    max-width: 14ch;
+  }
+  .gc {
+    --dur: var(--dur-draw);
+    display: grid;
+    gap: var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .gc {
+      grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+
+  /* ---------- the chart card ---------- */
+  .gc__card {
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(0.875rem, 0.6rem + 1vw, 1.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-card);
+    min-width: 0;
+  }
+  .gc__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .gc__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+    color: var(--text-2);
+  }
+  .gc__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gc__key {
+    width: 18px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .gc__key--clicks {
+    background: var(--chart-1);
+  }
+  .gc__key--impr {
+    background: var(--chart-2);
+  }
+  .gc__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .gc__play {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .gc__play:hover {
+      background: var(--surface-1);
+    }
+  }
+  .gc__play svg {
+    fill: currentColor;
+  }
+  .gc__ico {
+    display: none;
+  }
+  .gc__play[data-mode='pause'] .gc__ico--pause,
+  .gc__play[data-mode='play'] .gc__ico--play,
+  .gc__play[data-mode='replay'] .gc__ico--replay {
+    display: inline;
+  }
+
+  .gc__plot {
+    position: relative;
+    height: clamp(13rem, 8rem + 22vw, 24rem);
+    margin-top: 2.25rem;
+    margin-bottom: 2.25rem;
+    border-bottom: 1px solid var(--line-strong);
+    /* Search-Console-like gridlines, no labels. */
+    background-image: repeating-linear-gradient(
+      to top,
+      transparent 0 calc(25% - 1px),
+      var(--chart-grid) calc(25% - 1px) 25%
+    );
+  }
+  .gc__peak {
+    position: absolute;
+    top: -1.75rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-3);
+  }
+  .gc__data {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(-4px calc((1 - var(--p)) * 100%) -4px 0);
+    transition: clip-path var(--dur) var(--ease-draw);
+  }
+  .gc__data svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .gc__line {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .gc__line--impr {
+    stroke: var(--chart-2);
+    stroke-width: 2;
+  }
+  .gc__line--clicks {
+    stroke: var(--chart-1);
+    stroke-width: 2.75;
+  }
+
+  /* Drawing head: a hairline that leads the line across. */
+  .gc__head {
+    position: absolute;
+    top: -6px;
+    bottom: 0;
+    left: calc(var(--p) * 100%);
+    width: 0;
+    border-left: 1.5px solid var(--text);
+    opacity: 0;
+    transition:
+      left var(--dur) var(--ease-draw),
+      opacity 300ms var(--ease-out);
+  }
+  .gc.is-drawing .gc__head {
+    opacity: 0.55;
+  }
+
+  /* Annotation marks: dashed rule + numbered pin under the axis + a flag above for the
+     active phase (Search Console puts its annotation markers along the bottom too). */
+  .gc__mark {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--x);
+    width: 0;
+    border-left: 1px dashed var(--line-strong);
+  }
+  .gc__mark--edge {
+    border-left: 0;
+  }
+  .gc__pin {
+    position: absolute;
+    bottom: -2.05rem;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    border-radius: var(--radius-xs);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    transition:
+      transform var(--dur-pin) var(--ease-spring),
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out);
+  }
+  .gc__mark--edge .gc__pin {
+    margin-left: 0;
+  }
+  .gc__flag {
+    position: absolute;
+    top: -2rem;
+    left: 0;
+    padding: 3px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translate(-50%, 6px) scale(0.92);
+    opacity: 0;
+    transition:
+      transform var(--dur-pin) var(--ease-spring),
+      opacity 240ms var(--ease-out);
+  }
+  .gc__mark--edge .gc__flag {
+    transform: translate(0, 6px) scale(0.92);
+    transform-origin: left bottom;
+  }
+  .gc__mark--right .gc__flag {
+    transform: translate(-100%, 6px) scale(0.92);
+    transform-origin: right bottom;
+  }
+  /* Pins not reached yet (JS only) sit faded and small. */
+  .gc__mark.is-ahead .gc__pin {
+    transform: scale(0.6);
+    background: var(--line-strong);
+    color: transparent;
+  }
+  .gc__mark.is-current .gc__pin {
+    background: var(--accent);
+    color: var(--on-accent);
+    transform: scale(1.12);
+  }
+  .gc__mark.is-current .gc__flag {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  .gc__mark--edge.is-current .gc__flag {
+    transform: translate(0, 0) scale(1);
+  }
+  .gc__mark--right.is-current .gc__flag {
+    transform: translate(-100%, 0) scale(1);
+  }
+  /* Narrow screens: flags only for the current pin, kept inside the card. */
+  @media (max-width: 599px) {
+    .gc__flag {
+      font-size: 0.625rem;
+    }
+  }
+
+  .gc__caption {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-3);
+  }
+
+  /* ---------- steps + panel ---------- */
+  .gc__side {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .gc__steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+  }
+  @media (min-width: 1024px) {
+    .gc__steps {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+  .gc__step {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+    min-height: 52px;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--surface-2);
+    color: var(--text-2);
+    text-align: left;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .gc__step-t {
+    display: none;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    line-height: 1.25;
+  }
+  @media (min-width: 600px) {
+    .gc__step-t {
+      display: block;
+      font-size: 0.8125rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .gc__step {
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      min-height: 48px;
+      border-color: transparent;
+      background: transparent;
+    }
+    .gc__step-t {
+      font-size: 0.9375rem;
+    }
+  }
+  .gc__step-n {
+    color: var(--text-3);
+  }
+  @media (hover: hover) {
+    .gc__step:hover {
+      color: var(--text);
+      border-color: var(--line-strong);
+    }
+  }
+  .gc__step[aria-pressed='true'] {
+    border-color: var(--text);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .gc__step[aria-pressed='true'] .gc__step-n {
+    color: var(--btn-fg);
+    font-weight: 600;
+  }
+  .gc__step[aria-pressed='true']:focus-visible {
+    outline-color: var(--focus);
+  }
+
+  .gc__panels {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .gc__panel {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+  }
+  .gc__panel-n {
+    color: var(--text-3);
+  }
+  .gc__dl {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .gc__dl dt {
+    margin-bottom: 2px;
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .gc__dl dd {
+    margin: 0;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  /* JS shows one panel at a time; without JS every phase is written out. */
+  .gc.is-live .gc__panel {
+    display: none;
+  }
+  .gc.is-live .gc__panel.is-current {
+    display: grid;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .gc.is-live .gc__panel.is-current {
+      animation: gc-panel 520ms var(--ease-out) both;
+    }
+  }
+  @keyframes gc-panel {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  :global(html:not(.js)) .gc__steps {
+    display: none;
+  }
+  @media (forced-colors: active) {
+    .gc__line--clicks {
+      stroke: Highlight;
+    }
+    .gc__line--impr {
+      stroke: CanvasText;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-gc]');
+  const play = root?.querySelector<HTMLButtonElement>('[data-gc-play]');
+  const playLabel = root?.querySelector<HTMLElement>('[data-gc-play-label]');
+  const panelsBox = root?.querySelector<HTMLElement>('[data-gc-panels]');
+
+  if (root && play && playLabel && panelsBox) {
+    const ends = JSON.parse(root.dataset.ends ?? '[]') as number[];
+    const steps = [...root.querySelectorAll<HTMLButtonElement>('[data-gc-step]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-gc-panel]')];
+    const marks = [...root.querySelectorAll<HTMLElement>('[data-gc-mark]')];
+    const last = ends.length - 1;
+    const reduced = (() => {
+      try {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch {
+        return false;
+      }
+    })();
+
+    /** Reading time per phase after the line has drawn. */
+    const HOLD = 2600;
+    let p = 1;
+    let phase = last;
+    let playing = false;
+    let started = false;
+    /** Paused because it left the screen (not by the visitor): resume when it is back. */
+    let autoPaused = false;
+    let timer: number | undefined;
+    let drawTimer: number | undefined;
+
+    const setMode = (mode: 'pause' | 'play' | 'replay') => {
+      play.dataset.mode = mode;
+      playLabel.textContent = mode === 'pause' ? 'Pause' : mode === 'play' ? 'Play' : 'Replay';
+    };
+
+    /** Show phase i: draw the line to its end, land its pin, swap the panel. Returns draw ms. */
+    const show = (i: number): number => {
+      const target = ends[i] ?? 1;
+      // Long jumps take longer, but never drag: 500ms .. 1600ms.
+      const ms = reduced ? 0 : Math.round(Math.min(1600, Math.max(500, Math.abs(target - p) * 5200)));
+      root.style.setProperty('--dur', `${ms}ms`);
+      p = target;
+      phase = i;
+      root.style.setProperty('--p', String(p));
+      root.classList.toggle('is-drawing', ms > 0);
+      window.clearTimeout(drawTimer);
+      drawTimer = window.setTimeout(() => root.classList.remove('is-drawing'), ms + 120);
+      steps.forEach((s, k) => s.setAttribute('aria-pressed', String(k === i)));
+      panels.forEach((el, k) => el.classList.toggle('is-current', k === i));
+      marks.forEach((m, k) => {
+        m.classList.toggle('is-current', k === i);
+        m.classList.toggle('is-ahead', k > i);
+      });
+      return ms;
+    };
+
+    const stop = () => {
+      window.clearTimeout(timer);
+      timer = undefined;
+    };
+    const advance = () => {
+      if (!playing) return;
+      if (phase >= last) {
+        playing = false;
+        setMode('replay');
+        return;
+      }
+      const ms = show(phase + 1);
+      timer = window.setTimeout(advance, ms + HOLD);
+    };
+    const start = () => {
+      stop();
+      playing = true;
+      setMode('pause');
+      if (phase >= last) {
+        // Replay from an empty chart.
+        root.style.setProperty('--dur', '0ms');
+        p = 0;
+        root.style.setProperty('--p', '0');
+        marks.forEach((m) => {
+          m.classList.add('is-ahead');
+          m.classList.remove('is-current');
+        });
+        phase = -1;
+        timer = window.setTimeout(advance, 260);
+      } else {
+        timer = window.setTimeout(advance, 200);
+      }
+    };
+    const pause = () => {
+      stop();
+      playing = false;
+      setMode(phase >= last ? 'replay' : 'play');
+    };
+
+    root.classList.add('is-live');
+    play.hidden = false;
+    show(last);
+    setMode('replay');
+
+    play.addEventListener('click', () => {
+      started = true;
+      autoPaused = false;
+      if (playing) pause();
+      else start();
+    });
+    steps.forEach((s, i) =>
+      s.addEventListener('click', () => {
+        started = true;
+        autoPaused = false;
+        pause();
+        panelsBox.setAttribute('aria-live', 'polite');
+        show(i);
+        setMode(i >= last ? 'replay' : 'play');
+      }),
+    );
+    // Arrow keys move between phases, like a stepper.
+    steps.forEach((s, i) =>
+      s.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const n = steps[(i + d + steps.length) % steps.length];
+        n?.focus();
+        n?.click();
+      }),
+    );
+
+    if (!reduced && 'IntersectionObserver' in window) {
+      // Reset to an empty chart now (it is below the fold), autoplay once it is in view.
+      root.style.setProperty('--dur', '0ms');
+      p = 0;
+      root.style.setProperty('--p', '0');
+      phase = -1;
+      marks.forEach((m) => m.classList.add('is-ahead'));
+      panels.forEach((el, k) => el.classList.toggle('is-current', k === 0));
+      steps.forEach((s, k) => s.setAttribute('aria-pressed', String(k === 0)));
+      setMode('play');
+
+      const card = root.querySelector('.gc__card') ?? root;
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          if (e.isIntersecting && (!started || autoPaused)) {
+            started = true;
+            autoPaused = false;
+            start();
+          } else if (!e.isIntersecting && playing) {
+            pause();
+            autoPaused = true;
+          }
+        },
+        { threshold: 0.55 },
+      ).observe(card);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && playing) {
+          pause();
+          autoPaused = true;
+        }
+      });
+    }
+  }
+</script>

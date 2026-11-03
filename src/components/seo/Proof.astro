@@ -1,0 +1,89 @@
+---
+/**
+ * Proof strip: four facts as a results "stats bar". Verified only; the client-clicks figure
+ * is a visible placeholder until the owner supplies anonymized Search Console screenshots.
+ */
+import Todo from './Todo.astro';
+import { PROOF } from '../../data/seo/content';
+import { isTodo } from '../../data/seo/todo';
+---
+
+<section class="proof" id="proof" aria-label="Proof">
+  <div class="container">
+    <ul class="proof__list" role="list" data-reveal-stagger>
+      {
+        PROOF.map((p) => (
+          <li class="proof__item">
+            <p class:list={['proof__value', { 'proof__value--todo': isTodo(p.value) }]}>
+              <Todo value={p.value} />
+            </p>
+            <p class="proof__label">{p.label}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .proof {
+    border-block: 1px solid var(--line);
+    background: var(--surface-1);
+  }
+  .proof__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+  .proof__item {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-4) var(--space-5) 0;
+    min-width: 0;
+  }
+  .proof__item:nth-child(even) {
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--line);
+  }
+  .proof__item:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 960px) {
+    .proof__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .proof__item {
+      padding: var(--space-6) var(--space-5);
+      border-left: 1px solid var(--line);
+    }
+    .proof__item:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .proof__item:nth-child(n + 3) {
+      border-top: 0;
+    }
+  }
+  .proof__value {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-size: var(--fs-metric);
+    line-height: 0.95;
+    letter-spacing: -0.036em;
+    font-variant-numeric: tabular-nums;
+  }
+  .proof__value--todo {
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--fs-metric) * 0.95);
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+  .proof__label {
+    max-width: 30ch;
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    color: var(--text-2);
+  }
+</style>

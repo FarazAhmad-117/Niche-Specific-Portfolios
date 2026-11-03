@@ -1,0 +1,114 @@
+---
+/**
+ * Process (brief §4 item 9): Scope → Design/Figma → Build → Train → Launch, drawn as an
+ * interaction timeline: a track with five keyframes (diamonds) and what each step leaves you
+ * with. Horizontal from 1024px, vertical below.
+ */
+import { PROCESS } from '../../data/webflow/content';
+---
+
+<section class="section proc" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">Five keyframes, one site.</h2>
+      <p class="lede">Each step ends with something you can see and sign off before the next one starts.</p>
+    </div>
+    <ol class="proc__list" role="list" data-reveal-stagger>
+      {
+        PROCESS.map((p, i) => (
+          <li class="kf">
+            <span class="kf__mark" aria-hidden="true" />
+            <span class="kf__num mono">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="kf__title">{p.title}</h3>
+            <p class="kf__text">{p.text}</p>
+            <p class="kf__leaves mono">
+              <span class="visually-hidden">Leaves you with: </span>→ {p.leaves}
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .proc__list {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding-left: 28px;
+  }
+  /* The track. */
+  .proc__list::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 20%, var(--line)));
+  }
+  @media (min-width: 1024px) {
+    .proc__list {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--space-5);
+      padding-left: 0;
+      padding-top: 30px;
+    }
+    .proc__list::before {
+      left: 0;
+      right: 0;
+      top: 6px;
+      bottom: auto;
+      width: auto;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 20%, var(--line)));
+    }
+  }
+  .kf {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+  /* A keyframe diamond on the track. */
+  .kf__mark {
+    position: absolute;
+    left: -27px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    transform: rotate(45deg);
+  }
+  .kf:last-child .kf__mark {
+    background: var(--accent);
+  }
+  @media (min-width: 1024px) {
+    .kf__mark {
+      left: 0;
+      top: -30px;
+    }
+  }
+  .kf__num {
+    color: var(--accent-text);
+  }
+  .kf__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1875rem;
+    letter-spacing: -0.03em;
+  }
+  .kf__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .kf__leaves {
+    margin-top: var(--space-1);
+    color: var(--text);
+    font-weight: 500;
+  }
+</style>

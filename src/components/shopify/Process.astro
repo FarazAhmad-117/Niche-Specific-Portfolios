@@ -1,0 +1,147 @@
+---
+/**
+ * Process (brief §4 item 9): Audit → Plan → Build → Launch → Care, as five tags hung on one
+ * string across the section. Desktop: a single row (the string runs along the top). Phone: a
+ * vertical string with the tags hanging off it.
+ */
+import { PROCESS } from '../../data/shopify/content';
+---
+
+<section class="section process" id="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Process</p>
+      <h2 id="process-title">From the first call to the next month.</h2>
+      <p class="lede">Every step leaves you with something you can see, so you always know where the work is.</p>
+    </div>
+    <ol class="steps" role="list" data-reveal-stagger>
+      {
+        PROCESS.map((p, i) => (
+          <li class="step" style={`--i:${i}`}>
+            <span class="step__knot" aria-hidden="true" />
+            <div class="step__tag">
+              <span class="step__num mono">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="step__title">{p.title}</h3>
+              <p class="step__text">{p.text}</p>
+              <p class="step__leaves leader">
+                <span class="mono">Leaves you</span>
+                <span>{p.leaves}</span>
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .steps {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding-left: 28px;
+  }
+  /* The string. */
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 1.5px;
+    background: var(--line-strong);
+  }
+  @media (min-width: 1100px) {
+    .steps {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--space-4);
+      padding: 28px 0 0;
+    }
+    .steps::before {
+      left: 0;
+      right: 0;
+      top: 8px;
+      bottom: auto;
+      width: auto;
+      height: 1.5px;
+    }
+  }
+  .step {
+    position: relative;
+  }
+  .step__knot {
+    position: absolute;
+    left: -26px;
+    top: 22px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  @media (min-width: 1100px) {
+    .step__knot {
+      left: 24px;
+      top: -26px;
+    }
+    /* A short cord from the knot down to the tag. */
+    .step__knot::after {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 14px;
+      width: 1.5px;
+      height: 14px;
+      background: var(--line-strong);
+    }
+    .step__tag {
+      transform-origin: 31px -12px;
+    }
+    .step:nth-child(even) .step__tag {
+      rotate: 1deg;
+    }
+    .step:nth-child(odd) .step__tag {
+      rotate: -0.8deg;
+    }
+  }
+  .step__tag {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    border-radius: var(--radius-m);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    align-content: start;
+  }
+  .step__num {
+    color: var(--accent-text);
+  }
+  .step__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+    letter-spacing: -0.02em;
+  }
+  .step__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .step__leaves {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    font-size: 0.875rem;
+    font-weight: 600;
+    flex-wrap: wrap;
+  }
+  .step__leaves .mono {
+    color: var(--text-3);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+  }
+</style>

@@ -1,0 +1,163 @@
+---
+/**
+ * About. The real portrait (black and white on black) is mounted like a photo pinned to a
+ * drawing: a dark frame with crop marks and a dimension line along its edge. Facts come
+ * from src/data/apps/profile.ts only.
+ */
+import { Image } from 'astro:assets';
+import { ABOUT } from '../../data/apps/content';
+import { PROFILE } from '../../data/apps/profile';
+
+const facts = [
+  { k: 'Based in', v: PROFILE.location },
+  { k: 'Time zone', v: PROFILE.timeZone },
+  { k: 'Experience', v: PROFILE.experience },
+  { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
+  { k: 'Builds in', v: 'Next.js, React, Node.js, Python, MongoDB' },
+  { k: 'Code', v: 'github.com/FarazAhmad-117', href: PROFILE.github },
+];
+---
+
+<section class="section about" id="about" aria-labelledby="about-title">
+  <div class="container about__grid">
+    <figure class="about__photo crops" data-reveal>
+      <div class="about__frame">
+        <Image
+          src={PROFILE.portrait.src}
+          alt={PROFILE.portrait.alt}
+          widths={[320, 480, 640, 960]}
+          sizes="(min-width: 1024px) 400px, 80vw"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="about__dim" aria-hidden="true"><span class="mono">{PROFILE.name.toUpperCase()}</span></div>
+      <figcaption class="visually-hidden">{PROFILE.name}</figcaption>
+    </figure>
+
+    <div class="about__copy">
+      <p class="eyebrow"><span class="eyebrow__no">08</span>About</p>
+      <h2 id="about-title">{ABOUT.title}</h2>
+      {ABOUT.paragraphs.map((p, i) => <p class:list={[i === 0 ? 'lede' : 'about__p']}>{p}</p>)}
+      <dl class="about__facts">
+        {
+          facts.map((f) => (
+            <div>
+              <dt class="label">{f.k}</dt>
+              <dd>
+                {f.href ? (
+                  <a class="link" href={f.href} target="_blank" rel="noopener">
+                    {f.v}
+                    <span class="visually-hidden">(opens in a new tab)</span>
+                  </a>
+                ) : (
+                  f.v
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    }
+  }
+  .about__photo {
+    position: relative;
+    width: min(100% - 40px, 400px);
+    margin: 0 auto 0 0;
+  }
+  @media (min-width: 1024px) {
+    .about__photo {
+      margin: 0 auto;
+    }
+  }
+  .about__frame {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-xs);
+    background: #000;
+    box-shadow: var(--shadow-lift);
+  }
+  .about__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  /* A vertical dimension line along the right edge, labelled with the name. */
+  .about__dim {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -28px;
+    width: 14px;
+    display: grid;
+    place-items: center;
+    color: var(--accent-text);
+    border-block: 1px solid currentColor;
+  }
+  .about__dim::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: currentColor;
+  }
+  .about__dim span {
+    position: relative;
+    padding: 8px 0;
+    background: var(--bg);
+    writing-mode: vertical-rl;
+    font-size: 0.6875rem;
+  }
+  .about__copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .about__copy h2 {
+    max-width: 16ch;
+  }
+  .about__p {
+    color: var(--text-2);
+    max-width: var(--measure);
+  }
+  .about__facts {
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    margin: var(--space-3) 0 0;
+    border-top: 1.5px solid var(--text);
+  }
+  .about__facts > div {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  @media (min-width: 640px) {
+    .about__facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-6);
+    }
+  }
+  .about__facts dt {
+    color: var(--text-3);
+  }
+  .about__facts dd {
+    margin: 2px 0 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+</style>

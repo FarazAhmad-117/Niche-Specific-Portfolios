@@ -1,0 +1,211 @@
+---
+/**
+ * Offers (decisions.md › ads › Offers to show), as the brief's ladder: five rows, each with a
+ * level meter that steps up a bar per rung. No prices anywhere: "Scoped on a call".
+ * A ladder of rows rather than a grid, so five items never leave a half-empty row.
+ */
+import { OFFERS } from '../../data/ads/content';
+import { bookingUrl } from '../../data/ads/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Services</p>
+      <h2 id="services-title">Start small. Climb when it pays.</h2>
+      <p class="lede">Most accounts start with the audit. Every rung is scoped on a free 30-minute call; there is no price list.</p>
+    </div>
+
+    <div class="ladder">
+      <div class="rung rung--zero">
+        <span class="rung__num mono" aria-hidden="true">00</span>
+        <p class="rung__zero-text"><strong>Scoping call</strong> · 30 minutes · free</p>
+        <a class="link rung__zero-link" href={bookingUrl('services-call')}>Book it</a>
+      </div>
+      <ol class="ladder__list" role="list" data-reveal-stagger>
+        {
+          OFFERS.map((o, i) => (
+            <li class="rung" id={`service-${o.id}`}>
+              <span class="rung__meter" aria-hidden="true">
+                {OFFERS.map((_, k) => (
+                  <i class:list={{ 'is-on': k <= i }} style={`--h:${(k + 1) / OFFERS.length}`} />
+                ))}
+              </span>
+              <div class="rung__head">
+                <span class="rung__num mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="rung__name">{o.name}</h3>
+                <p class="rung__pick">
+                  <span class="rung__pick-k mono">Pick this if</span> {o.pick}
+                </p>
+              </div>
+              <div class="rung__body">
+                <p class="rung__desc">{o.description}</p>
+                <ul class="rung__gets" role="list">
+                  {o.gets.map((g) => (
+                    <li>{g}</li>
+                  ))}
+                </ul>
+              </div>
+              <div class="rung__end">
+                <span class="rung__price mono">{o.priceLine}</span>
+                <a class="btn btn--ghost btn--side rung__cta" href={bookingUrl(`service-${o.id}`)}>
+                  <span>{o.cta}</span>
+                  <span class="btn__arrow" aria-hidden="true">→</span>
+                </a>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ladder {
+    border-top: 1px solid var(--line);
+  }
+  .ladder__list {
+    display: grid;
+    margin: 0;
+  }
+  .rung {
+    position: relative;
+    display: grid;
+    gap: var(--space-4) var(--space-6);
+    padding: var(--space-6) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  @media (min-width: 1024px) {
+    .rung {
+      grid-template-columns: 3.25rem minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 0.7fr);
+      align-items: start;
+    }
+  }
+  .rung--zero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-4) 0;
+    color: var(--text-2);
+  }
+  .rung--zero strong {
+    color: var(--text);
+  }
+  .rung__zero-link {
+    margin-left: auto;
+    font-weight: 650;
+  }
+  /* The level meter: five bars, lit up to this rung. */
+  .rung__meter {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 40px;
+  }
+  .rung__meter i {
+    display: block;
+    width: 6px;
+    height: calc(var(--h) * 100%);
+    border-radius: 1px;
+    background: var(--line);
+  }
+  .rung__meter i.is-on {
+    background: var(--accent-line);
+  }
+  .rung__head {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .rung__num {
+    color: var(--accent-text);
+  }
+  .rung--zero .rung__num {
+    color: var(--text-3);
+  }
+  .rung__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.25rem + 1vw, 2.125rem);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+  }
+  .rung__pick {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 40ch;
+  }
+  .rung__pick-k {
+    display: block;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rung__body {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .rung__desc {
+    max-width: 56ch;
+  }
+  .rung__gets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .rung__gets li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    font-size: 0.875rem;
+    font-weight: 550;
+  }
+  .rung__gets li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--accent-line);
+  }
+  .rung__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  @media (min-width: 1024px) {
+    .rung__end {
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+  }
+  .rung__price {
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .rung__cta {
+    min-height: 46px;
+    font-size: 0.9375rem;
+  }
+  /* Hovering a rung lifts its meter: the bars rise a touch on the spring. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .rung__meter i {
+      transform-origin: bottom;
+      transition: transform 620ms var(--ease-spring);
+    }
+    .rung:hover .rung__meter i.is-on {
+      transform: scaleY(1.12);
+    }
+  }
+</style>

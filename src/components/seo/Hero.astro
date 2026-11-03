@@ -1,0 +1,134 @@
+---
+/**
+ * Hero: the decided headline with its middle phrase marked in signal yellow (the stroke draws
+ * on load, --ease-marker), the offer in one plain sentence, two actions, and the snippet lab.
+ */
+import SnippetLab from './SnippetLab.astro';
+import { HERO } from '../../data/seo/content';
+import { bookingUrl } from '../../data/seo/site';
+---
+
+<section class="hero" data-hero aria-labelledby="hero-title">
+  <div class="hero__bg" aria-hidden="true"></div>
+  <div class="container hero__grid">
+    <p class="eyebrow hero__eyebrow">{HERO.eyebrow}</p>
+    <h1 id="hero-title" class="hero__title">
+      {HERO.headline.before}
+      <span class="mark hero__mark">{HERO.headline.marked}</span>
+      {HERO.headline.after}
+    </h1>
+
+    <div class="hero__body">
+      <p class="lede">{HERO.lede}</p>
+      <div class="hero__actions">
+        <a class="btn" href={bookingUrl('hero')}>
+          <span>{HERO.primary}</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost btn--down" href="#services">
+          <span>{HERO.secondary}</span>
+          <span class="btn__arrow" aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="hero__note">{HERO.note}</p>
+    </div>
+
+    <div class="hero__lab">
+      <SnippetLab />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    padding-bottom: var(--space-section);
+    overflow: clip;
+  }
+  /* Faint ruled lines, like the page a result sits on, fading out toward the copy. */
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 47px,
+      color-mix(in srgb, var(--line) 70%, transparent) 47px 48px
+    );
+    -webkit-mask-image: radial-gradient(120% 90% at 100% 100%, #000 10%, transparent 70%);
+    mask-image: radial-gradient(120% 90% at 100% 100%, #000 10%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero__grid {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .hero__title {
+    max-width: 15ch;
+  }
+  .hero__mark {
+    /* Keep the marked phrase on as few lines as the width allows. */
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__mark {
+      animation: hero-mark 900ms var(--ease-marker) 380ms both;
+    }
+  }
+  @keyframes hero-mark {
+    from {
+      background-size: 0% 100%;
+      color: var(--text);
+    }
+    60% {
+      color: var(--on-accent);
+    }
+    to {
+      background-size: 100% 100%;
+      color: var(--on-accent);
+    }
+  }
+  .hero__body {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .hero__note {
+    max-width: 44ch;
+    font-size: var(--fs-small);
+    color: var(--text-3);
+  }
+  .hero__lab {
+    min-width: 0;
+    margin-top: var(--space-4);
+  }
+  @media (max-width: 479px) {
+    .hero__actions .btn {
+      width: 100%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      column-gap: clamp(2rem, 1rem + 3vw, 5rem);
+      row-gap: var(--space-6);
+    }
+    .hero__eyebrow,
+    .hero__title {
+      grid-column: 1 / -1;
+    }
+    .hero__body {
+      padding-top: var(--space-4);
+    }
+    .hero__lab {
+      margin-top: 0;
+    }
+  }
+</style>

@@ -1,0 +1,114 @@
+---
+/**
+ * A case's real flow as pills joined by rounded elbows, zig-zagging so the thread reads as
+ * one soft curve. `compact`: a wrapping row of small pills with no elbows (cards, phones).
+ */
+interface Props {
+  steps: readonly string[];
+  label: string;
+  compact?: boolean;
+  reveal?: boolean;
+}
+const { steps, label, compact = false, reveal = false } = Astro.props;
+---
+
+<ol class:list={['flow', { 'flow--compact': compact }]} role="list" aria-label={label} data-reveal-stagger={reveal ? '' : undefined}>
+  {
+    steps.map((step, i) => (
+      <li class:list={['flow__step', { 'flow__step--end': i === steps.length - 1 }]}>
+        <span class="flow__dot" aria-hidden="true" />
+        <span>{step}</span>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .flow {
+    --indent: 2.75rem;
+    position: relative;
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    background: var(--surface-1);
+  }
+  .flow__step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: fit-content;
+    max-width: 100%;
+    padding: 10px 16px 10px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 600;
+  }
+  /* The dot centre sits 21px in from a step's left edge. */
+  .flow__step:nth-child(even) {
+    margin-left: var(--indent);
+  }
+  .flow__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    width: var(--indent);
+    height: 18px;
+    opacity: 0.75;
+  }
+  /* odd → even: down, then right */
+  .flow__step:nth-child(odd):not(:last-child)::after {
+    left: 21px;
+    border-left: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    border-bottom-left-radius: 14px;
+  }
+  /* even → odd: down, then left */
+  .flow__step:nth-child(even):not(:last-child)::after {
+    left: calc(23px - var(--indent));
+    border-right: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    border-bottom-right-radius: 14px;
+  }
+  .flow__dot {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .flow__step--end {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: none;
+  }
+  .flow__step--end .flow__dot {
+    background: var(--on-accent);
+    box-shadow: none;
+  }
+
+  /* ---------- compact: a wrapping row, arrows implied by order ---------- */
+  .flow--compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: var(--space-3);
+  }
+  .flow--compact .flow__step {
+    margin-left: 0;
+    padding: 6px 12px 6px 8px;
+    gap: 8px;
+    font-size: 0.875rem;
+  }
+  .flow--compact .flow__step::after {
+    display: none;
+  }
+  .flow--compact .flow__dot {
+    width: 14px;
+    height: 14px;
+  }
+</style>

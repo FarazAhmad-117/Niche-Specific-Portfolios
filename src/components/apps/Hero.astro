@@ -1,0 +1,787 @@
+---
+/**
+ * Hero. The headline runs across the sheet like a drawing title; below it the pitch on one
+ * side and the hero drawing on the other.
+ *
+ * The drawing: an example orders dashboard on a drafting sheet, with two earlier revisions
+ * stacked behind it. It moves calmly, one change per beat (~2.8s): drafted in ink →
+ * dimensioned → built into a real interface → stamped shipped. Then a new revision starts
+ * (REV A → B → C…): the product keeps shipping. Pauses off screen and in hidden tabs.
+ * No JS or reduced motion: the finished, shipped sheet, static.
+ */
+import Arrow from './Arrow.astro';
+import { HERO } from '../../data/apps/content';
+import { bookingUrl } from '../../data/apps/site';
+import { caseHref } from '../../lib/apps/paths';
+
+const [line1, line2] = HERO.headline;
+const plain2 = line2.replace(HERO.accent, '');
+const rows = [
+  { id: '#1042', who: 'Juniper', state: 'Paid' },
+  { id: '#1041', who: 'Tidewell', state: 'Shipped' },
+  { id: '#1040', who: 'Larkspur', state: 'Paid' },
+  { id: '#1039', who: 'Ashgrove', state: 'Refund' },
+];
+---
+
+<section class="hero paper" id="top" data-hero aria-labelledby="hero-title">
+  <div class="container">
+    <div class="hero__meta">
+      <p class="label hero__eyebrow">{HERO.eyebrow}</p>
+      <p class="mono hero__coord" aria-hidden="true">SHEET 01 / 01 · SCALE 1:1</p>
+    </div>
+
+    <h1 id="hero-title" class="hero__title">
+      <span class="hero__line">{line1}</span>
+      <span class="hero__line">{plain2}<span class="em">{HERO.accent}</span></span>
+    </h1>
+
+    <div class="hero__grid">
+      <div class="hero__copy">
+        <p class="lede hero__lede">{HERO.lede}</p>
+        <div class="hero__ctas">
+          <a class="btn" href={bookingUrl('hero')}>
+            <span>{HERO.primary}</span>
+            <Arrow />
+          </a>
+          <a class="btn btn--ghost" href={caseHref('solidmake')}>
+            <span>{HERO.secondary}</span>
+            <Arrow />
+          </a>
+        </div>
+        <p class="hero__note text-3">{HERO.note}</p>
+      </div>
+
+      <div class="hero__visual">
+      <figure
+        class="hv is-dim is-built is-shipped"
+        data-hv
+        data-pause-offscreen
+        role="img"
+        aria-label="Example drawing: an orders dashboard, drafted in ink, dimensioned, built into a working interface and stamped shipped."
+      >
+        <div class="hv__under hv__under--2" aria-hidden="true"></div>
+        <div class="hv__under hv__under--1" aria-hidden="true"></div>
+        <div class="hv__sheet paper" aria-hidden="true">
+          <div class="hv__frame"></div>
+
+          {/* dimension annotations */}
+          <div class="dim dim--h hv__dim-w" style="--d:0"><span>1280</span></div>
+          <div class="dim dim--v hv__dim-h" style="--d:1"><span>800</span></div>
+          <div class="dim dim--h hv__dim-side" style="--d:2"><span>240</span></div>
+
+          <div class="app">
+            <div class="app__top">
+              <span class="app__logo"></span>
+              <span class="app__search"><span class="sk"></span><span class="real">Search orders</span></span>
+              <span class="app__avatar"></span>
+            </div>
+            <div class="app__side">
+              {['Orders', 'Products', 'Customers', 'Reports'].map((t, i) => (
+                <span class:list={['app__nav', { 'is-on': i === 0 }]}>
+                  <span class="sk"></span>
+                  <span class="real">{t}</span>
+                </span>
+              ))}
+            </div>
+            <div class="app__main">
+              <div class="app__head">
+                <span class="app__h"><span class="sk sk--wide"></span><span class="real">Orders</span></span>
+                <span class="app__btn"><span class="real">New order</span></span>
+              </div>
+              <div class="app__stats">
+                {['Open', 'Shipped', 'Returns'].map((t, i) => (
+                  <span class="app__stat">
+                    <span class="sk"></span>
+                    <span class="real app__stat-k">{t}</span>
+                    <span class="real app__stat-v">{['24', '118', '3'][i]}</span>
+                  </span>
+                ))}
+              </div>
+              <div class="app__table">
+                {rows.map((r) => (
+                  <span class="app__row">
+                    <span class="sk"></span>
+                    <span class="real">{r.id}</span>
+                    <span class="real">{r.who}</span>
+                    <span class:list={['real', 'app__pill', { 'is-warn': r.state === 'Refund' }]}>{r.state}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div class="hv__notes mono">
+            <span>NOTES</span>
+            <span>1. Example project and data.</span>
+            <span>2. Not to scale.</span>
+          </div>
+
+          <div class="hv__tb">
+            <span class="hv__tb-k">Project</span><span class="hv__tb-v">Example app</span>
+            <span class="hv__tb-k">Sheet</span><span class="hv__tb-v">Orders · desktop</span>
+            <span class="hv__tb-k">Rev</span><span class="hv__tb-v" data-hv-rev>C</span>
+            <span class="hv__tb-k">Status</span><span class="hv__tb-v hv__status" data-hv-status>Shipped</span>
+          </div>
+
+          <div class="hv__stamp"><span>Shipped</span><span class="hv__stamp-sub">to production</span></div>
+        </div>
+      </figure>
+      <p class="hero__fig-note mono" aria-hidden="true">Example drawing · example project and data</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(1.5rem, 1rem + 3vw, 4rem));
+    padding-bottom: var(--space-section);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    padding-bottom: var(--space-3);
+    margin-bottom: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+    border-bottom: 1.5px solid var(--text);
+  }
+  .hero__eyebrow {
+    color: var(--text-2);
+  }
+  .hero__coord {
+    color: var(--text-3);
+  }
+  .hero__title {
+    display: grid;
+    max-width: 15ch;
+  }
+  @media (min-width: 1024px) {
+    .hero__title {
+      max-width: none;
+    }
+  }
+  .hero__line {
+    display: block;
+  }
+  .hero__grid {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: clamp(2rem, 1.4rem + 2.6vw, 4rem);
+  }
+  @media (min-width: 1024px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+      gap: clamp(2rem, 1rem + 3vw, 5rem);
+      align-items: center;
+    }
+  }
+  .hero__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .hero__visual {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .hero__fig-note {
+    color: var(--text-3);
+  }
+
+  /*
+   * Desktop: the hero is exactly the first screen. Every vertical gap is an svh clamp, the h1
+   * is capped by height as well as width, and the drawing's width is capped so that its
+   * height (16:11) is whatever the screen has left after the nav, the title strip, the
+   * headline, the gaps and its caption. The grid takes the slack and centres in it, so a tall
+   * screen gets balanced air, not a band under the drawing. Phones and portrait tablets keep
+   * their natural height.
+   */
+  @media (min-width: 1024px) and (orientation: landscape) {
+    .hero {
+      --h-pt: clamp(1rem, 3.4svh, 3rem);
+      --h-mb: clamp(0.875rem, 2.8svh, 2.5rem);
+      --h-gt: clamp(1.25rem, 3.6svh, 3.25rem);
+      --h-pb: clamp(1.5rem, 4.6svh, 3.75rem);
+      --h-h1: min(var(--fs-hero), 11.6svh);
+      /* meta strip ≈ 2rem, caption ≈ 2rem */
+      --hv-h: calc(
+        100svh - var(--nav-h) - env(safe-area-inset-top, 0px) - var(--h-pt) - 2rem - var(--h-mb) - 2 *
+          var(--lh-display) * var(--h-h1) - var(--h-gt) - 2rem - var(--h-pb)
+      );
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + var(--h-pt));
+      padding-bottom: var(--h-pb);
+    }
+    .hero > .container {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+    .hero__meta {
+      margin-bottom: var(--h-mb);
+    }
+    .hero__title {
+      font-size: var(--h-h1);
+    }
+    /* The drawing's column is as wide as its height budget allows (up to the usual 59%);
+       the copy takes the rest, so a short screen never opens a gap between them. */
+    .hero__grid {
+      flex: 1;
+      grid-template-columns: minmax(0, 1fr) minmax(0, min(59%, max(20rem, calc(var(--hv-h) * 16 / 11))));
+      margin-top: var(--h-gt);
+    }
+    /* The lead hangs from the headline (a fixed step under the underline) instead of
+       centring against the taller drawing, which left a loose gap above it. */
+    .hero__copy {
+      align-self: start;
+      padding-top: clamp(0.25rem, 1.8svh, 1.5rem);
+    }
+  }
+  .hero__note {
+    font-size: var(--fs-small);
+    max-width: 44ch;
+  }
+
+  /* ================= the drawing ================= */
+  .hv {
+    position: relative;
+    container-type: inline-size;
+    width: 100%;
+    aspect-ratio: 16 / 11;
+    margin: 0;
+    /* Room for the stacked sheets behind. */
+    padding: 0 3% 3% 0;
+  }
+  .hv__under,
+  .hv__sheet {
+    position: absolute;
+    inset: 0 3% 3% 0;
+    border-radius: var(--radius-s);
+  }
+  .hv__under {
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-sheet);
+  }
+  .hv__under--1 {
+    transform: translate(1.6%, 2.2%) rotate(1.1deg);
+  }
+  .hv__under--2 {
+    transform: translate(3.2%, 4.4%) rotate(2.2deg);
+    opacity: 0.7;
+  }
+  .hv__sheet {
+    overflow: hidden;
+    background-color: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-lift);
+    font-size: clamp(7px, 1.5cqi, 13px);
+    line-height: 1.2;
+  }
+  .hv__frame {
+    position: absolute;
+    inset: 3%;
+    border: 1.5px solid var(--text);
+    pointer-events: none;
+  }
+
+  /* ---------- the app: outlines (drafted) → a real interface (built) ---------- */
+  .app {
+    position: absolute;
+    left: 10%;
+    top: 13%;
+    width: 80%;
+    height: 54%;
+    display: grid;
+    grid-template-columns: 19% minmax(0, 1fr);
+    grid-template-rows: 13% minmax(0, 1fr);
+    border: 1.5px solid var(--text);
+    background: transparent;
+    transition: background-color 900ms var(--ease-out-quint), border-color 900ms var(--ease-out-quint);
+  }
+  .app > *,
+  .app__stat,
+  .app__row,
+  .app__nav,
+  .app__search,
+  .app__btn,
+  .app__h {
+    position: relative;
+    transition:
+      background-color 900ms var(--ease-out-quint),
+      border-color 900ms var(--ease-out-quint),
+      color 600ms var(--ease-out-quint);
+  }
+  .app__top {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 3%;
+    padding: 0 2.4%;
+    border-bottom: 1px solid var(--text);
+  }
+  .app__logo {
+    width: 3.2%;
+    aspect-ratio: 1;
+    border: 1px solid var(--text);
+  }
+  .app__search {
+    display: flex;
+    align-items: center;
+    width: 34%;
+    height: 56%;
+    padding: 0 1.4%;
+    border: 1px solid var(--text);
+  }
+  .app__avatar {
+    width: 3.6%;
+    aspect-ratio: 1;
+    margin-left: auto;
+    border: 1px solid var(--text);
+    border-radius: 50%;
+  }
+  .app__side {
+    display: grid;
+    align-content: start;
+    gap: 4%;
+    padding: 9% 9%;
+    border-right: 1px solid var(--text);
+  }
+  .app__nav {
+    display: flex;
+    align-items: center;
+    height: 2.1em;
+    padding: 0 8%;
+  }
+  .app__main {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 5%;
+    padding: 3.2% 4%;
+    min-height: 0;
+  }
+  .app__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app__h {
+    font-family: var(--font-display);
+    font-weight: 760;
+    font-size: 1.55em;
+    letter-spacing: -0.02em;
+  }
+  .app__btn {
+    display: inline-flex;
+    align-items: center;
+    height: 2.3em;
+    min-width: 7.5em;
+    padding: 0 1em;
+    border: 1px solid var(--text);
+  }
+  .app__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3%;
+  }
+  .app__stat {
+    display: grid;
+    gap: 0.25em;
+    padding: 0.7em 0.9em;
+    border: 1px solid var(--text);
+    min-height: 4.2em;
+  }
+  .app__stat-k {
+    color: var(--text-3);
+  }
+  .app__stat-v {
+    font-family: var(--font-display);
+    font-weight: 760;
+    font-size: 1.5em;
+  }
+  .app__table {
+    display: grid;
+    align-content: start;
+    border-top: 1px solid var(--text);
+  }
+  .app__row {
+    display: grid;
+    grid-template-columns: 0.8fr 1.4fr auto;
+    align-items: center;
+    gap: 4%;
+    height: 2.35em;
+    padding: 0 0.6em;
+    border-bottom: 1px solid var(--text);
+  }
+  .app__pill {
+    padding: 0.1em 0.6em;
+    border-radius: 2px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+  .app__pill.is-warn {
+    background: color-mix(in srgb, var(--redline) 14%, transparent);
+    color: var(--redline);
+  }
+
+  /* Skeleton strokes (drafted) and real text (built) occupy the same place. */
+  .sk {
+    position: absolute;
+    left: 0.8em;
+    top: 50%;
+    width: 58%;
+    height: 1.5px;
+    background: var(--text-3);
+    transition: opacity 500ms var(--ease-out-quint);
+  }
+  .sk--wide {
+    left: 0;
+    width: 5em;
+    height: 3px;
+  }
+  .app__stat .sk {
+    top: 38%;
+    width: 46%;
+  }
+  .real {
+    opacity: 0;
+    transition: opacity 600ms var(--ease-out-quint);
+  }
+  .app__pill.real {
+    opacity: 0;
+  }
+
+  .hv.is-built .app {
+    border-color: var(--line-strong);
+    background: var(--bg);
+  }
+  .hv.is-built .app__top,
+  .hv.is-built .app__side,
+  .hv.is-built .app__row,
+  .hv.is-built .app__table {
+    border-color: var(--line);
+  }
+  .hv.is-built .app__top {
+    background: var(--surface-2);
+  }
+  .hv.is-built .app__side {
+    background: var(--surface-1);
+  }
+  .hv.is-built .app__logo {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .hv.is-built .app__search,
+  .hv.is-built .app__avatar {
+    border-color: var(--line-strong);
+  }
+  .hv.is-built .app__avatar {
+    background: var(--accent-soft);
+  }
+  .hv.is-built .app__search .real {
+    color: var(--text-3);
+  }
+  .hv.is-built .app__nav.is-on {
+    background: var(--surface-2);
+    box-shadow: inset 2px 0 0 var(--accent);
+    font-weight: 600;
+  }
+  .hv.is-built .app__nav:not(.is-on) .real {
+    color: var(--text-2);
+  }
+  .hv.is-built .app__btn {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  .hv.is-built .app__stat {
+    border-color: var(--line);
+    background: var(--surface-2);
+  }
+  .hv.is-built .sk {
+    opacity: 0;
+  }
+  .hv.is-built .real {
+    opacity: 1;
+  }
+  .hv.is-built .app__main .real {
+    transition-delay: 160ms;
+  }
+
+  /* ---------- dimension annotations ---------- */
+  .dim {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    opacity: 0;
+    transition:
+      opacity 700ms var(--ease-out-quint) calc(var(--d) * 140ms),
+      transform 900ms var(--ease-out-quint) calc(var(--d) * 140ms);
+  }
+  .dim span {
+    position: relative;
+    z-index: 1;
+    padding: 0 0.5em;
+    background: var(--surface-2);
+  }
+  .dim::before {
+    content: '';
+    position: absolute;
+    background: currentColor;
+  }
+  /* Horizontal: a line with end ticks. */
+  .dim--h {
+    height: 1.4em;
+    transform: translateY(6px);
+  }
+  .dim--h::before {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+  }
+  .dim--h::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-inline: 1px solid currentColor;
+  }
+  .dim--v {
+    width: 1.4em;
+    transform: translateX(6px);
+  }
+  .dim--v::before {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+  }
+  .dim--v::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-block: 1px solid currentColor;
+  }
+  .dim--v span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    padding: 0.5em 0;
+  }
+  .hv__dim-w {
+    left: 10%;
+    width: 80%;
+    top: 7.6%;
+  }
+  .hv__dim-h {
+    left: 5.2%;
+    top: 13%;
+    height: 54%;
+  }
+  .hv__dim-side {
+    left: 10%;
+    width: 15.2%;
+    top: 68.6%;
+  }
+  .hv.is-dim .dim {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- notes, title block, stamp ---------- */
+  .hv__notes {
+    position: absolute;
+    left: 6%;
+    bottom: 7%;
+    display: grid;
+    gap: 0.2em;
+    color: var(--text-3);
+    font-size: 0.85em;
+  }
+  .hv__notes span:first-child {
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .hv__tb {
+    position: absolute;
+    right: 3%;
+    bottom: 3%;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    width: 38%;
+    border-top: 1.5px solid var(--text);
+    border-left: 1.5px solid var(--text);
+    background: var(--surface-2);
+  }
+  .hv__tb > span {
+    padding: 0.42em 0.7em;
+    border-bottom: 1px solid var(--line-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hv__tb > span:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  .hv__tb-k {
+    border-right: 1px solid var(--line-strong);
+    color: var(--text-3);
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 620;
+    font-size: 0.78em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hv__tb-v {
+    font-family: var(--font-mono);
+  }
+  .hv__status {
+    color: var(--text-2);
+  }
+  .hv.is-shipped .hv__status {
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  .hv__stamp {
+    position: absolute;
+    right: 43%;
+    bottom: 11%;
+    display: grid;
+    justify-items: center;
+    padding: 0.5em 1.1em 0.45em;
+    border: 2px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent-text);
+    background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 800;
+    font-size: 1.5em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    opacity: 0;
+    transform: rotate(-7deg) scale(1.35);
+    transition:
+      opacity 260ms var(--ease-out-quint),
+      transform var(--dur-pop) var(--ease-spring);
+  }
+  .hv__stamp-sub {
+    margin-top: 0.3em;
+    font-family: var(--font-mono);
+    font-stretch: 100%;
+    font-weight: 400;
+    font-size: 0.45em;
+    letter-spacing: 0.04em;
+  }
+  .hv.is-shipped .hv__stamp {
+    opacity: 1;
+    transform: rotate(-7deg);
+  }
+
+  /* Reset between revisions: everything fades back to ink together. */
+  .hv.is-resetting * {
+    transition-duration: 700ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* Phones: the sheet is small, so drop the sidebar dimension and the notes. */
+  @container (max-width: 480px) {
+    .hv__notes,
+    .hv__dim-side {
+      display: none;
+    }
+    .hv__tb {
+      width: 46%;
+    }
+    .app__row {
+      grid-template-columns: 0.9fr 1.2fr auto;
+    }
+  }
+</style>
+
+<script>
+  import { prefersReduced } from '../../lib/apps/base';
+
+  const hv = document.querySelector<HTMLElement>('[data-hv]');
+  if (hv && !prefersReduced()) {
+    const rev = hv.querySelector<HTMLElement>('[data-hv-rev]');
+    const status = hv.querySelector<HTMLElement>('[data-hv-status]');
+    const BEAT = 2800;
+    const STEPS = ['Drafted', 'Dimensioned', 'Built', 'Shipped'] as const;
+    let beat = 0;
+    let letter = 0; // A
+    let timer: number | undefined;
+    let resetTimer: number | undefined;
+    let visible = true;
+
+    const paint = () => {
+      hv.classList.toggle('is-dim', beat >= 1);
+      hv.classList.toggle('is-built', beat >= 2);
+      hv.classList.toggle('is-shipped', beat >= 3);
+      if (status) status.textContent = STEPS[beat] ?? '';
+      if (rev) rev.textContent = String.fromCharCode(65 + (letter % 26));
+    };
+
+    const tick = () => {
+      timer = undefined;
+      if (!visible || document.hidden) return;
+      if (beat < 3) {
+        beat += 1;
+        paint();
+      } else {
+        // A new revision: one change, the sheet goes back to ink.
+        beat = 0;
+        letter += 1;
+        hv.classList.add('is-resetting');
+        paint();
+        resetTimer = window.setTimeout(() => {
+          resetTimer = undefined;
+          hv.classList.remove('is-resetting');
+        }, 800);
+      }
+      schedule();
+    };
+    const schedule = () => {
+      if (timer === undefined && visible && !document.hidden) timer = window.setTimeout(tick, beat === 3 ? BEAT * 1.6 : BEAT);
+    };
+    const stop = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = undefined;
+      if (resetTimer !== undefined) window.clearTimeout(resetTimer);
+      resetTimer = undefined;
+      hv.classList.remove('is-resetting');
+    };
+
+    // Start from a blank drawing: drafted, REV A.
+    beat = 0;
+    paint();
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => {
+        visible = !!e?.isIntersecting;
+        if (visible) schedule();
+        else stop();
+      }).observe(hv);
+    }
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : schedule()));
+    schedule();
+  }
+</script>

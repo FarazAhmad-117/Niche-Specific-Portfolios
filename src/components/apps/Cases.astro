@@ -1,0 +1,580 @@
+---
+/**
+ * Case studies on the home page: a dark blueprint print inside the light site
+ * (decisions › apps). Three drawing sheets in one row (SolidMake, Yard Terminal,
+ * farazahmad.dev), each with its architecture reduced to line work (SheetPlot), its name and
+ * angle, two verified facts, and a title block (fig, discipline, status) whose last cell is
+ * the way in. Then two "detail" call-outs (AI SEO Automator, Lead Drift) that link to their
+ * write-ups on the ai niche. Everything longer lives on the case pages.
+ *
+ * Page transition: each sheet is a candidate (data-vt-case); the Layout's head script names
+ * the one being navigated `case-<id>`, and the case page hero panel uses the same name, so
+ * on navigation the sheet box morphs into the hero. Sheets are never reveal-armed: a page
+ * transition may morph into one at load.
+ */
+import { Picture } from 'astro:assets';
+import leadrift from '../../assets/apps/leadrift.png';
+import SheetPlot from './SheetPlot.astro';
+import Arrow from './Arrow.astro';
+import { CASES, SUPPORTING } from '../../data/apps/cases';
+import { caseHref } from '../../lib/apps/paths';
+---
+
+<section class="section cases print paper" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split cases__head">
+      <p class="eyebrow"><span class="eyebrow__no">03</span>Case studies</p>
+      <h2 id="work-title">Hard products, built end to end.</h2>
+      <p class="lede">
+        Three products I built or led, each with its architecture drawn out. Where a number isn’t measured yet, it says so.
+      </p>
+    </div>
+
+    <ul class="cases__row" role="list">
+      {
+        CASES.map((c, i) => {
+          const fig = String(i + 1).padStart(2, '0');
+          return (
+            <li class="cases__cell">
+              <article class="case-sheet" id={`card-${c.id}`} data-vt-case={c.id} aria-labelledby={`sheet-${c.id}`}>
+                <div class="case-sheet__plot paper">
+                  <span class="case-sheet__corner mono" aria-hidden="true">
+                    {c.sheet}
+                  </span>
+                  <span class="case-sheet__corner case-sheet__corner--r mono" aria-hidden="true">
+                    Not to scale
+                  </span>
+                  <SheetPlot diagram={c.diagram} />
+                </div>
+
+                <div class="case-sheet__body">
+                  <h3 class="case-sheet__name" id={`sheet-${c.id}`}>
+                    <a class="case-sheet__link" href={caseHref(c.id)}>
+                      {c.name}
+                      <span class="visually-hidden"> case study</span>
+                    </a>
+                  </h3>
+                  <p class="case-sheet__title">{c.title}</p>
+                  <ul class="case-sheet__facts" role="list">
+                    {c.facts.slice(0, 2).map((f) => (
+                      <li>{f}</li>
+                    ))}
+                  </ul>
+                  {c.pending.length > 0 && (
+                    <p class="case-sheet__pending">
+                      {c.pending.map((p) => (
+                        <span class="todo case-sheet__todo">{p}</span>
+                      ))}
+                    </p>
+                  )}
+                </div>
+
+                <dl class="case-sheet__tb">
+                  <div class="case-sheet__tb-cell">
+                    <dt class="case-sheet__tb-k">Fig.</dt>
+                    <dd class="case-sheet__tb-v">{fig}</dd>
+                  </div>
+                  <div class="case-sheet__tb-cell">
+                    <dt class="case-sheet__tb-k">Discipline</dt>
+                    <dd class="case-sheet__tb-v">{c.kicker}</dd>
+                  </div>
+                  <div class="case-sheet__tb-cell case-sheet__tb-cell--wide">
+                    <dt class="case-sheet__tb-k">Status</dt>
+                    <dd class="case-sheet__tb-v">
+                      <span class:list={['case-sheet__dot', { 'is-live': c.status.live }]} aria-hidden="true" />
+                      {c.status.label}
+                    </dd>
+                  </div>
+                </dl>
+                <span class="case-sheet__more" aria-hidden="true">
+                  <span>Read the case study</span>
+                  <Arrow class="case-sheet__arrow" />
+                </span>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <ul class="cases__details" role="list">
+      {
+        SUPPORTING.map((s, i) => (
+          <li class:list={['detail', s.id === 'lead-drift' && 'detail--thumb']}>
+            <span class="detail__callout mono" aria-hidden="true">
+              {String.fromCharCode(65 + i)}
+            </span>
+            <div class="detail__body">
+              <span class="detail__kicker label">
+                Detail {String.fromCharCode(65 + i)} · {s.kicker}
+              </span>
+              <h3 class="detail__name">
+                <a class="detail__link" href={s.href} target="_blank" rel="noopener" aria-describedby={`mini-note-${s.id}`}>
+                  {s.name}
+                </a>
+              </h3>
+              <span class="visually-hidden" id={`mini-note-${s.id}`}>
+                Engineering write-up on ai.farazahmad.dev, opens in a new tab
+              </span>
+              <p class="detail__title">{s.title}</p>
+              <div class="detail__end">
+                <span class="detail__more" aria-hidden="true">
+                  Write-up on ai.farazahmad.dev <Arrow dir="up-right" />
+                </span>
+                <span class="todo case-sheet__todo">{s.pending}</span>
+              </div>
+            </div>
+            {s.id === 'lead-drift' && (
+              <div class="detail__thumb">
+                <Picture
+                  src={leadrift}
+                  formats={['avif', 'webp']}
+                  fallbackFormat="png"
+                  quality={85}
+                  widths={[208, 312]}
+                  sizes="104px"
+                  width={1352}
+                  height={888}
+                  alt="Leadrift, Indepth Solution's internal sales tool: its sign-in page."
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .cases {
+    border-block: 1px solid var(--line);
+  }
+  .cases__head {
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+  }
+
+  /* ---------- the row of three sheets ---------- */
+  .cases__row {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+  }
+  @media (min-width: 1024px) {
+    .cases__row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1rem, 0.4rem + 1.2vw, 1.75rem);
+    }
+  }
+  .cases__cell {
+    display: grid;
+    min-width: 0;
+  }
+
+  .case-sheet {
+    --plot-bg: var(--bg);
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      var(--shadow-sheet);
+    /* Scroll target for "All case studies" on a case page: give it air under the nav. */
+    scroll-margin-top: var(--space-6);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+  }
+  /* Crop marks: they snap out to the sheet's corners on hover, like a selection. */
+  .case-sheet::before {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    pointer-events: none;
+    --c: var(--accent);
+    background:
+      linear-gradient(var(--c), var(--c)) 0 0 / 10px 1.5px,
+      linear-gradient(var(--c), var(--c)) 0 0 / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) 100% 0 / 10px 1.5px,
+      linear-gradient(var(--c), var(--c)) 100% 0 / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) 0 100% / 10px 1.5px,
+      linear-gradient(var(--c), var(--c)) 0 100% / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) 100% 100% / 10px 1.5px,
+      linear-gradient(var(--c), var(--c)) 100% 100% / 1.5px 10px;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity 360ms var(--ease-out-quint),
+      transform 620ms var(--ease-out-expo);
+  }
+
+  /* Tablet: drawing on the left, the words and title block on the right. */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .case-sheet {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      grid-template-rows: 1fr auto auto;
+    }
+    .case-sheet > :not(.case-sheet__plot) {
+      grid-column: 2;
+    }
+    .case-sheet__plot {
+      grid-column: 1;
+      grid-row: 1 / -1;
+      border-bottom: 0 !important;
+      border-right: 1px solid var(--line-strong);
+      margin: 1px 0 1px 1px;
+      border-radius: calc(var(--radius-m) - 1px) 0 0 calc(var(--radius-m) - 1px) !important;
+      align-content: center;
+    }
+  }
+
+  /* The whole sheet is the target, one tab stop: the name's link stretches over it. */
+  .case-sheet__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case-sheet__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-m);
+  }
+  .case-sheet__link:focus-visible {
+    outline: none;
+  }
+  .case-sheet:has(.case-sheet__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .case-sheet:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 0 0 1px var(--accent),
+        var(--shadow-lift);
+    }
+    .case-sheet:hover::before {
+      opacity: 1;
+      transform: none;
+    }
+    .case-sheet:hover .case-sheet__more::before {
+      transform: scaleX(1);
+    }
+    .case-sheet:hover :global(.case-sheet__arrow) {
+      transform: translateX(5px);
+    }
+  }
+  .case-sheet:has(.case-sheet__link:focus-visible) .case-sheet__more::before {
+    transform: scaleX(1);
+  }
+
+  /* ---------- the drawing ---------- */
+  /* Inset 1px so the sheet's own hairline edge stays visible round the drawing. */
+  .case-sheet__plot {
+    position: relative;
+    display: grid;
+    container-type: inline-size;
+    margin: 1px 1px 0;
+    padding: 26px 16px 8px;
+    border-bottom: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-m) - 1px) calc(var(--radius-m) - 1px) 0 0;
+    background-color: var(--plot-bg);
+  }
+  .case-sheet__corner {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .case-sheet__corner--r {
+    left: auto;
+    right: 14px;
+    color: var(--text-3);
+  }
+
+  /* ---------- words ---------- */
+  .case-sheet__body {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-4);
+  }
+  .case-sheet__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 110%;
+    font-size: clamp(1.625rem, 1.35rem + 0.9vw, 2.125rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .case-sheet__title {
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .case-sheet__facts {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .case-sheet__facts li {
+    position: relative;
+    padding-left: 20px;
+  }
+  /* A leader line, as on a drawing note. */
+  .case-sheet__facts li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.68em;
+    width: 11px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+  .case-sheet__pending {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  /* Compact TODO chips (still visible, still dashed). */
+  /* No z-index: the chips sit under the stretched link, so clicking one still opens the case. */
+  .case-sheet__todo {
+    padding: 1px 8px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  /* ---------- title block ---------- */
+  .case-sheet__tb {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    margin: 0 var(--space-5);
+    border-top: 1.5px solid var(--text);
+    border-left: 1px solid var(--line-strong);
+  }
+  .case-sheet__tb-cell {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+    padding: 7px 10px 8px;
+    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .case-sheet__tb-cell--wide {
+    grid-column: 1 / -1;
+  }
+  .case-sheet__tb-k {
+    color: var(--text-3);
+    font-family: var(--font-display);
+    font-size: 0.625rem;
+    font-weight: 620;
+    font-stretch: 125%;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+  .case-sheet__tb-v {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.78125rem;
+    line-height: 1.35;
+  }
+  .case-sheet__dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .case-sheet__dot.is-live {
+    background: var(--success);
+    box-shadow: none;
+  }
+
+  /* ---------- the way in ---------- */
+  .case-sheet__more {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 var(--space-5) var(--space-5);
+    padding: 11px 10px;
+    border: 1px solid var(--line-strong);
+    border-top: 0;
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-stretch: 108%;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+  }
+  /* Ink sweeps in under the label, slow and even (out-quint, ~1s). */
+  .case-sheet__more::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent-soft);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform var(--dur-fill) var(--ease-out-quint);
+  }
+  .case-sheet__more :global(.case-sheet__arrow) {
+    transition: transform 620ms var(--ease-out-expo);
+  }
+
+  /* ---------- detail call-outs: one complete row of two ---------- */
+  .cases__details {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-5) 0 0;
+  }
+  @media (min-width: 760px) {
+    .cases__details {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(1rem, 0.4rem + 1.2vw, 1.75rem);
+    }
+  }
+  .detail {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-m);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition: box-shadow 600ms var(--ease-out-expo);
+  }
+  /* A drafting detail bubble: a circled letter on a leader. */
+  .detail__callout {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-top: 2px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    color: var(--accent-text);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: transform 620ms var(--ease-spring);
+  }
+  .detail__body {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+  .detail__kicker {
+    color: var(--text-3);
+    font-size: 0.6875rem;
+  }
+  .detail__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .detail__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
+  .detail__link:focus-visible {
+    outline: none;
+  }
+  .detail:has(.detail__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  @media (hover: hover) {
+    .detail:hover {
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .detail:hover .detail__callout {
+      transform: rotate(-12deg) scale(1.06);
+    }
+  }
+  .detail__name {
+    font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+    font-weight: 780;
+    font-stretch: 108%;
+    letter-spacing: -0.03em;
+  }
+  .detail__title {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .detail__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px var(--space-4);
+    margin-top: 6px;
+  }
+  .detail__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-text);
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  .detail__more :global(.btn__arrow) {
+    width: 12px;
+    height: 12px;
+  }
+  /* A small drawing-detail thumbnail of the real tool, wide screens only so the card never grows taller than its neighbour.
+     No z-index: it sits under the card's stretched link, so a click on it still opens the write-up. */
+  .detail__thumb {
+    display: none;
+  }
+  @media (min-width: 1280px) {
+    /* Pinned to the top-right corner, beside the kicker, name and title only (the link row keeps the full width),
+       so the card's height is set by its text exactly as before. */
+    .detail__thumb {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-5);
+      display: block;
+      width: 6.5rem;
+      background: #f1efe7;
+      box-shadow: 0 0 0 1px var(--line-strong);
+    }
+    .detail--thumb :is(.detail__kicker, .detail__name, .detail__title) {
+      padding-inline-end: calc(6.5rem + var(--space-4));
+    }
+    .detail__thumb :global(img) {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .case-sheet,
+    .detail {
+      border: 1px solid CanvasText;
+    }
+  }
+</style>

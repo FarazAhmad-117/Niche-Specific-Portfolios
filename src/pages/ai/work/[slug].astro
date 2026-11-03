@@ -13,7 +13,8 @@
  * No testimonial slot.
  */
 import type { GetStaticPaths } from 'astro';
-import { Image } from 'astro:assets';
+import { Image, Picture } from 'astro:assets';
+import leadrift from '../../../assets/ai/leadrift.png';
 import Layout from '../../../layouts/ai/Layout.astro';
 import Button from '../../../components/ai/Button.astro';
 import CaseSection from '../../../components/ai/CaseSection.astro';
@@ -145,6 +146,36 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
           />
           <figcaption class="exhibit__cap mono">
             {study.name}'s own product site{linkHost ? `, ${linkHost}` : ''}. A screenshot of the live page.
+          </figcaption>
+        </figure>
+      </div>
+    )
+  }
+
+  <!-- ============ Lead Drift only: Leadrift, its internal tool (real screenshot) ============ -->
+  {
+    study.slug === 'lead-drift' && (
+      <div class="own container">
+        <figure class="own__frame theme-ink" data-reveal>
+          <div class="own__bar mono" aria-hidden="true">
+            <span>Leadrift · sign-in page</span>
+          </div>
+          <Picture
+            src={leadrift}
+            formats={['avif', 'webp']}
+            fallbackFormat="png"
+            quality={85}
+            widths={[480, 768, 1024, 1352]}
+            sizes="min(1024px, calc(100vw - 2rem))"
+            width={1352}
+            height={888}
+            alt="Leadrift's sign-in page: the headline “Someone just posted a job. That’s your next client.”, a line on what the tool does for the Indepth Solution sales team, and a Help wanted panel of job posts."
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption class="own__cap mono">
+            Leadrift, the internal tool Indepth Solution's sales team works in: hiring ads and LinkedIn &amp; Facebook research
+            turned into conversations. Screenshot of its sign-in page.
           </figcaption>
         </figure>
       </div>
@@ -444,6 +475,38 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
   .exhibit__cap {
     padding: 12px 14px;
     font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* ---------- own: Leadrift, Lead Drift's internal tool (a sibling of the hero, outside every view-transition box) ---------- */
+  .own {
+    padding-block: var(--space-7) 0;
+  }
+  .own__frame {
+    margin: 0;
+    max-inline-size: 64rem;
+    border: 1px solid var(--line-strong);
+  }
+  .own__bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    border-block-end: 1px solid var(--line);
+  }
+  /* The screenshot is a cream page; its own hairline-bordered frame keeps the edge crisp on ink in both themes. */
+  .own__frame :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    background: #f1efe7;
+  }
+  .own__cap {
+    padding: 12px 14px;
+    font-size: var(--fs-mono-label);
+    line-height: 1.5;
     color: var(--text-3);
     border-block-start: 1px solid var(--line);
   }

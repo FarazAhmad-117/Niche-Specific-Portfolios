@@ -1,0 +1,342 @@
+---
+/**
+ * all.farazahmad.dev: one page linking every niche site.
+ *
+ * Which niches show comes from the registry (src/niches.ts): enabled ones are live cards,
+ * disabled ones sit in the quiet "Coming soon" row, `all` itself is left out. Copy comes from
+ * src/data/all/sites.ts.
+ *
+ * Dev/prod switch: in dev (`import.meta.env.DEV`) every card opens the LOCAL niche on this
+ * same dev server (/<slug>/, relative, so any port works) and previews /<slug>/og/home.png.
+ * In production it opens https://<slug>.farazahmad.dev/ and previews its /og/home.png.
+ * The main site is always https://farazahmad.dev/.
+ */
+import Layout from '../../layouts/all/Layout.astro';
+import SiteCard from '../../components/all/SiteCard.astro';
+import CopyButton from '../../components/all/CopyButton.astro';
+import { NICHES, nicheHost, nicheOrigin } from '../../niches';
+import { HERO, MAIN_SITE, MAIN_SITE_URL, PAGE_SEO, SITES } from '../../data/all/sites';
+import { TILES, TILE, TILE_R } from '../../lib/all/brand-mark';
+
+const DEV = import.meta.env.DEV;
+const siteHref = (slug: string) => (DEV ? `/${slug}/` : `${nicheOrigin(slug)}/`);
+const siteImage = (slug: string) => (DEV ? `/${slug}/og/home.png` : `${nicheOrigin(slug)}/og/home.png`);
+
+const others = NICHES.filter((n) => n.slug !== 'all');
+const live = others
+  .filter((n) => n.enabled)
+  .map((n) => {
+    const copy = SITES[n.slug] ?? { label: n.name };
+    return {
+      slug: n.slug,
+      label: copy.label,
+      headline: copy.headline,
+      description: copy.description,
+      href: siteHref(n.slug),
+      image: siteImage(n.slug),
+      // Shown in mono: the local address in dev (what the card opens), the subdomain in production.
+    host: DEV ? `${Astro.url.host}/${n.slug}/` : nicheHost(n.slug),
+    };
+  });
+const soon = others.filter((n) => !n.enabled).map((n) => ({ slug: n.slug, label: SITES[n.slug]?.label ?? n.name }));
+
+// Complete rows: 4 columns on wide screens when the count allows it, else 3.
+const wideCols = live.length % 4 === 0 || live.length % 3 !== 0 ? 4 : 3;
+const mainHost = new URL(MAIN_SITE_URL).host;
+---
+
+<Layout title={PAGE_SEO.title} description={PAGE_SEO.description}>
+  <section class="hero container" aria-labelledby="hero-title">
+    <div class="hero__meta">
+      <p class="hero__eyebrow">{HERO.eyebrow}</p>
+      {
+        DEV && (
+          <p class="hero__env" title="Dev server: cards open the local copy of each site">
+            <span class="hero__env-dot" aria-hidden="true" />
+            Local links
+          </p>
+        )
+      }
+    </div>
+    <h1 id="hero-title" class="hero__title">{HERO.title}</h1>
+    <p class="hero__lede">
+      {HERO.lede} <a class="hero__link" href={MAIN_SITE_URL}>{mainHost}</a>.
+    </p>
+    <p class="hero__count">
+      {live.length} live{soon.length > 0 && <> · {soon.length} coming soon</>}
+    </p>
+  </section>
+
+  <section class="sites container" aria-labelledby="live-title">
+    <h2 id="live-title" class="sites__title">Live sites</h2>
+    <ul class="grid" role="list" data-cols={wideCols}>
+      {live.map((s, i) => <SiteCard {...s} index={i} />)}
+    </ul>
+
+    <div class="main-card" style={`--i:${live.length}`}>
+      <svg class="main-card__mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" class="main-card__mark-bg"></rect>
+        {
+          TILES.map((t) => (
+            <rect x={t.x} y={t.y} width={TILE} height={TILE} rx={TILE_R} class={t.lit ? 'is-lit' : 'is-tile'} />
+          ))
+        }
+      </svg>
+      <div class="main-card__body">
+        <p class="main-card__label">{MAIN_SITE.label}</p>
+        <h2 class="main-card__title">{MAIN_SITE.title}</h2>
+        <p class="main-card__desc">{MAIN_SITE.description}</p>
+      </div>
+      <div class="main-card__actions">
+        <a class="main-card__open" href={MAIN_SITE_URL}>
+          Open<span class="visually-hidden"> the main site</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <CopyButton href={MAIN_SITE_URL} name="the main site" />
+      </div>
+    </div>
+
+    {
+      soon.length > 0 && (
+        <div class="soon">
+          <h2 id="soon-title" class="soon__title">
+            Coming soon
+          </h2>
+          <ul class="soon__list" role="list">
+            {soon.map((s) => (
+              <li class="soon__item">{s.label}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </section>
+
+  <p id="copy-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+</Layout>
+
+<style>
+  /* ---------- hero ---------- */
+  .hero {
+    padding-block: clamp(40px, 8vw, 104px) clamp(36px, 6vw, 72px);
+  }
+  .hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .hero__env {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 10px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-2);
+  }
+  .hero__env-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .hero__title {
+    margin-top: 18px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .hero__lede {
+    margin-top: 22px;
+    max-width: 52ch;
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    color: var(--text-2);
+    text-wrap: pretty;
+  }
+  .hero__link {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: underline 1.5px var(--accent);
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .hero__link:hover {
+      text-decoration-color: var(--text);
+    }
+  }
+  .hero__count {
+    margin-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text-3);
+  }
+
+  /* ---------- grid ---------- */
+  .sites__title {
+    margin-bottom: 16px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .grid {
+    display: grid;
+    gap: clamp(14px, 1.6vw, 20px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1180px) {
+    .grid[data-cols='4'] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .grid[data-cols='3'] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------- main site ---------- */
+  .main-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px 20px;
+    margin-top: clamp(14px, 1.6vw, 20px);
+    padding: clamp(18px, 2.4vw, 28px);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: var(--radius-l);
+    background: var(--accent-soft);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .main-card {
+      animation: main-in 720ms var(--ease-out-quint) backwards;
+      animation-delay: calc(80ms + var(--i, 0) * 55ms);
+    }
+  }
+  @keyframes main-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  .main-card__mark {
+    width: clamp(48px, 6vw, 64px);
+    height: auto;
+  }
+  .main-card__mark-bg {
+    fill: #17161a;
+  }
+  .main-card__mark .is-tile {
+    fill: #f5f4f1;
+  }
+  .main-card__mark .is-lit {
+    fill: #8d8c94;
+  }
+  .main-card__body {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+  .main-card__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .main-card__title {
+    font-family: var(--font-mono);
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+  .main-card__desc {
+    color: var(--text-2);
+    font-size: 0.9375rem;
+  }
+  .main-card__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  @media (min-width: 760px) {
+    .main-card {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .main-card__actions {
+      grid-column: auto;
+    }
+  }
+  .main-card__open {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 0 20px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      transform var(--dur-hover) var(--ease-out-expo),
+      box-shadow var(--dur-hover) var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .main-card__open:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+    }
+  }
+
+  /* ---------- coming soon ---------- */
+  .soon {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-top: clamp(28px, 4vw, 44px);
+  }
+  .soon__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .soon__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .soon__item {
+    padding: 5px 12px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    color: var(--text-3);
+  }
+</style>

@@ -1,0 +1,208 @@
+---
+/**
+ * Offers as a shop price list: five lines with a dotted leader running to the price column,
+ * and every price reads "Scoped on a call" (decisions: no prices anywhere). A list, not a
+ * grid, so five offers never leave a ragged row. Each row opens out on hover/focus-within on
+ * desktop; on phones everything is simply visible.
+ */
+import { OFFERS, PLUS_NOTE } from '../../data/shopify/content';
+import { bookingUrl } from '../../data/shopify/site';
+---
+
+<section class="section offers" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Services</p>
+      <h2 id="services-title">Five ways in. One price rule.</h2>
+      <p class="lede">Start with the audit, or with the one thing that’s broken. Every price is set after a free scoping call.</p>
+    </div>
+
+    <div class="menu">
+      <div class="menu__head mono" aria-hidden="true">
+        <span>No.</span>
+        <span>Service</span>
+        <span>Price</span>
+      </div>
+      <ol class="menu__list" role="list" data-reveal-stagger>
+        {
+          OFFERS.map((o, i) => (
+            <li class="off" id={`offer-${o.id}`}>
+              <span class="off__num mono" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div class="off__main">
+                <h3 class="off__name leader">
+                  <span>{o.name}</span>
+                  <span class="off__price mono">{o.priceLine}</span>
+                </h3>
+                <p class="off__pick">{o.pickIf}</p>
+                <p class="off__desc">{o.description}</p>
+                <ul class="off__gets" role="list">
+                  {o.gets.map((g) => <li>{g}</li>)}
+                </ul>
+              </div>
+              <a class="off__cta" href={bookingUrl(`offer-${o.id}`)}>
+                {o.cta}
+                <span class="off__arrow" aria-hidden="true">→</span>
+                <span class="visually-hidden">: {o.name}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="menu__plus">
+        <span class="tag tag--ink">Shopify Plus</span>
+        {PLUS_NOTE}
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .menu {
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    padding: clamp(1rem, 0.6rem + 2vw, 2.5rem);
+  }
+  .menu__head {
+    display: none;
+    grid-template-columns: 4rem minmax(0, 1fr) auto;
+    gap: var(--space-5);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--text);
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  @media (min-width: 900px) {
+    .menu__head {
+      display: grid;
+    }
+  }
+  .menu__list {
+    margin: 0;
+  }
+  .off {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-6) 0;
+    border-bottom: 1.5px dotted var(--line-strong);
+    scroll-margin-top: var(--space-4);
+  }
+  @media (min-width: 900px) {
+    .off {
+      grid-template-columns: 4rem minmax(0, 1fr) 13rem;
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+  .off__num {
+    padding-top: 0.45rem;
+    color: var(--accent-text);
+  }
+  .off__main {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .off__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.375rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    flex-wrap: wrap;
+  }
+  .off__name::after {
+    min-width: 2rem;
+  }
+  .off__price {
+    flex: none;
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .off__pick {
+    font-weight: 500;
+    font-size: 1.0625rem;
+  }
+  .off__desc {
+    max-width: 62ch;
+    color: var(--text-2);
+  }
+  .off__gets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: var(--space-2) 0 0;
+  }
+  .off__gets li {
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-1);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .off__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: start;
+    min-height: var(--tap);
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    transition:
+      background-color 700ms var(--ease-out-quint),
+      color 420ms var(--ease-out-quint) 140ms,
+      box-shadow 420ms var(--ease-out-quint);
+  }
+  @media (min-width: 900px) {
+    .off__cta {
+      justify-self: end;
+      margin-top: 0.3rem;
+    }
+  }
+  .off__arrow {
+    display: inline-block;
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  .off__cta:focus-visible {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  @media (hover: hover) {
+    .off__cta:hover {
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      box-shadow: none;
+    }
+    .off__cta:hover .off__arrow {
+      transform: translateX(4px);
+    }
+  }
+  .off:target .off__num,
+  .off:target .off__name {
+    color: var(--accent-text);
+  }
+  .menu__plus {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    color: var(--text-2);
+  }
+</style>

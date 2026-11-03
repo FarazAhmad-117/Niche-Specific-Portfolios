@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/shopify/Layout.astro';
+import Hero from '../../components/shopify/Hero.astro';
+import Proof from '../../components/shopify/Proof.astro';
+import Problem from '../../components/shopify/Problem.astro';
+import Teardown from '../../components/shopify/Teardown.astro';
+import SyncMap from '../../components/shopify/SyncMap.astro';
+import Cases from '../../components/shopify/Cases.astro';
+import Offers from '../../components/shopify/Offers.astro';
+import Included from '../../components/shopify/Included.astro';
+import Process from '../../components/shopify/Process.astro';
+import About from '../../components/shopify/About.astro';
+import Faq from '../../components/shopify/Faq.astro';
+import FinalCta from '../../components/shopify/FinalCta.astro';
+import { HOME_SEO, assertMeta } from '../../data/shopify/seo';
+import { abs, homeLd } from '../../lib/shopify/jsonld';
+
+assertMeta('home', HOME_SEO);
+
+/*
+ * Reading order (brief §4): what this is → facts → the overloaded store → watch a page get
+ * fast (signature) → the sync map → proof → how to buy → what's always included → how it
+ * runs → who builds it → questions → contact.
+ */
+---
+
+{/* expect "services": the section after the case cards, so both linked cards are parsed. */}
+<Layout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  path="/"
+  image={abs('og/home.png')}
+  jsonLd={homeLd()}
+  expect="services"
+>
+  <Hero />
+  <Proof />
+  <Problem />
+  <Teardown />
+  <SyncMap />
+  <Cases />
+  <Offers />
+  <Included />
+  <Process />
+  <About />
+  <Faq />
+  <FinalCta />
+</Layout>

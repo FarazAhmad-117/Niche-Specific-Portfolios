@@ -1,0 +1,208 @@
+---
+/**
+ * Case studies on the home page: a 2 × 2 grid of compact cards. The real one (these niche
+ * sites, Astro, not Webflow) and the labelled example link to case pages; the two open slots
+ * (a Webflow build, a migration) are dashed, empty bays with TODO chips, never links.
+ *
+ * Page transition: each linked card carries view-transition-name `case-<id>`; the case page
+ * hero box uses the same name, so the card morphs into the hero while the pages pan (base.css).
+ * Only the box morphs, never the title. Cards are never reveal-armed.
+ */
+import { CASES, OPEN_SLOTS } from '../../data/webflow/cases';
+import { caseHref } from '../../lib/webflow/paths';
+
+const vt = (id: string) => `view-transition-name: case-${id}`;
+---
+
+<section class="section cases" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">Case studies</p>
+      <h2 id="work-title">The work, labelled honestly.</h2>
+      <p class="lede">
+        The motion on these sites is real and running. The Webflow build and the migration slots stay empty until a client
+        clears them; the example shows the method, not a result.
+      </p>
+    </div>
+
+    <ul class="cases__grid" role="list">
+      {
+        CASES.map((c) => (
+          <li class="case" id={`card-${c.id}`} style={vt(c.id)}>
+            <div class="case__top">
+              {c.example ? <span class="tag">Example</span> : c.status && <span class="tag tag--live">{c.status}</span>}
+              <span class="case__kicker mono">{c.kicker}</span>
+            </div>
+            <h3 class="case__name">
+              <a class="case__link" href={caseHref(c.id)}>
+                {c.name}
+              </a>
+            </h3>
+            <p class="case__title">{c.title}</p>
+            <ul class="case__flow" role="list" aria-label={c.example ? 'The method' : 'What it uses'}>
+              {c.flow.map((f) => (
+                <li class="cls cls--plain">{f}</li>
+              ))}
+            </ul>
+            <span class="case__more" aria-hidden="true">
+              {c.example ? 'Read the example' : 'Read the case study'} <span class="case__arrow">→</span>
+            </span>
+          </li>
+        ))
+      }
+      {
+        OPEN_SLOTS.map((s) => (
+          <li class="case case--slot">
+            <span class="case__kicker mono">{s.kicker}</span>
+            <p class="slot__title">{s.title}</p>
+            <p class="slot__text">{s.text}</p>
+            <span class="todo">{s.todo}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .cases__grid {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .cases__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .case {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    /* "All case studies" on a case page lands on its own card: give it air under the nav. */
+    scroll-margin-top: var(--space-4);
+  }
+  /* The title link stretches over the card: the whole card is the target, one tab stop. */
+  .case__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .case__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-l);
+  }
+  .case__link:focus-visible {
+    outline: none;
+  }
+  .case:has(.case__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  /* Hover: the card is "selected": a violet frame with handles snaps on (out-expo). */
+  .case:has(.case__link)::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 1px solid var(--accent);
+    border-radius: calc(var(--radius-l) + 4px);
+    opacity: 0;
+    transform: scale(0.99);
+    pointer-events: none;
+    transition:
+      opacity 240ms var(--ease-out-quint),
+      transform 520ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .case:has(.case__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .case:has(.case__link):hover::before {
+      opacity: 1;
+      transform: none;
+    }
+    .case:hover .case__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .case__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .case__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .case__title {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 44ch;
+  }
+  .case__flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: var(--space-1) 0 0;
+  }
+  .case__flow .cls {
+    font-size: 0.71875rem;
+  }
+  .case__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-1);
+    font-weight: 600;
+    font-size: var(--fs-small);
+  }
+  .case__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+
+  /* An open slot: a dashed, empty artboard. Not a link. */
+  .case--slot {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .slot__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .slot__text {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    max-width: 44ch;
+  }
+</style>

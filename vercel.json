@@ -17,6 +17,36 @@
       "has": [
         {
           "type": "host",
+          "value": "ghl.farazahmad.dev"
+        }
+      ],
+      "destination": "/ghl/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "apps.farazahmad.dev"
+        }
+      ],
+      "destination": "/apps/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "cloud.farazahmad.dev"
+        }
+      ],
+      "destination": "/cloud/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
           "value": "funnels.farazahmad.dev"
         }
       ],
@@ -27,10 +57,60 @@
       "has": [
         {
           "type": "host",
+          "value": "ads.farazahmad.dev"
+        }
+      ],
+      "destination": "/ads/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "shopify.farazahmad.dev"
+        }
+      ],
+      "destination": "/shopify/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "wp.farazahmad.dev"
+        }
+      ],
+      "destination": "/wp/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "webflow.farazahmad.dev"
+        }
+      ],
+      "destination": "/webflow/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
           "value": "seo.farazahmad.dev"
         }
       ],
       "destination": "/seo/:path"
+    },
+    {
+      "source": "/:path((?!_astro/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "all.farazahmad.dev"
+        }
+      ],
+      "destination": "/all/:path"
     }
   ]
 }
