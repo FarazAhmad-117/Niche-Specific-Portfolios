@@ -1,12 +1,15 @@
 ---
 /**
- * Offers (decisions.md › seo): the audit as the featured first step, the other four in a
- * 2 × 2 block beside it, so the grid fills complete rows. No prices: "Scoped on a call".
+ * Offers (decisions.md › seo): the audit as the featured first step, the next four in a
+ * 2 × 2 block beside it, so the grid fills complete rows. An odd one out (Backlink audit &
+ * strategy) spans the full width as its own row, laid out sideways. No prices: "Scoped on a call".
  */
 import { OFFERS, PRICE_LINE } from '../../data/seo/content';
 import { bookingUrl } from '../../data/seo/site';
 
 const [featured, ...rest] = OFFERS;
+/** With an odd count after the featured card, the last one takes a full row. */
+const wideIndex = rest.length % 2 === 1 ? rest.length - 1 : -1;
 ---
 
 <section class="section section--sunk offers" id="services" aria-labelledby="services-title">
@@ -41,7 +44,7 @@ const [featured, ...rest] = OFFERS;
       }
       {
         rest.map((o, i) => (
-          <li class="offer" id={`offer-${o.id}`}>
+          <li class:list={['offer', { 'offer--wide': i === wideIndex }]} id={`offer-${o.id}`}>
             <p class="offer__n mono">{String(i + 2).padStart(2, '0')}</p>
             <h3 class="offer__name">{o.name}</h3>
             <p class="offer__desc">{o.description}</p>
@@ -80,6 +83,61 @@ const [featured, ...rest] = OFFERS;
     .offer--featured {
       grid-column: 1;
       grid-row: 1 / span 2;
+    }
+  }
+  /* The odd card out: a full row, name | includes | price side by side. */
+  @media (min-width: 720px) {
+    .offer.offer--wide {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      grid-template-areas:
+        'n n'
+        'name inc'
+        'desc inc'
+        'price price';
+      column-gap: var(--space-7);
+      align-content: start;
+    }
+    .offer--wide .offer__n {
+      grid-area: n;
+    }
+    .offer--wide .offer__name {
+      grid-area: name;
+    }
+    .offer--wide .offer__desc {
+      grid-area: desc;
+      max-width: 52ch;
+    }
+    .offer--wide .offer__inc {
+      grid-area: inc;
+      align-self: start;
+      margin: 0;
+    }
+    .offer--wide .offer__price {
+      grid-area: price;
+      margin-top: var(--space-2);
+      padding-top: var(--space-3);
+    }
+  }
+  @media (min-width: 1100px) {
+    .offer.offer--wide {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(0, 0.8fr);
+      grid-template-areas:
+        'n inc price'
+        'name inc price'
+        'desc inc price';
+    }
+    .offer--wide .offer__inc {
+      grid-row: 1 / span 3;
+      align-self: center;
+    }
+    .offer--wide .offer__price {
+      align-self: end;
+      justify-self: end;
+      margin: 0;
+      padding: 0;
+      border: 0;
     }
   }
   .offer {

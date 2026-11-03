@@ -6,7 +6,7 @@
 export const HOME_SEO = {
   title: 'Technical SEO Engineer: Fixes in Code | Faraz Ahmad',
   description:
-    'Technical SEO audits and fixes done in your code, programmatic pages and a human-edited content engine. No link building. Book a free scoping call.',
+    'Technical SEO audits and fixes in your code, programmatic pages, a human-edited content engine and backlink audits. No bought links. Book a free call.',
 } as const;
 
 export const TITLE_MAX = 60;

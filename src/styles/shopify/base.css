@@ -178,28 +178,24 @@ main:focus {
   scroll-margin-top: calc(-1 * var(--space-section));
 }
 
-/* Section heading block: eyebrow (a small swing tag and a label), h2, optional lede. */
+/* Section heading block: eyebrow (a small clay square and a label), h2, optional lede. */
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-mono);
-  font-size: var(--fs-mono);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-3);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-2);
 }
 .eyebrow::before {
   content: "";
   flex: none;
-  width: 18px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
   background: var(--accent);
-  clip-path: polygon(5px 0, 100% 0, 100% 100%, 5px 100%, 0 50%);
-  -webkit-mask: radial-gradient(circle 1.6px at 6.5px 50%, transparent 95%, #000 100%);
-  mask: radial-gradient(circle 1.6px at 6.5px 50%, transparent 95%, #000 100%);
-  border-radius: 0 2px 2px 0;
 }
 .head {
   display: grid;
@@ -228,76 +224,79 @@ main:focus {
 }
 
 /* ---------- buttons ----------
- * Primary: an ink pill with a clay price dot. On hover the dot spreads into a clay fill, slow
- * and even (~1s out-quint), and the label flips a beat (140ms) after the fill starts.
- * Secondary: an outlined pill whose arrow travels. */
+ * Primary: a clay button, the brand accent used where it counts. On hover a darker clay spreads
+ * out from the small dot at its left edge, slow and even (~1s out-quint), the label staying
+ * readable throughout (white on both clays in light, ink on both in dark).
+ * Secondary: a white admin-style button with a 1px border whose arrow travels. */
 .btn {
   position: relative;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-height: 54px;
-  padding: 0 26px 0 42px;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px 0 36px;
   border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
+  border-radius: var(--radius-s);
+  background: var(--accent-fill);
+  color: var(--on-accent);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9875rem;
   line-height: 1.1;
-  letter-spacing: 0.005em;
+  letter-spacing: -0.005em;
   text-decoration: none;
   overflow: hidden;
+  box-shadow:
+    inset 0 -1px 0 rgb(0 0 0 / 0.18),
+    0 1px 2px rgb(26 26 26 / 0.12);
   touch-action: manipulation;
   transition:
     color 420ms var(--ease-out-quint) 140ms,
     transform var(--dur-press) var(--ease-out-quint),
     box-shadow var(--dur-hover) var(--ease-out-quint);
 }
-/* The dot and the fill are one circle: 8px at rest, scaled until it covers the pill. */
+/* The dot and the hover fill are one circle: 6px at rest, scaled until it covers the button. */
 .btn::before {
   content: "";
   position: absolute;
-  left: 20px;
+  left: 17px;
   top: 50%;
   z-index: -1;
-  width: 8px;
-  height: 8px;
-  margin-top: -4px;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
   border-radius: 50%;
-  background: var(--accent-fill);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-fill) 30%, transparent);
+  background: var(--on-accent);
   transition:
     transform var(--dur-fill) var(--ease-out-quint),
-    box-shadow 300ms var(--ease-out-quint);
-}
-.btn:focus-visible {
-  color: var(--on-accent);
+    background-color 240ms var(--ease-out-quint);
 }
 .btn:focus-visible::before {
-  transform: scale(90);
-  box-shadow: none;
+  transform: scale(110);
+  background: var(--accent-press);
 }
 @media (hover: hover) {
   .btn:hover {
-    color: var(--on-accent);
-    box-shadow: var(--shadow-soft);
+    box-shadow:
+      inset 0 -1px 0 rgb(0 0 0 / 0.2),
+      0 4px 12px -4px rgb(26 26 26 / 0.3);
   }
   .btn:hover::before {
-    transform: scale(90);
-    box-shadow: none;
+    transform: scale(110);
+    background: var(--accent-press);
   }
 }
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 .btn--ghost {
-  padding-inline: 24px;
-  background: transparent;
+  padding-inline: 20px;
+  background: var(--surface-2);
   color: var(--text);
-  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    0 1px 0 rgb(26 26 26 / 0.05);
   transition:
     box-shadow var(--dur-hover) var(--ease-out-quint),
     background-color var(--dur-hover) var(--ease-out-quint),
@@ -318,7 +317,7 @@ main:focus {
   .btn--ghost:hover {
     color: var(--text);
     background: var(--surface-1);
-    box-shadow: inset 0 0 0 1.5px var(--text);
+    box-shadow: inset 0 0 0 1px var(--text);
   }
 }
 .btn--ghost:hover .btn__arrow,
@@ -330,31 +329,27 @@ main:focus {
   transform: translateX(4px);
 }
 
-/* ---------- retail primitives ---------- */
-/* Swing tag: mono caps on a tag with a pointed end and a punched hole (a real hole: masked). */
+/* ---------- commerce primitives ---------- */
+/* Badge: an admin-style status pill. Neutral by default. */
 .tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   width: fit-content;
-  padding: 4px 12px 4px 20px;
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  padding: 2px 10px;
+  border-radius: var(--radius-s);
   background: var(--surface-1);
   color: var(--text-2);
-  font-family: var(--font-mono);
-  font-size: 0.71875rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  line-height: 1.4;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  line-height: 1.45;
   white-space: nowrap;
-  clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
-  -webkit-mask: radial-gradient(circle 2.5px at 10px 50%, transparent 95%, #000 100%);
-  mask: radial-gradient(circle 2.5px at 10px 50%, transparent 95%, #000 100%);
 }
 .tag--accent {
-  background: var(--accent-fill);
-  color: var(--on-accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 .tag--ink {
   background: var(--btn-bg);
@@ -364,66 +359,67 @@ main:focus {
   background: var(--warn-bg);
   color: var(--warn);
 }
-/* "Example" / "Illustrative": dashed outline tag, so it never reads as a result. */
+/* Status, e.g. "Active": the only place green appears. */
+.tag--success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.tag--success::before,
+.tag--warn::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* "Example" / "Illustrative": dashed outline, so it never reads as a result. */
 .tag--example {
   background: transparent;
   color: var(--text-2);
-  box-shadow: inset 0 0 0 1.5px var(--line-strong);
-  clip-path: none;
-  -webkit-mask: none;
-  mask: none;
-  border-radius: var(--radius-pill);
-  padding: 3px 11px;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 .tag--example::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   border: 1.5px dashed currentColor;
 }
 
-/* A shelf edge that cards sit on: a lip with a soft shadow beneath. Decorative. */
+/* Kept for markup compatibility: shelves are gone in the clean theme. */
 .shelf {
-  height: 12px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--shelf) 60%, var(--surface-2)) 0 3px, var(--shelf) 3px);
-  box-shadow: 0 16px 22px -14px rgb(64 40 24 / 0.38);
+  display: none;
 }
 
-/* A thermal receipt: mono rows with dotted leaders and a torn bottom edge. */
+/* A card: white, a 1px edge, a small soft shadow. (Was a torn receipt; the name stays.) */
 .receipt {
-  --zz: 7px;
   position: relative;
-  padding: var(--space-5) var(--space-5) calc(var(--space-5) + var(--zz));
+  padding: var(--space-5);
+  border-radius: var(--radius-l);
   background: var(--surface-2);
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  -webkit-mask:
-    linear-gradient(#000 0 0) top / 100% calc(100% - var(--zz)) no-repeat,
-    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zz)) var(--zz) repeat-x;
-  mask:
-    linear-gradient(#000 0 0) top / 100% calc(100% - var(--zz)) no-repeat,
-    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--zz)) var(--zz) repeat-x;
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-soft);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
 }
+/* A row with a quiet rule running to its value. */
 .leader {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
 }
 .leader::after {
   content: "";
   order: 1;
   flex: 1 1 1rem;
   min-width: 1rem;
-  border-bottom: 1.5px dotted var(--line-strong);
+  border-bottom: 1px solid var(--line);
   transform: translateY(-0.3em);
 }
 .leader > :last-child {
   order: 2;
 }
-
 /* ---------- chips ---------- */
 .chip {
   display: inline-flex;
@@ -431,7 +427,7 @@ main:focus {
   gap: 8px;
   min-height: 28px;
   padding: 3px 12px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-s);
   background: var(--surface-1);
   color: var(--text-2);
   font-size: 0.875rem;
@@ -484,7 +480,7 @@ main:focus {
   align-items: center;
   min-height: var(--tap);
   padding-inline: var(--space-4);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-s);
   background: var(--btn-bg);
   color: var(--btn-fg);
   font-weight: 600;

@@ -4,7 +4,8 @@
  *
  * Rules (docs/brief/DECISIONS.md › seo + global):
  *  - no prices anywhere: "scoped on a call"
- *  - no link building, said plainly
+ *  - no paid or spammy link building, said plainly; backlinks are an audit & strategy service
+ *    (decided 2026-11-04): audit, protect, reclaim and earn links, never buy them
  *  - never invent numbers, rankings or client names; missing numbers are todo() chips,
  *    shape-only visuals carry an "Illustration" / "Example" label
  *  - no "rank #1", no guarantees, no black-hat language
@@ -67,7 +68,7 @@ export const PROOF: readonly ProofItem[] = [
     label: 'Lighthouse SEO score on five pages of farazahmad.dev (Lighthouse 13.5, local production build, 2026-10-02)',
   },
   { value: '6', label: 'Automated modules in AI SEO Automator, from site audit to publishing' },
-  { value: '0', label: 'Links bought, swapped or built. I don’t do link building' },
+  { value: '0', label: 'Links bought, rented or swapped. Backlinks get audited and earned, never bought' },
   {
     value: todo('proof.clicks', 'Clicks gained: from Search Console screenshots'),
     label: 'Organic clicks gained for client sites, shown once anonymized screenshots are in',
@@ -241,16 +242,139 @@ export const OFFERS: readonly Offer[] = [
     description: 'Ongoing content and fixes, with a monthly report built from your Search Console data.',
     includes: ['New pages and fixes every month', 'Report: what changed, what moved, what’s next'],
   },
+  {
+    id: 'backlinks',
+    name: 'Backlink audit & strategy',
+    serviceType: 'Backlink audit and link strategy',
+    description:
+      'An audit of every link pointing at your site, the gap to your competitors, and a plan to earn new links with pages worth citing. No bought links.',
+    includes: [
+      'Toxic links flagged; a disavow file only when warranted',
+      'Lost and broken links reclaimed with redirects',
+      'Competitor gap research and monitoring alerts',
+    ],
+  },
 ];
+
+/**
+ * Backlinks (owner decision 2026-11-04: "Backlink audit & strategy", no paid or spammy link
+ * building). The link-profile panel is an EXAMPLE: made-up `.example` domains, quality as a
+ * shape-only bar (no scores), labelled "Example site · illustrative".
+ * The one verified backlink capability: AI SEO Automator "discovers competitors, researches
+ * their backlinks and alerts when they publish" (src/data/ai/cases.ts, src/data/seo/cases.ts).
+ */
+export interface LinkRow {
+  readonly domain: string;
+  readonly path?: string;
+  /** Shape only, 0..1: how full the quality bar is drawn. Never printed as a number. */
+  readonly q: number;
+  /** Spoken quality, for screen readers. */
+  readonly qLabel: 'High' | 'Good' | 'Fair' | 'Spam';
+  /** Which competitors link to this domain (shape-only dots). */
+  readonly rivals: readonly [boolean, boolean];
+  /** Status before and after the beat that changes this row. */
+  readonly before: string;
+  readonly after?: string;
+  readonly tone?: 'toxic' | 'reclaim' | 'gap';
+  /** Index of the beat that changes this row (see BACKLINKS.beats). */
+  readonly at?: number;
+}
+export const BACKLINKS = {
+  eyebrow: 'Backlinks',
+  title: { before: 'Links still matter most.', marked: 'So I earn them, never buy them.' },
+  lede: 'Backlinks are still the strongest signal of authority in search. Bought links are also the quickest way to a penalty. So I audit the links you have, protect them, win back the ones you’ve lost, and build pages that earn new ones.',
+  panel: {
+    title: 'Link profile',
+    site: 'yourstore.com',
+    label: 'Example site · illustrative',
+    cols: ['Referring domain', 'Quality', 'Status', 'Rivals'],
+    rows: [
+      { domain: 'outdoorjournal.example', q: 0.88, qLabel: 'High', rivals: [true, true], before: 'Linked · follow' },
+      { domain: 'trailforum.example', q: 0.64, qLabel: 'Good', rivals: [true, false], before: 'Linked · follow' },
+      {
+        domain: 'free-seo-links.example',
+        q: 0.1,
+        qLabel: 'Spam',
+        rivals: [false, false],
+        before: 'Linked · follow',
+        after: 'Toxic · disavow',
+        tone: 'toxic',
+        at: 1,
+      },
+      {
+        domain: 'gearpartner.example',
+        path: '/old-guide',
+        q: 0.72,
+        qLabel: 'Good',
+        rivals: [true, false],
+        before: '404 · link lost',
+        after: '301 · reclaimed',
+        tone: 'reclaim',
+        at: 2,
+      },
+      {
+        domain: 'mountainmag.example',
+        q: 0.8,
+        qLabel: 'High',
+        rivals: [true, true],
+        before: 'Not linking to you',
+        after: 'Gap · earn it',
+        tone: 'gap',
+        at: 3,
+      },
+    ] satisfies readonly LinkRow[],
+    alert: 'Alert · a competitor just published a new guide. Its links go on the watch list.',
+    caption:
+      'Example site with made-up domains. Quality is drawn as a shape, not a score, and the rival dots show which competitors a domain links to.',
+  },
+  /** One change per beat. */
+  beats: ['Audit', 'Toxic', 'Reclaim', 'Gap', 'Monitor'],
+  does: [
+    {
+      code: 'audit: links',
+      title: 'Backlink audit',
+      text: 'Quality, relevance and anchor text of every referring domain. Toxic links flagged, and a disavow file only when it’s warranted.',
+    },
+    {
+      code: 'gap: rivals',
+      title: 'Competitor gap research',
+      text: 'Who links to your competitors but not to you, using the competitor backlink research I built into AI SEO Automator.',
+    },
+    {
+      code: '301: reclaim',
+      title: 'Lost link reclamation',
+      text: 'Links pointing at pages that 404 or moved, won back with the right redirect or a fixed URL.',
+    },
+    {
+      code: 'links: internal',
+      title: 'Internal linking',
+      text: 'A structure that passes authority to the pages that matter, built into your templates.',
+    },
+    {
+      code: 'asset: linkable',
+      title: 'Pages that earn links',
+      text: 'Data pages, tools and guides worth citing, plus the technical side of digital PR: fast, crawlable, clean URLs.',
+    },
+    {
+      code: 'alert: on',
+      title: 'Monitoring with alerts',
+      text: 'Lost links, new toxic links and competitor launches flagged as they happen.',
+    },
+  ],
+  dontTitle: 'What I won’t do',
+  donts: ['Buying links', 'PBNs', 'Link farms', 'Mass guest-post schemes'],
+  dontWhy: 'They break Google’s spam policies, and a penalty costs more than any link is worth.',
+  result: todo('backlinks.result', 'Referring domains earned for a client, from their link report'),
+} as const;
 
 /** "How I keep it safe" (brief §4 item 8). Six items so the grid fills 3 × 2. */
 export const SAFE = {
   title: 'Nothing that can get your site penalized.',
   items: [
     {
-      code: 'links: none',
-      title: 'No link building',
-      text: 'I don’t buy, swap or build links. No networks, no guest-post farms. The work is your site itself: code, pages and content.',
+      code: 'links: earned',
+      title: 'No bought links',
+      text: 'I don’t buy, rent or swap links. No PBNs, no link farms, no mass guest posts. I audit the links you have and help you earn new ones.',
     },
     {
       code: 'review: human',
@@ -294,7 +418,7 @@ export const ABOUT = {
   paragraphs: [
     'I’m Faraz. I build software for a living, and I came to SEO from the code side: most of what holds a site back in search lives in its templates, its rendering and its URLs.',
     'I built AI SEO Automator, a platform that audits a site, researches keywords and competitors, writes content and publishes it. I overhauled my own site, farazahmad.dev, so it ships canonical URLs, JSON-LD, a sitemap, llms.txt and an AI catalog, and scores 100 for SEO in Lighthouse on its main pages.',
-    'I don’t do link building, and I don’t promise rankings. I fix what’s in the code, build systems that publish pages worth reading, and report what Search Console shows.',
+    'I don’t buy links, and I don’t promise rankings. I fix what’s in the code, protect and earn the links a site deserves, build systems that publish pages worth reading, and report what Search Console shows.',
   ],
 } as const;
 
@@ -309,8 +433,8 @@ export const FAQ = [
     a: 'Google judges content on whether it is helpful, not on how it was produced. What gets sites penalized is publishing lots of low-value pages to manipulate rankings. In the engine I build, a person edits every page and pages that fail quality checks never publish.',
   },
   {
-    q: 'Do you build links?',
-    a: 'No. I don’t buy, swap or build links. My work is the site itself: technical fixes, programmatic pages and content. If your plan needs link building, I’ll say so and you can hire a specialist for it.',
+    q: 'Do you build backlinks?',
+    a: 'Not by buying them. Paid links, PBNs, link farms and mass guest-post schemes break Google’s spam policies and can get a site penalized. What I do: audit your backlinks (quality, anchors, toxic links, and a disavow file only when it’s warranted), find the links your competitors have and you don’t, reclaim lost and broken links, fix internal linking, and build pages people want to cite. I won’t promise a number of links.',
   },
   {
     q: 'Can you work in my CMS or framework?',

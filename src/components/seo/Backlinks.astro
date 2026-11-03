@@ -1,0 +1,716 @@
+---
+/**
+ * Backlinks (owner decision 2026-11-04: "Backlink audit & strategy", no paid or spammy links).
+ *
+ * Left: an EXAMPLE "link profile" panel, built like the rest of the site from search-tool parts:
+ * mono URLs, hairline rows, shape-only quality bars, the yellow marker. It plays five beats, one
+ * change per ~2.8s: audit (bars fill) → a toxic link flagged → a lost link reclaimed → a
+ * competitor gap marked → a monitoring alert. Story-style progress bars; the current bar's
+ * `animationend` advances it.
+ *  - Autoplays when a third of it is visible; pauses off screen and in hidden tabs.
+ *  - One pause button: fixed label "Pause", aria-pressed = paused.
+ *  - Never autoplays under reduced motion (it starts paused, on the finished state).
+ *  - Server render = the finished state (every beat applied), so no-JS sees the whole story.
+ * Right: what I do (six compact rows, complete at every width), then what I won't do.
+ * Keyframes are prefixed `bl-` (Astro does not scope @keyframes).
+ */
+import Todo from './Todo.astro';
+import { BACKLINKS } from '../../data/seo/content';
+
+const B = BACKLINKS;
+const P = B.panel;
+const last = B.beats.length - 1;
+---
+
+<section class="section section--rule bl" id="backlinks" aria-labelledby="backlinks-title">
+  <div class="container">
+    <div class="head head--split">
+      <p class="eyebrow">{B.eyebrow}</p>
+      <h2 id="backlinks-title">{B.title.before} <span class="mark" data-mark>{B.title.marked}</span></h2>
+      <p class="lede">{B.lede}</p>
+    </div>
+
+    <div class="bl__grid">
+      <figure class="lp" data-lp data-beat={last} aria-labelledby="lp-title" aria-describedby="lp-cap">
+        <div class="lp__top">
+          <div class="lp__id">
+            <p class="lp__title" id="lp-title">{P.title}</p>
+            <p class="serp-url">{P.site} › backlinks</p>
+          </div>
+          <div class="lp__tools">
+            <span class="illus">{P.label}</span>
+            <button class="lp__pause" type="button" data-lp-pause aria-pressed="false" hidden>
+              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                <rect x="3" y="2.5" width="3.2" height="11" rx="1"></rect>
+                <rect x="9.8" y="2.5" width="3.2" height="11" rx="1"></rect>
+              </svg>
+              <span>Pause</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="lp__head mono" aria-hidden="true">
+          {P.cols.map((c) => <span>{c}</span>)}
+        </div>
+        <ul class="lp__rows" role="list">
+          {
+            P.rows.map((r) => (
+              <li
+                class:list={['lp__row', r.tone && `lp__row--${r.tone}`, { 'is-done': r.at !== undefined }]}
+                data-lp-at={r.at}
+                style={`--q: ${r.q}`}
+              >
+                <span class="lp__domain">
+                  <span class="lp__host">{r.domain}</span>
+                  {r.path && <span class="lp__path">{r.path}</span>}
+                </span>
+                <span class="lp__q" role="img" aria-label={`Quality: ${r.qLabel}`}>
+                  <span class="lp__q-fill"></span>
+                </span>
+                <span class="lp__status">
+                  {r.after ? (
+                    <>
+                      <span class="lp__s lp__s--before">{r.before}</span>
+                      <span class="lp__s lp__s--after">{r.after}</span>
+                    </>
+                  ) : (
+                    <span class="lp__s lp__s--ok">{r.before}</span>
+                  )}
+                </span>
+                <span
+                  class="lp__rivals"
+                  role="img"
+                  aria-label={
+                    r.rivals[0] && r.rivals[1]
+                      ? 'Both competitors get links here'
+                      : r.rivals[0] || r.rivals[1]
+                        ? 'One competitor gets links here'
+                        : 'No competitor links here'
+                  }
+                >
+                  {r.rivals.map((on) => (
+                    <span class:list={['lp__dot', { 'is-on': on }]} />
+                  ))}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="lp__alert is-done" data-lp-at="4">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1.5a4 4 0 0 0-4 4v2.6L2.6 10.6a.6.6 0 0 0 .5.9h9.8a.6.6 0 0 0 .5-.9L12 8.1V5.5a4 4 0 0 0-4-4zM6.3 12.6a1.8 1.8 0 0 0 3.4 0z"></path></svg>
+          <span>{P.alert}</span>
+        </p>
+
+        <ol class="lp__steps mono" role="list" aria-label="What the example shows, in order">
+          {
+            B.beats.map((b, i) => (
+              <li class="lp__step is-done" data-lp-step={i}>
+                <span class="lp__bar" aria-hidden="true"></span>
+                <span>
+                  <span class="lp__step-n">{String(i + 1).padStart(2, '0')}</span> {b}
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <figcaption class="lp__cap" id="lp-cap">
+          {P.caption} Client result: <Todo value={B.result} />
+        </figcaption>
+      </figure>
+
+      <div class="bl__side">
+        <ul class="bl__does" role="list" aria-label="What I do" data-reveal-stagger>
+          {
+            B.does.map((d) => (
+              <li class="do">
+                <code class="do__code">{d.code}</code>
+                <div>
+                  <h3 class="do__title">{d.title}</h3>
+                  <p class="do__text">{d.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="bl__dont">
+          <h3 class="bl__dont-title">{B.dontTitle}</h3>
+          <ul class="bl__dont-list" role="list">
+            {B.donts.map((d) => <li class="mono"><s>{d}</s></li>)}
+          </ul>
+          <p class="bl__dont-why">{B.dontWhy}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bl .head > h2 {
+    max-width: 16ch;
+  }
+  .bl__grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 1100px) {
+    .bl__grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: var(--space-7);
+      align-items: start;
+    }
+  }
+
+  /* ---------- the example link-profile panel ---------- */
+  .lp {
+    --beat: 2800ms;
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(0.875rem, 0.6rem + 1vw, 1.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-card);
+    min-width: 0;
+  }
+  .lp__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .lp__id {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .lp__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .lp__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .lp__pause {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 0 12px;
+    /* text-3, not line-strong: an interactive border needs 3:1 against the card. */
+    border: 1px solid var(--text-3);
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) var(--ease-out);
+  }
+  .lp__pause svg {
+    fill: currentColor;
+  }
+  @media (hover: hover) {
+    .lp__pause:hover {
+      background: var(--surface-1);
+    }
+  }
+  .lp__pause[aria-pressed='true'] {
+    border-color: var(--text);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+
+  /* Columns: domain | quality | status | rivals. Phones fold to two lines per row. */
+  .lp__head,
+  .lp__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1.05fr) 2.75rem;
+    align-items: center;
+    column-gap: var(--space-3);
+  }
+  .lp__head {
+    padding: 0 10px 6px;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .lp__rows {
+    display: grid;
+    margin: 0;
+  }
+  .lp__row {
+    min-height: 52px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    transition: background-color 600ms var(--ease-out);
+  }
+  .lp__row.is-now {
+    background: var(--accent-soft);
+  }
+  .lp__domain {
+    display: grid;
+    min-width: 0;
+  }
+  .lp__host {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text);
+    overflow-wrap: anywhere;
+    text-decoration: line-through 1.5px transparent;
+    transition:
+      color 500ms var(--ease-out),
+      text-decoration-color 500ms var(--ease-out);
+  }
+  .lp__path {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-3);
+  }
+
+  /* Quality: a shape, not a score. */
+  .lp__q {
+    position: relative;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .lp__q-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--chart-1);
+    transform: scaleX(var(--q));
+    transform-origin: left center;
+    transition:
+      transform var(--dur-draw) var(--ease-draw),
+      background-color 500ms var(--ease-out);
+  }
+  .lp[data-beat='-1'] .lp__q-fill {
+    transform: scaleX(0);
+    transition-duration: 0ms;
+  }
+
+  .lp__status {
+    display: grid;
+    min-width: 0;
+  }
+  /* Before and after share one cell, so the row never changes height. */
+  .lp__s {
+    grid-area: 1 / 1;
+    justify-self: start;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--text-2);
+    transition:
+      opacity 360ms var(--ease-out),
+      transform var(--dur-pin) var(--ease-spring);
+  }
+  .lp__s--after {
+    opacity: 0;
+    transform: translateY(6px) scale(0.94);
+  }
+  .is-done .lp__s--before {
+    opacity: 0;
+  }
+  .is-done .lp__s--after {
+    opacity: 1;
+    transform: none;
+  }
+  .lp__row--reclaim .lp__s--before {
+    color: var(--error);
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .lp__row--toxic .lp__s--after {
+    color: var(--error);
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .lp__row--reclaim .lp__s--after {
+    color: var(--success);
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .lp__row--gap .lp__s--before {
+    color: var(--text-3);
+  }
+  .lp__row--gap .lp__s--after {
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  /* Toxic: struck through and drawn red once flagged. */
+  .lp__row--toxic .lp__q-fill {
+    background: var(--text-3);
+  }
+  .lp__row--toxic.is-done .lp__q-fill {
+    background: var(--error);
+  }
+  .lp__row--toxic.is-done .lp__host {
+    color: var(--text-3);
+    text-decoration-color: var(--error);
+  }
+  /* Reclaimed: the bar refills when the link comes back. */
+  .lp__row--reclaim .lp__q-fill {
+    transform: scaleX(0.04);
+  }
+  .lp__row--reclaim.is-done .lp__q-fill {
+    transform: scaleX(var(--q));
+  }
+
+  .lp__rivals {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .lp__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  .lp__dot.is-on {
+    background: var(--chart-2);
+    box-shadow: none;
+  }
+  .lp__row--gap.is-done .lp__dot.is-on {
+    background: var(--text);
+  }
+
+  /* Monitoring alert: lands under the rows on the last beat. Space is always reserved. */
+  .lp__alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-s);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 360ms var(--ease-out),
+      transform var(--dur-pin) var(--ease-spring);
+  }
+  .lp__alert svg {
+    flex: none;
+    margin-top: 2px;
+    fill: var(--accent);
+  }
+  .lp__alert.is-done {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Story-style progress: one bar per beat. */
+  .lp__steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    color: var(--text-3);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+  }
+  .lp__step {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    transition: color 300ms var(--ease-out);
+  }
+  .lp__step.is-now {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .lp__step-n {
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .lp__bar {
+    position: relative;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .lp__bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--text);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  .lp__step.is-done .lp__bar::after {
+    transform: scaleX(1);
+  }
+  .lp.is-live .lp__step.is-now .lp__bar::after {
+    animation: bl-progress var(--beat) linear both;
+  }
+  .lp.is-paused .lp__step.is-now .lp__bar::after {
+    animation-play-state: paused;
+  }
+  @keyframes bl-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .lp__cap {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-3);
+  }
+
+  @media (max-width: 599px) {
+    .lp__head {
+      display: none;
+    }
+    /* Domain takes the whole first line (bar the rival dots); bar + status share the second. */
+    .lp__row {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas:
+        'domain domain rivals'
+        'q status status';
+      row-gap: 6px;
+      min-height: 0;
+    }
+    .lp__host {
+      font-size: 0.75rem;
+    }
+    .lp__step-n {
+      display: none;
+    }
+    .lp__domain {
+      grid-area: domain;
+    }
+    .lp__rivals {
+      grid-area: rivals;
+    }
+    .lp__q {
+      grid-area: q;
+    }
+    .lp__status {
+      grid-area: status;
+      justify-items: end;
+    }
+    .lp__s {
+      justify-self: end;
+    }
+  }
+
+  /* ---------- what I do / won't do ---------- */
+  .bl__side {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .bl__does {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 720px) and (max-width: 1099px) {
+    .bl__does {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-5);
+    }
+  }
+  .do {
+    display: grid;
+    grid-template-columns: 8.75rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+    padding-block: 12px;
+    border-bottom: 1px solid var(--line);
+    min-width: 0;
+  }
+  /* Phones: the config-line chips are decoration; drop them to keep the list short. */
+  @media (max-width: 599px) {
+    .do {
+      grid-template-columns: minmax(0, 1fr);
+      padding-block: 10px;
+    }
+    .do__code {
+      display: none;
+    }
+  }
+  .do__code {
+    justify-self: start;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .do__title {
+    font-size: 1.0625rem;
+  }
+  .do__text {
+    margin-top: 2px;
+    color: var(--text-2);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .bl__dont {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--radius-m);
+  }
+  .bl__dont-title {
+    font-size: 1.0625rem;
+  }
+  .bl__dont-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .bl__dont-list li {
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-1);
+    color: var(--text-2);
+  }
+  .bl__dont-list s {
+    text-decoration-color: var(--error);
+    text-decoration-thickness: 1.5px;
+  }
+  .bl__dont-why {
+    color: var(--text-2);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  @media (forced-colors: active) {
+    .lp__q-fill,
+    .lp__dot.is-on,
+    .lp__bar::after {
+      background: CanvasText;
+    }
+    .lp__row.is-now {
+      outline: 1px solid Highlight;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-lp]');
+  const btn = root?.querySelector<HTMLButtonElement>('[data-lp-pause]');
+
+  if (root && btn) {
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-lp-step]')];
+    const changers = [...root.querySelectorAll<HTMLElement>('[data-lp-at]')];
+    const last = steps.length - 1;
+    const reduced = (() => {
+      try {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch {
+        return false;
+      }
+    })();
+
+    let beat = last;
+    /** The visitor pressed Pause: never resumes on its own. */
+    let userPaused = false;
+    let visible = false;
+
+    const render = () => {
+      root.dataset.beat = String(beat);
+      steps.forEach((s, k) => {
+        s.classList.toggle('is-done', k < beat);
+        s.classList.toggle('is-now', k === beat);
+      });
+      changers.forEach((el) => {
+        const at = Number(el.dataset.lpAt);
+        el.classList.toggle('is-done', at <= beat);
+        el.classList.toggle('is-now', at === beat && beat > 0);
+      });
+    };
+    const syncPaused = () => {
+      const paused = userPaused || !visible || document.hidden;
+      root.classList.toggle('is-paused', paused);
+      btn.setAttribute('aria-pressed', String(userPaused));
+    };
+    const restart = () => {
+      // Empty bars for a frame, then beat 0 fills them.
+      beat = -1;
+      render();
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          beat = 0;
+          render();
+        }),
+      );
+    };
+
+    // Reduced motion (or no observer): keep the server-rendered finished state, no player.
+    if (!reduced && 'IntersectionObserver' in window) {
+      root.classList.add('is-live');
+      btn.hidden = false;
+
+      // Each beat's bar ending moves the story on; after the last one it starts over.
+      steps.forEach((s) =>
+        s.addEventListener('animationend', (e) => {
+          if (e.animationName !== 'bl-progress') return;
+          if (beat >= last) restart();
+          else {
+            beat += 1;
+            render();
+          }
+        }),
+      );
+
+      btn.addEventListener('click', () => {
+        userPaused = !userPaused;
+        syncPaused();
+      });
+
+      // Below the fold at load: arm the first beat, play once a third is visible.
+      beat = -1;
+      render();
+      syncPaused();
+      let started = false;
+      new IntersectionObserver(
+        ([e]) => {
+          if (!e) return;
+          visible = e.isIntersecting;
+          if (visible && !started) {
+            started = true;
+            beat = 0;
+            render();
+          }
+          syncPaused();
+        },
+        { threshold: 0.33 },
+      ).observe(root);
+      document.addEventListener('visibilitychange', syncPaused);
+    }
+  }
+</script>

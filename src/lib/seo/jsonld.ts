@@ -31,6 +31,7 @@ export function personLd(): Ld {
       'Technical SEO',
       'Programmatic SEO',
       'Structured data',
+      'Backlink analysis',
       'Core Web Vitals',
       'AI-assisted content pipelines',
       'Next.js',
@@ -46,7 +47,7 @@ export function professionalServiceLd(): Ld {
     name: `${PERSON_NAME}: technical SEO`,
     url: SITE_ORIGIN + '/',
     description:
-      'Technical SEO audits and fixes done in the code, programmatic SEO builds and a human-edited AI content engine. No link building.',
+      'Technical SEO audits and fixes done in the code, programmatic SEO builds, a human-edited AI content engine, and backlink audits and strategy. No paid or spammy link building.',
     founder: { '@id': PERSON_ID },
     provider: { '@id': PERSON_ID },
     email: CONTACT_EMAIL,

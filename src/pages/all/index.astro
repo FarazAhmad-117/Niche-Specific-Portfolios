@@ -41,7 +41,8 @@ const live = others
 const soon = others.filter((n) => !n.enabled).map((n) => ({ slug: n.slug, label: SITES[n.slug]?.label ?? n.name }));
 
 // Complete rows: 4 columns on wide screens when the count allows it, else 3.
-const wideCols = live.length % 4 === 0 || live.length % 3 !== 0 ? 4 : 3;
+// Complete rows on wide screens: the first column count that divides the live sites evenly.
+const wideCols = [4, 5, 3].find((c) => live.length % c === 0) ?? 4;
 const mainHost = new URL(MAIN_SITE_URL).host;
 ---
 
@@ -211,6 +212,9 @@ const mainHost = new URL(MAIN_SITE_URL).host;
     }
     .grid[data-cols='3'] {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .grid[data-cols='5'] {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
   }
 

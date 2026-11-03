@@ -208,7 +208,7 @@ const fixes = STEPS.filter((s) => s.fix);
   .chero {
     padding-top: calc(var(--nav-h) + clamp(2.5rem, 2rem + 3vw, 5rem));
     padding-bottom: var(--space-6);
-    background: radial-gradient(56rem 34rem at 92% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
+    border-bottom: 1px solid var(--line);
   }
   .chero__back {
     display: inline-flex;
@@ -262,7 +262,6 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .chero__kicker {
     color: var(--text-3);
-    text-transform: uppercase;
   }
   .chero__name {
     font-size: clamp(2.5rem, 1.5rem + 4vw, 5.25rem);
@@ -289,12 +288,12 @@ const fixes = STEPS.filter((s) => s.fix);
     gap: 0;
     align-content: center;
     margin: 0;
-    border-top: 2px solid var(--text);
+    border-top: 1px solid var(--line);
   }
   .chero__facts li {
     position: relative;
     padding: var(--space-4) 0 var(--space-4) 26px;
-    border-bottom: 1.5px dotted var(--line-strong);
+    border-bottom: 1px solid var(--line);
     font-weight: 500;
     line-height: 1.4;
   }
@@ -391,9 +390,8 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .panel__label {
     padding-bottom: var(--space-3);
-    border-bottom: 1.5px dashed var(--line-strong);
+    border-bottom: 1px solid var(--line);
     color: var(--text-3);
-    text-transform: uppercase;
   }
   .panel__list {
     display: grid;
@@ -428,7 +426,6 @@ const fixes = STEPS.filter((s) => s.fix);
     font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
   .verdict--keep,
   .verdict--soon {
@@ -459,7 +456,6 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .now__label {
     color: var(--accent-inv);
-    text-transform: uppercase;
   }
   .now__text {
     font-size: var(--fs-lede);
@@ -508,7 +504,6 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .cnext__kicker {
     color: var(--text-3);
-    text-transform: uppercase;
   }
   .cnext__name {
     font-family: var(--font-display);

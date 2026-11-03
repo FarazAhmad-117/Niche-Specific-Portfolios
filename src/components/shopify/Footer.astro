@@ -2,7 +2,7 @@
 /**
  * Footer with the brand thread shared by every niche: the Clash Display "Faraz Ahmad"
  * signature, sized in container units so it spans the content width at every breakpoint.
- * Here it is the end of the receipt: a torn edge at the top, dotted leaders in the columns.
+ * A plain admin-style footer: a hairline on top, quiet column labels.
  */
 import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/shopify/site';
 import { CALL_PROMISE } from '../../data/shopify/content';
@@ -79,23 +79,11 @@ const host = (u: string) => new URL(u).host;
 
 <style>
   .foot {
-    --zz: 8px;
     position: relative;
     margin-top: var(--space-8);
     color: var(--text);
-    background: var(--surface-1);
-  }
-  /* The torn top edge of a receipt. */
-  .foot::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
-    height: var(--zz);
-    background: var(--surface-1);
-    -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zz)) var(--zz) repeat-x;
-    mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--zz)) var(--zz) repeat-x;
+    background: var(--surface-2);
+    border-top: 1px solid var(--line);
   }
   .foot__inner {
     padding-top: var(--space-8);
@@ -149,11 +137,10 @@ const host = (u: string) => new URL(u).host;
   .foot__label {
     margin-bottom: var(--space-2);
     padding-bottom: var(--space-2);
-    border-bottom: 1.5px dotted var(--line-strong);
+    border-bottom: 1px solid var(--line);
     font-family: var(--font-mono);
     font-size: var(--fs-mono);
     letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: var(--text-3);
   }
   .foot ul {
@@ -205,7 +192,7 @@ const host = (u: string) => new URL(u).host;
     gap: var(--space-2) var(--space-5);
     margin-top: var(--space-5);
     padding-top: var(--space-2);
-    border-top: 1.5px dotted var(--line-strong);
+    border-top: 1px solid var(--line);
     color: var(--text-3);
   }
   .foot__legal p {
