@@ -5,13 +5,18 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/seo/content';
-import { PROFILE, yearsBuilding } from '../../data/seo/profile';
+import { PROFILE } from '../../data/seo/profile';
+import { yearsSuffix } from '../../person/person';
 import { MAIN_SITE_URL } from '../../data/seo/site';
+import { PROFESSION, capitalize } from '../../person/claims';
+
+/** "Full-stack engineer · technical SEO": the profession part is config.ts › profession. */
+const role = PROFESSION ? `${capitalize(PROFESSION)} · technical SEO` : 'Technical SEO';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
   { k: 'Doesn’t do', v: 'Bought links, ranking promises' },
 ];
@@ -38,7 +43,7 @@ const facts = [
       </div>
       <div class="kp__body">
         <p class="kp__name">{PROFILE.name}</p>
-        <p class="kp__role">Full-stack engineer · technical SEO</p>
+        <p class="kp__role">{role}</p>
         <dl class="kp__facts">
           {
             facts.map((f) => (
@@ -50,7 +55,7 @@ const facts = [
           }
         </dl>
         <a class="kp__link link" href={MAIN_SITE_URL} target="_blank" rel="noopener">
-          farazahmad.dev <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab)</span>
+          {new URL(MAIN_SITE_URL).host} <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab)</span>
         </a>
       </div>
     </aside>

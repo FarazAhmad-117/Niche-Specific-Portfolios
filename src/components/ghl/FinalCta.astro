@@ -1,11 +1,16 @@
 ---
 /**
- * Final CTA + the shared contact form. The form posts to farazahmad.dev, so a message sent
- * here goes through the very pipeline in the main case study and lands tagged niche:ghl.
+ * Final CTA + the shared contact form. The form posts to the owner's main site, so a message
+ * sent here goes through the very pipeline in the main case study and lands tagged niche:ghl.
+ * Without a `lead-pipeline` project (Example mode) the pipeline tape and the "on its way into
+ * my GoHighLevel" success line are left out: the form keeps the shared default message.
  */
 import ContactForm from '../shared/ContactForm.astro';
 import { CALL_PROMISE } from '../../data/ghl/content';
 import { CONTACT_EMAIL, bookingUrl } from '../../data/ghl/site';
+import { hasProject } from '../../person/case-helpers';
+
+const pipeline = hasProject('lead-pipeline');
 ---
 
 <section class="section cta" id="contact" aria-labelledby="contact-title">
@@ -27,14 +32,14 @@ import { CONTACT_EMAIL, bookingUrl } from '../../data/ghl/site';
       <div class="cta__form">
         <div class="cta__form-head">
           <p class="cta__form-title">Or write it down</p>
-          <span class="tape">→ MongoDB → GHL · niche:ghl</span>
+          {pipeline && <span class="tape">→ MongoDB → GHL · niche:ghl</span>}
         </div>
         <ContactForm
           niche="ghl"
           cta="Send message"
           fallbackEmail={CONTACT_EMAIL}
           labels={{ message: 'Agency or business? What’s in the account, and what should it do?' }}
-          messages={{ success: 'Thanks. It’s saved, and on its way into my GoHighLevel tagged niche:ghl. I’ll reply soon.' }}
+          messages={pipeline ? { success: 'Thanks. It’s saved, and on its way into my GoHighLevel tagged niche:ghl. I’ll reply soon.' } : {}}
         />
       </div>
     </div>

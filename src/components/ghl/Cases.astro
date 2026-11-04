@@ -9,12 +9,17 @@
  * of the page is wiped in behind it (base.css). Only the box morphs, never the title.
  */
 import PortList from './PortList.astro';
-import { CASES } from '../../data/ghl/cases';
+import { CASES, OWN_PROJECT_SLOT } from '../../data/ghl/cases';
 import { LIST_AFTER, LIST_BEFORE } from '../../data/ghl/switchboard';
 import { caseHref } from '../../lib/ghl/paths';
 
-const [main, teardown] = CASES;
-if (!main || !teardown) throw new Error('[ghl] expected two cases');
+// Picked by role, not position. The real case is absent in Example mode (no lead-pipeline
+// project in src/person/projects.ts): its card becomes OWN_PROJECT_SLOT. The teardown is niche
+// content; if it were ever removed its card would become a second dashed slot.
+// The fallback slots reuse the existing classes (a stylesheet change would alter the built CSS);
+// the gap under the main slot comes from an inline margin.
+const main = CASES.find((c) => !c.example);
+const teardown = CASES.find((c) => c.example);
 const vt = (id: string) => `view-transition-name: case-${id}`;
 const faults = LIST_BEFORE.filter((w) => w.fault);
 const rewired = LIST_AFTER.slice(0, 4);
@@ -25,14 +30,23 @@ const rewired = LIST_AFTER.slice(0, 4);
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
       <h2 id="work-title">Proof I can show you today.</h2>
+      {
+        main ? (
       <p class="lede">
         The integration my own sites run on, a teardown of the account I’m usually called in to fix, and a slot for client work
         once it’s cleared to publish.
       </p>
+        ) : (
+          <p class="lede">
+            A teardown of the account I’m usually called in to fix, and slots for real work once it’s added and cleared to publish.
+          </p>
+        )
+      }
     </div>
 
     {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
         armed card is invisible at that moment. */}
+    {main ? (
     <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
       <div class="case__copy">
         <div class="case__top">
@@ -55,8 +69,19 @@ const rewired = LIST_AFTER.slice(0, 4);
         <PortList steps={main.flow} label={`${main.name}, the pipeline in order`} compact />
       </div>
     </article>
+    ) : (
+      <aside class="case case--slot" style="margin-bottom: var(--space-4)" aria-label="Own project placeholder">
+        <span class="case__kicker mono">{OWN_PROJECT_SLOT.kicker}</span>
+        <p class="slot__title">{OWN_PROJECT_SLOT.title}</p>
+        <p class="slot__text">{OWN_PROJECT_SLOT.text}</p>
+        <div class="case__end">
+          {OWN_PROJECT_SLOT.chips.map((t) => <span class="todo">{t}</span>)}
+        </div>
+      </aside>
+    )}
 
     <div class="cases__pair">
+      {teardown ? (
       <article class="case case--small" id={`card-${teardown.id}`} style={vt(teardown.id)}>
         <div class="case__top">
           <span class="tape">Example</span>
@@ -88,6 +113,13 @@ const rewired = LIST_AFTER.slice(0, 4);
           Read the teardown <span class="case__arrow">→</span>
         </span>
       </article>
+      ) : (
+        <aside class="case case--slot" aria-label="Teardown placeholder">
+          <span class="case__kicker mono">Example teardown · illustrative</span>
+          <p class="slot__title">A labelled example teardown.</p>
+          <span class="todo">TODO · Add an illustrative teardown to src/data/ghl/cases.ts</span>
+        </aside>
+      )}
 
       <aside class="case case--slot" aria-label="Client story placeholder">
         <span class="case__kicker mono">Client story · cleanup or build</span>

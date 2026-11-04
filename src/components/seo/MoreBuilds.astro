@@ -1,0 +1,265 @@
+---
+/**
+ * "More builds": the generated cases (src/data/seo/cases.ts › MORE_CASES), drawn as rich search
+ * results: favicon, URL, a blue title that morphs into the case page h1 (shared
+ * view-transition-name, like the results list above), a snippet, and "sitelinks" made from the
+ * modules the project shipped. A real screenshot sits in the thumbnail when the registry has one;
+ * otherwise a shape-only thumbnail labelled "Illustration".
+ *
+ * Renders nothing when there are no generated cases. Columns follow the count (1 wide, 2 or 3
+ * across), so rows are always complete.
+ */
+import { Image } from 'astro:assets';
+import { MORE_CASES, SEO_HOST } from '../../data/seo/cases';
+import { createLink } from '../../lib/link';
+
+const link = createLink('seo');
+const count = MORE_CASES.length;
+/** Columns the count fills completely: 3 when it divides by 3, else 2 when it divides by 2, else 1. */
+const cols = count % 3 === 0 ? 3 : count % 2 === 0 ? 2 : 1;
+---
+
+{
+  count > 0 && (
+    <section class="section section--sunk more" id="more-builds" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split">
+          <p class="eyebrow">More builds</p>
+          <h2 id="more-title">
+            More sites I build <span class="mark" data-mark>and keep crawlable.</span>
+          </h2>
+          <p class="lede">Client and product work beyond the case studies above, each with its own write-up: what it is, what I built and what to know.</p>
+        </div>
+
+        <ul class:list={['more__list', `more__list--${cols}`]} role="list">
+          {MORE_CASES.map((c) => (
+            <li class:list={['rich', { 'rich--wide': cols === 1 }]} id={`card-${c.slug}`}>
+              <div class="rich__main">
+                <div class="serp-site">
+                  <span class="serp-fav" aria-hidden="true">
+                    <span class="rich__fav">{c.name.charAt(0).toUpperCase()}</span>
+                  </span>
+                  <span class="serp-name">{c.confidential ? 'Confidential client' : c.name}</span>
+                  <span class="serp-url">{c.link ? c.link.label : `${SEO_HOST} › work › ${c.slug}`}</span>
+                </div>
+                <h3 class="rich__title case-vt" style={`--vt: case-${c.slug}`}>
+                  <a class="serp-title rich__link" href={link(`/work/${c.slug}/`)}>
+                    {c.cardTitle}
+                  </a>
+                </h3>
+                <p class="rich__snippet">
+                  <span class="rich__kicker mono">{c.role} — </span>
+                  {c.angle}
+                </p>
+                {c.built.length > 0 && (
+                  <ul class="rich__sitelinks" role="list" aria-label={`What ${c.name} includes`}>
+                    {c.built.slice(0, 4).map((b) => (
+                      <li class="sl">
+                        <span class="sl__t">{b.title}</span>
+                        <span class="sl__d">{b.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div class:list={['rich__thumb', { 'rich__thumb--shot': c.shot }]}>
+                {c.shot ? (
+                  <Image
+                    src={c.shot.src}
+                    alt=""
+                    widths={[360, 560, 800]}
+                    sizes={cols === 1 ? '(min-width: 960px) 360px, calc(100vw - 2rem)' : '(min-width: 960px) 30vw, calc(100vw - 2rem)'}
+                    loading="lazy"
+                    decoding="async"
+                    class="rich__img"
+                  />
+                ) : (
+                  <>
+                    <svg class="rich__illus" viewBox="0 0 160 100" aria-hidden="true">
+                      {[0, 1, 2, 3].map((k) => (
+                        <rect x="14" y={14 + k * 19} width={k === 1 ? 120 : 80 + (k % 2) * 24} height="10" rx="2" class:list={['rich__bar', { 'rich__bar--on': k === 2 }]} />
+                      ))}
+                    </svg>
+                    <span class="illus rich__illus-k">Illustration</span>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .more .head > h2 {
+    max-width: 16ch;
+  }
+  .more__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 960px) {
+    .more__list--2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .more__list--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* One rich result: a white search card on the sunk band. */
+  .rich {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      transform 420ms var(--ease-out);
+    min-width: 0;
+  }
+  @media (min-width: 960px) {
+    .rich--wide {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 22.5rem);
+      align-items: start;
+      padding: var(--space-6);
+    }
+  }
+  @media (hover: hover) {
+    .rich:hover {
+      border-color: var(--text);
+      transform: translateY(-2px);
+    }
+    .rich:hover .rich__link {
+      text-decoration-color: currentColor;
+    }
+  }
+  .rich:has(.rich__link:focus-visible) {
+    border-color: var(--text);
+  }
+  .rich__main {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-width: 0;
+  }
+  .rich__fav {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8125rem;
+  }
+  .rich__title {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    view-transition-name: var(--vt);
+  }
+  .rich__link {
+    text-decoration: underline 1.5px transparent;
+    text-underline-offset: 0.18em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  /* The whole card is the click target. */
+  .rich__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-l);
+  }
+  .rich__link:focus-visible {
+    outline: none;
+    text-decoration-color: currentColor;
+  }
+  .rich__link:focus-visible::after {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .rich__snippet {
+    max-width: 62ch;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .rich__kicker {
+    color: var(--text-3);
+  }
+
+  /* Sitelinks: the modules it shipped, two columns like a search engine's sitelink block. */
+  .rich__sitelinks {
+    display: grid;
+    gap: var(--space-3) var(--space-5);
+    margin: 6px 0 0;
+    padding: var(--space-4) 0 0;
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 560px) {
+    .rich__sitelinks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .sl {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .sl__t {
+    color: var(--link);
+    font-weight: 500;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+  .sl__d {
+    color: var(--text-2);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .rich__thumb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-m);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .rich__thumb--shot {
+    background: #fff;
+  }
+  .rich__thumb :global(.rich__img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+  }
+  .rich__illus {
+    width: 80%;
+    height: auto;
+  }
+  .rich__bar {
+    fill: var(--line-strong);
+  }
+  .rich__bar--on {
+    fill: var(--accent);
+  }
+  .rich__illus-k {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+  }
+  @media (max-width: 559px) {
+    .rich {
+      padding: var(--space-4);
+    }
+  }
+</style>

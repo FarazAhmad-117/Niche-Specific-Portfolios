@@ -9,7 +9,15 @@
  *  - real numbers per case and a before/after WordPress project are open: visible TODO chips
  *  - no testimonials
  * Case studies live in ./cases.ts, the signature player's model in ./player.ts.
+ *
+ * The person's own project (AI SEO Automator) is read from the shared registry
+ * (src/person/projects.ts). Without it, the copy that names it is left out (Example mode).
  */
+import { getProject } from '../../person/case-helpers';
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, PROFESSION, ROLE_IN_SENTENCE, withArticle } from '../../person/claims';
+
+const automator = getProject('ai-seo-automator');
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = 'You’ll leave the call knowing what’s wrong with the site or what to build, and what it involves';
@@ -44,14 +52,18 @@ export const HERO_CAPTION = 'Illustrative: what I check on every page before I h
 /**
  * Proof strip (brief §4 item 2: sites, speed gains, plugins removed). Those numbers are open
  * in decisions.md, so they are dashed TODO slots. The one filled cell is a verified fact
- * (docs/research/ai-local.md › AI SEO Automator).
+ * (docs/research/ai-local.md › AI SEO Automator). Without that project, the filled cell becomes
+ * one more TODO slot, so the strip keeps its four cells.
  */
 export const PROOF = {
-  filled: {
-    value: 'Publishes',
-    label: 'AI SEO Automator, my own product, writes content and publishes it straight to the site.',
-  },
+  filled: automator
+    ? {
+        value: 'Publishes',
+        label: `${automator.name}, a platform I built, writes content and publishes it to WordPress after a human approves it.`,
+      }
+    : undefined,
   todo: [
+    ...(automator ? [] : [{ label: 'A verified fact about your own work', chip: 'TODO · One fact from your own project' }]),
     { label: 'WordPress sites rescued or rebuilt', chip: 'TODO · Number of sites' },
     { label: 'Load time, before and after', chip: 'TODO · Real before/after timing' },
     { label: 'Plugins removed on a real site', chip: 'TODO · Plugins before → after' },
@@ -165,9 +177,12 @@ export const PROCESS = [
 export const ABOUT = {
   title: 'A developer who writes the code, not just the settings.',
   paragraphs: [
-    'I’m Faraz, a full-stack engineer and the founder of Indepth Solution, in Lahore. I build web apps and automations, and WordPress is where a lot of businesses keep their website and their writing.',
+    // "a full-stack engineer and" from config.ts › profession; left out when unset.
+    `I’m ${FIRST_NAME}, ${PROFESSION ? `${withArticle(PROFESSION)} and ` : ''}the ${ROLE_IN_SENTENCE} of ${PERSON.company}, in ${PERSON.city}. I build web apps and automations, and WordPress is where a lot of businesses keep their website and their writing.`,
     'That background is the point. When a plugin can’t do the job, I can write the block, the integration or the fix, instead of adding one more plugin to the pile.',
-    'My own product, AI SEO Automator, writes content and publishes it straight to a site, so I care about the publishing side as much as the page itself.',
+    ...(automator
+      ? [`${automator.name}, a platform I built, writes content and publishes it to WordPress, so I care about the publishing side as much as the page itself.`]
+      : []),
   ],
 } as const;
 

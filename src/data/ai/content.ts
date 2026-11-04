@@ -3,6 +3,11 @@
  * Kept as data so the same text feeds the markup and the JSON-LD (FAQPage,
  * Service) and cannot drift. No prices anywhere; no invented figures.
  */
+import type { CaseSlug } from './cases';
+import { SHORT_NAME, andList, seniorNoun, stackFor } from '../../person/claims';
+
+/** Custom-code tools the comparison and the FAQ name: only those in src/person/config.ts › stack. */
+const CODE_TOOLS = stackFor(['Python', 'Next.js']);
 
 export const PRICE_LINE = 'Fixed scope, agreed before work starts';
 export const CALL_PROMISE = "You'll leave the call with a clear plan and a cost range";
@@ -33,19 +38,21 @@ export const PROBLEM = {
 
 /**
  * "What I build, and who it's for" (home): plain-language kinds of system, each tied to a
- * real build on this site. `example` is a case slug from src/data/ai/cases.ts.
+ * real build on this site. `example` is a case slug from src/data/ai/cases.ts. When that case
+ * is absent (the person does not have the project) the capability stays, with a TODO chip in
+ * place of the link (see Capabilities.astro).
  */
 export interface Capability {
   readonly title: string;
   readonly text: string;
   readonly forWhom: string;
-  readonly example: 'lead-drift' | 'yard-terminal' | 'solidmake' | 'ai-seo-automator';
+  readonly example: CaseSlug;
 }
 
 export const CAPABILITIES: readonly Capability[] = [
   {
     title: 'Lead and outreach systems',
-    text: 'Prospects found, contacted and followed up on a schedule, so the pipeline does not depend on someone remembering to do it.',
+    text: 'Prospects found, queued and tracked through every follow-up stage, so the pipeline does not depend on someone remembering to do it.',
     forWhom: 'Founders and small sales teams',
     example: 'lead-drift',
   },
@@ -63,23 +70,20 @@ export const CAPABILITIES: readonly Capability[] = [
   },
   {
     title: 'Content and SEO pipelines',
-    text: 'Audit, research, write and publish on a schedule, on your own AI key, with a score that shows whether it is working.',
-    forWhom: 'Site owners and marketing teams',
+    text: 'Audit, plan, write and publish on a loop, with a person approving each step before anything goes live.',
+    forWhom: 'Agencies and marketing teams',
     example: 'ai-seo-automator',
   },
 ];
 
 /**
- * How many trailing diagram nodes of a case run side by side rather than in sequence.
- * Yard Terminal publishes to eBay Motors and Shopify at the same time, so drawing them as
- * "eBay Motors → Shopify" would be wrong. Lives here until cases.ts carries `diagram.fanOut`
- * (requested from the data owner); read it through fanOutOf().
+ * How many trailing diagram nodes of a case run side by side rather than in sequence (e.g. a
+ * listing published to two channels at the same time, which "A → B" would draw wrongly).
+ * Read from the case's own `diagram.fanOut` (src/data/ai/cases.ts); 0 when it has none.
  */
-const CASE_FAN_OUT: Readonly<Record<string, number>> = { 'yard-terminal': 2 };
-
 export function fanOutOf(study: { slug: string; diagram: object }): number {
   const own = (study.diagram as { fanOut?: unknown }).fanOut;
-  return typeof own === 'number' ? own : (CASE_FAN_OUT[study.slug] ?? 0);
+  return typeof own === 'number' ? own : 0;
 }
 
 export interface Offer {
@@ -210,12 +214,12 @@ export const PROCESS = [
 ] as const;
 
 export const COMPARISON = {
-  columns: ['Me (Faraz)', 'Typical agency', 'No-code freelancer'],
+  columns: [`Me (${SHORT_NAME})`, 'Typical agency', 'No-code freelancer'],
   rows: [
     {
       criterion: 'Who builds it',
       cells: [
-        'The senior engineer you talk to, from call to handover',
+        `The ${seniorNoun('engineer')} you talk to, from call to handover`,
         'A team; you mostly talk to an account manager',
         'One person, usually inside one no-code tool',
       ],
@@ -263,7 +267,7 @@ export const COMPARISON = {
     {
       criterion: 'When no-code hits its limits',
       cells: [
-        'I write the custom code (Python, Next.js)',
+        CODE_TOOLS.length ? `I write the custom code (${CODE_TOOLS.join(', ')})` : 'I write the custom code',
         'Can, through a dev team',
         'Usually workarounds',
       ],
@@ -294,7 +298,7 @@ export const FAQ = [
   },
   {
     q: 'No-code (Zapier, Make, n8n) or custom code: which do I need?',
-    a: "Most systems start in n8n, Make or Zapier because they're quick to change and easy to hand over. I move a step to custom code in Python or Next.js when it needs heavy logic, high volume or tight cost control. We decide step by step on the scoping call.",
+    a: `Most systems start in n8n, Make or Zapier because they're quick to change and easy to hand over. I move a step to custom code${CODE_TOOLS.length ? ` in ${andList(CODE_TOOLS, 'or')}` : ''} when it needs heavy logic, high volume or tight cost control. We decide step by step on the scoping call.`,
   },
   {
     q: 'How long until something is live?',

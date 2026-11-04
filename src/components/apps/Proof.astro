@@ -4,6 +4,7 @@
  * owner's own statement, then the stack marks (text, not logos) from the owner's repos.
  */
 import { PROOF, PROOF_NOTE } from '../../data/apps/content';
+import { isTodo } from '../../data/apps/cases';
 import { STACK } from '../../data/apps/site';
 ---
 
@@ -15,15 +16,15 @@ import { STACK } from '../../data/apps/site';
         PROOF.map((p) => (
           <div class="proof__cell">
             <dt class="proof__label">{p.label}</dt>
-            <dd class="proof__value num">{p.value}</dd>
+            <dd class="proof__value num">{isTodo(p.value) ? <span class="todo">{p.value.todo}</span> : p.value}</dd>
           </div>
         ))
       }
     </dl>
     <div class="proof__foot">
-      <p class="mono proof__note">{PROOF_NOTE}</p>
+      {PROOF_NOTE && <p class="mono proof__note">{PROOF_NOTE}</p>}
       <ul class="proof__stack" role="list" aria-label="Stack I build with">
-        {STACK.map((s) => <li class="mono">{s}</li>)}
+        {STACK.length > 0 ? STACK.map((s) => <li class="mono">{s}</li>) : <li><span class="todo">Add the tools you build with (src/person/config.ts › stack)</span></li>}
       </ul>
     </div>
   </div>

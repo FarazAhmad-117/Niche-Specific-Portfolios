@@ -7,14 +7,19 @@
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/apps/content';
 import { PROFILE } from '../../data/apps/profile';
+import { stackFor } from '../../person/claims';
+
+/** Tools from src/person/config.ts › stack; the row is left out when none is listed. */
+const buildsIn = stackFor(['Next.js', 'React', 'Node.js', 'Python', 'MongoDB']);
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Experience', v: PROFILE.experience },
+  // config.ts › experience is optional: no empty row when it is unset.
+  ...(PROFILE.experience ? [{ k: 'Experience', v: PROFILE.experience }] : []),
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
-  { k: 'Builds in', v: 'Next.js, React, Node.js, Python, MongoDB' },
-  { k: 'Code', v: 'github.com/FarazAhmad-117', href: PROFILE.github },
+  ...(buildsIn.length ? [{ k: 'Builds in', v: buildsIn.join(', ') }] : []),
+  { k: 'Code', v: PROFILE.github.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''), href: PROFILE.github },
 ];
 ---
 

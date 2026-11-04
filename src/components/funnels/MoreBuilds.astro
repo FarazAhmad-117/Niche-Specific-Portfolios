@@ -1,0 +1,237 @@
+---
+/**
+ * More builds: every registry project whose `niches` lists funnels and that has no hand-written
+ * case (src/data/funnels/cases.ts › MORE_CASES). Each build is a forwarded thread: a header,
+ * the build's name and one-line angle, then its first steps as alternating bubbles (out, in,
+ * out, …), ending on the accent bubble. One link per card, to its /work/<id>/ page.
+ *
+ * Complete rows: one wide card for a single build, two or three across when the count divides,
+ * else a dashed placeholder bubble fills the row (slotsToFill). Nothing renders with none.
+ *
+ * Page transition: each card carries view-transition-name `case-<id>` and the class `case-box`,
+ * like its case page hero (base.css). Cards and their contents are never reveal-armed (an armed box is invisible when a back
+ * navigation morphs into it).
+ */
+import { MORE_CASES } from '../../data/funnels/cases';
+import { slotsToFill } from '../../person/case-helpers';
+import { caseHref } from '../../lib/funnels/paths';
+
+const count = MORE_CASES.length;
+const perRow = count === 1 ? 1 : count % 3 === 0 ? 3 : 2;
+const slots = Array.from({ length: slotsToFill(count, perRow) }, (_, i) => i);
+const wide = perRow === 1;
+const vt = (id: string) => `view-transition-name: case-${id}; view-transition-class: case-box`;
+---
+
+{
+  count > 0 && (
+    <section class="section more" id="more-builds" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split">
+          <p class="eyebrow">More builds</p>
+          <h2 id="more-title">{count === 1 ? 'And one built for a client.' : 'And more, built for clients.'}</h2>
+          <p class="lede">Client work, written up without names or numbers: what it sends, where the replies go.</p>
+        </div>
+
+        <ul class:list={['more__grid', { 'more__grid--wide': wide }]} role="list" style={`--cols:${perRow}`}>
+          {MORE_CASES.map((c) => (
+            <li class="more__cell">
+              <article class:list={['fwd', { 'fwd--wide': wide }]} id={`card-${c.id}`} style={vt(c.id)}>
+                <div class="fwd__copy">
+                  <p class="fwd__head mono">
+                    <span class="fwd__arrow" aria-hidden="true">↪</span>
+                    {c.confidential ? 'Forwarded · confidential client' : `Forwarded · ${c.kicker}`}
+                  </p>
+                  <h3 class="fwd__name">
+                    <a class="fwd__link" href={caseHref(c.id)}>
+                      {c.name}
+                    </a>
+                  </h3>
+                  <p class="fwd__line">{c.title}</p>
+                  <span class="fwd__more" aria-hidden="true">
+                    Read the case study <span class="fwd__go">→</span>
+                  </span>
+                </div>
+                <ol class="thread" role="list" aria-label={`${c.name}, how it runs`}>
+                  {c.flow.slice(0, wide ? 5 : 4).map((s, i, all) => (
+                    <li class:list={['thread__msg', i % 2 ? 'thread__msg--in' : 'thread__msg--out', { 'thread__msg--end': i === all.length - 1 }]}>
+                      {s}
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            </li>
+          ))}
+          {slots.map(() => (
+            <li class="more__cell">
+              <div class="fwd fwd--empty" aria-hidden="true">
+                <p class="fwd__head mono">Waiting for the next thread</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .more__grid {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .more__grid {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    }
+  }
+  .more__cell {
+    display: grid;
+  }
+
+  /* A forwarded thread: a big bubble with its tail bottom-left, the conversation inside. */
+  .fwd {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    padding: clamp(1.25rem, 0.9rem + 1.6vw, 2.5rem);
+    border-radius: var(--radius-xl);
+    border-bottom-left-radius: var(--radius-tail);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    scroll-margin-top: var(--space-4);
+  }
+  @media (min-width: 1024px) {
+    .fwd--wide {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+      align-items: center;
+      column-gap: var(--space-7);
+    }
+  }
+  .fwd__copy {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+    align-content: start;
+  }
+  .fwd__head {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .fwd__arrow {
+    color: var(--accent-text);
+    font-size: 1.1em;
+  }
+  .fwd__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.625rem, 1.25rem + 1.5vw, 2.75rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    max-width: 20ch;
+  }
+  .fwd__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .fwd__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+  }
+  .fwd__link:focus-visible {
+    outline: none;
+  }
+  .fwd:has(.fwd__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .fwd__line {
+    color: var(--text-2);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+    max-width: 40ch;
+  }
+  .fwd__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-2);
+    font-weight: 700;
+  }
+  .fwd__go {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+
+  /* The conversation: steps as bubbles, out on the left, in on the right, the last in the accent. */
+  .thread {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-1);
+  }
+  .thread__msg {
+    width: fit-content;
+    max-width: 86%;
+    padding: 9px 16px;
+    border-radius: var(--radius-m);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .thread__msg--out {
+    justify-self: start;
+    border-bottom-left-radius: 4px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .thread__msg--in {
+    justify-self: end;
+    border-bottom-right-radius: 4px;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .thread__msg--end {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: none;
+  }
+  @media (hover: hover) {
+    .fwd:has(.fwd__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-lift);
+    }
+    .fwd:hover .fwd__go {
+      transform: translateX(5px);
+    }
+  }
+  .fwd--empty {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fwd,
+    .fwd__go {
+      transition: none;
+    }
+  }
+</style>

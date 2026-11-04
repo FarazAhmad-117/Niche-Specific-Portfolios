@@ -10,9 +10,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { nicheHost } from '../../niches';
 import { PERSON_NAME } from '../../data/ads/site';
 import { CASES, type AdsCase, type CaseSlug } from '../../data/ads/cases';
 import { RULES } from '../../data/ads/rules';
+import { fitSignatureRow } from '../shared/og-fit';
 
 const W = 1200;
 const H = 630;
@@ -121,15 +123,20 @@ function panel(title: string, body: El[], width: number): El {
   );
 }
 
-const footer = (): El =>
-  h({ position: 'absolute', left: M, bottom: M - 18, alignItems: 'baseline', gap: 20 }, [
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(21, C.text2), 'Paid ads automation'),
+const FOOTER_TAGLINE = 'Paid ads automation';
+/** Room from the name's left edge to the right margin. A long name drops the tagline first (see ../shared/og-fit). */
+const FOOTER_BUDGET = W - 2 * M;
+const footer = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: FOOTER_TAGLINE, taglinePx: 21, gap: 20, budget: FOOTER_BUDGET });
+  return h({ position: 'absolute', left: M, bottom: M - 18, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(21, C.text2), FOOTER_TAGLINE)] : []),
   ]);
+};
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.bg, position: 'relative' }, [
-    h(mono(21, C.text2, { position: 'absolute', left: M, top: M - 18 }), 'ads.farazahmad.dev'),
+    h(mono(21, C.text2, { position: 'absolute', left: M, top: M - 18 }), nicheHost('ads')),
     img(curveSvg(470, 120), 470, 120, { position: 'absolute', left: M, top: 380 }),
     h(
       {
@@ -170,7 +177,7 @@ function caseTree(c: AdsCase): El {
       mono(20, c.example ? C.text2 : C.amberText, { position: 'absolute', left: M, top: M - 18, letterSpacing: '0.08em' }),
       c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : 'CASE STUDY',
     ),
-    h(mono(20, C.text2, { position: 'absolute', right: M, top: M - 18 }), 'ads.farazahmad.dev'),
+    h(mono(20, C.text2, { position: 'absolute', right: M, top: M - 18 }), nicheHost('ads')),
     h({ position: 'absolute', left: M, top: 140, width: 560, flexDirection: 'column', gap: 24 }, [
       h(
         {

@@ -86,7 +86,10 @@ const stages = d.stages.map((title, col) => ({
   title,
   nodes: d.nodes.filter((n) => n.col === col).sort((p, q) => p.row - q.row),
 }));
-const summary = `${label}. ${d.edges.map((e) => `${byId.get(e.from)?.label} to ${byId.get(e.to)?.label}${e.label ? ` (${e.label})` : ''}`).join('; ')}.`;
+// A parts map has no wires: the summary lists its parts instead.
+const summary = d.edges.length
+  ? `${label}. ${d.edges.map((e) => `${byId.get(e.from)?.label} to ${byId.get(e.to)?.label}${e.label ? ` (${e.label})` : ''}`).join('; ')}.`
+  : `${label}. Parts: ${d.nodes.map((n) => n.label).join('; ')}.`;
 ---
 
 <figure

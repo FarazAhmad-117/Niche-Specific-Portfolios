@@ -1,0 +1,54 @@
+---
+/**
+ * Generic placeholder chip for missing owner input: renders `TODO · <label>`, dashed and
+ * hatched, so a gap is visible instead of filled with invented copy. Visually identical to the
+ * ai chip (src/components/ai/Todo.astro); the per-niche Todo components stay as they are.
+ *
+ * Uses each niche's tokens (--line-strong, --text-2, --text-3, --font-mono, --radius-s) with
+ * fallbacks; only ai defines --todo-hatch and --fs-mono-label, so those fall back too.
+ * Pair with orTodo() from src/lib/shared/todo.ts.
+ *
+ * Props
+ *   label: string   what is missing, e.g. "add LinkedIn URL"
+ *   class?: string
+ */
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+---
+
+<span class:list={['todo', className]} data-todo>{label}</span>
+
+<style>
+  .todo {
+    display: inline-block;
+    max-width: 100%;
+    font: 500 var(--fs-mono-label, 0.8125rem) / 1.4 var(--font-mono, ui-monospace, monospace);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-2, currentColor);
+    border: 1px dashed var(--line-strong, currentColor);
+    border-radius: var(--radius-s, 2px);
+    padding: 2px 8px;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--todo-hatch, color-mix(in srgb, currentColor 6%, transparent)) 0 6px,
+      transparent 6px 12px
+    );
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .todo::before {
+    content: "TODO · ";
+    color: var(--text-3, currentColor);
+  }
+  @media (forced-colors: active) {
+    .todo {
+      border-color: CanvasText;
+    }
+  }
+</style>

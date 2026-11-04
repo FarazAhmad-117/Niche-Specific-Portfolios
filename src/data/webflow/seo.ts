@@ -2,8 +2,11 @@
  * Per-page meta. Lengths are asserted at build: title <= 60, description <= 155, so a copy
  * edit that overruns fails the build instead of shipping a truncated snippet.
  */
+import { PERSON_NAME } from './site';
+import { withNameSuffix } from '../../lib/shared/seo-title';
+
 export const HOME_SEO = {
-  title: 'Webflow Developer: Figma Builds, CMS, Motion | Faraz Ahmad',
+  title: withNameSuffix('Webflow Developer: Figma Builds, CMS, Motion', PERSON_NAME),
   description:
     'Webflow sites your team can actually run: Figma to Webflow builds, design and build, WordPress migrations, CMS and API integrations, and fast motion.',
 } as const;

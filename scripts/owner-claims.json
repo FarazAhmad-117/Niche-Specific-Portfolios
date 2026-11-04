@@ -1,0 +1,362 @@
+{
+  "$comment": "First-person claims still written literally in niche copy (src/). Each one is true for the current owner; a new owner checks it, then rewrites or deletes it. Claims that moved to src/person/config.ts (firstName, pronouns, stack, profession, seniority, careerLine, experienceShort, credentials, originStories, contactFeedsCrm, supportHours) are not listed here, and src/person/ itself is never scanned (it is the new owner's own data). `npm run review:copy` reports which phrases are still present (and which entries are stale); `--strict` exits 1 while any is present. kind: claim = a fact about the owner; tools = names tools the owner works in; stance = a working principle (fine to keep if it is yours); positioning = how the niche introduces the owner; metric = a measured figure or measurement date of the owner's own project, literal in a niche angle; project-wording = the owner's project described literally in a niche angle (prints for anyone who registers a project with that id).",
+  "claims": [
+    {
+      "niche": "webflow",
+      "phrase": "The page transitions and scroll effects on these niche sites are mine",
+      "kind": "claim",
+      "reason": "Says the owner built this template's motion (true for the template's author only). The webflow partner FAQ answer also points at \"the motion on this site\".",
+      "fix": "Keep only if you built the motion yourself; otherwise drop the sentence in src/data/webflow/content.ts › ABOUT and reword the FAQ answer."
+    },
+    {
+      "niche": "webflow",
+      "phrase": "one of a set of niche portfolios I built in one Astro project",
+      "kind": "claim",
+      "reason": "The `niche-sites` case (src/data/webflow/cases.ts) says the owner built this template and its motion (\"it is the motion craft I bring to Webflow interactions\"). It is a literal case, not a registry project, so it renders for every owner.",
+      "fix": "Keep only if you built the motion yourself; otherwise remove the niche-sites case from CASES (or reword it as the template's motion, not yours)."
+    },
+    {
+      "niche": "webflow",
+      "phrase": "I wanted both: expressive, and cheap to run.",
+      "kind": "claim",
+      "reason": "First-person design goal in the niche-sites case problem text (src/data/webflow/cases.ts).",
+      "fix": "Keep only if you built the motion; otherwise reword or drop with the case."
+    },
+    {
+      "niche": "webflow",
+      "phrase": "Motion is the part I enjoy most.",
+      "kind": "claim",
+      "reason": "Personal preference.",
+      "fix": "Rewrite in your words or drop (src/data/webflow/content.ts › ABOUT)."
+    },
+    {
+      "niche": "webflow",
+      "phrase": "Being a developer changes what",
+      "kind": "positioning",
+      "reason": "Assumes the owner writes custom code, the CMS API and form integrations.",
+      "fix": "Keep if true; otherwise rewrite the paragraph in src/data/webflow/content.ts › ABOUT."
+    },
+    {
+      "niche": "wp",
+      "phrase": "I build web apps and automations, and WordPress is where",
+      "kind": "claim",
+      "reason": "States what the owner builds besides WordPress.",
+      "fix": "Rewrite with your own work in src/data/wp/content.ts › ABOUT."
+    },
+    {
+      "niche": "wp",
+      "phrase": "the kind of site I’m usually called in to fix",
+      "kind": "claim",
+      "reason": "Experience claim in the case-studies lede (components/wp/Cases.astro), in both the normal and the Example-mode lede.",
+      "fix": "Keep if true; otherwise \"a typical plugin-heavy site\"."
+    },
+    {
+      "niche": "wp",
+      "phrase": "That background is the point.",
+      "kind": "claim",
+      "reason": "Refers to an engineering background (blocks, integrations, fixes written by hand).",
+      "fix": "Keep if true; otherwise rewrite the paragraph in src/data/wp/content.ts › ABOUT."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "A full-stack developer who builds the integration too.",
+      "kind": "positioning",
+      "reason": "About title: claims full-stack and integration work.",
+      "fix": "Keep if true; otherwise retitle in src/data/shopify/content.ts › ABOUT."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "the problems I find most often",
+      "kind": "claim",
+      "reason": "Experience claim on the illustrative Problem panel (components/shopify/Problem.astro).",
+      "fix": "Keep if it matches your audits; otherwise say \"common problems\"."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "the kinds of app I find most",
+      "kind": "claim",
+      "reason": "Experience claim on the illustrative hero audit (components/shopify/Hero.astro).",
+      "fix": "Keep if it matches your audits; otherwise say \"common kinds of app\"."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "the store I’m usually asked to speed up",
+      "kind": "claim",
+      "reason": "Experience claim in the case-studies lede (components/shopify/Cases.astro).",
+      "fix": "Keep if true; otherwise \"a typical slow store\"."
+    },
+    {
+      "niche": "ghl",
+      "phrase": "faults are the ones I find most",
+      "kind": "claim",
+      "reason": "Experience claim on two illustrative accounts (components/ghl/Problem.astro, Switchboard.astro).",
+      "fix": "Keep if it matches your audits; otherwise \"common faults\"."
+    },
+    {
+      "niche": "ghl",
+      "phrase": "the account I’m usually called in to fix",
+      "kind": "claim",
+      "reason": "Experience claim in the case-studies lede (components/ghl/Cases.astro).",
+      "fix": "Keep if true; otherwise \"a typical tangled account\"."
+    },
+    {
+      "niche": "ghl",
+      "phrase": "n8n, Make or Zapier in between",
+      "kind": "tools",
+      "reason": "FAQ answer names tools the owner connects with (not derived from config.ts › stack).",
+      "fix": "Edit the FAQ in src/data/ghl/content.ts to the tools you use."
+    },
+    {
+      "niche": "apps",
+      "phrase": "Me, with my team at",
+      "kind": "claim",
+      "reason": "Comparison says the owner works with a team at their company.",
+      "fix": "Set to \"Me\" if you work alone (src/data/apps/content.ts › COMPARE)."
+    },
+    {
+      "niche": "apps",
+      "phrase": "Full-stack engineer taking products from spec to production",
+      "kind": "positioning",
+      "reason": "Home meta description (src/data/apps/seo.ts); the ProfessionalService JSON-LD says \"by a full-stack engineer\" too.",
+      "fix": "Keep if true; otherwise reword both (src/data/apps/seo.ts, src/lib/apps/jsonld.ts)."
+    },
+    {
+      "niche": "apps",
+      "phrase": "my own production Next.js app (6 Oct 2026)",
+      "kind": "metric",
+      "reason": "Proof cell (src/data/apps/content.ts › PROOF): the test count comes from the own-site project, but \"Next.js\" and the date are literal and print for anyone who reuses the `farazahmad-dev` own-site entry.",
+      "fix": "Edit the label to your own stack and measurement date."
+    },
+    {
+      "niche": "apps",
+      "phrase": "Lighthouse Accessibility, Best Practices and SEO on its home page (2 Oct 2026)",
+      "kind": "metric",
+      "reason": "Proof cell value \"100\" with a literal date (src/data/apps/content.ts › PROOF): the current owner's measured score, shown whenever an own-site project exists.",
+      "fix": "Replace with your own measured Lighthouse run (value and date) or a TODO cell."
+    },
+    {
+      "niche": "apps",
+      "phrase": "No layout shift in the same run; Performance 93–95 mobile, 100 desktop",
+      "kind": "metric",
+      "reason": "Proof cell \"CLS 0\" (src/data/apps/content.ts › PROOF): the current owner's measured figures, shown whenever an own-site project exists.",
+      "fix": "Replace with your own measured figures or a TODO cell."
+    },
+    {
+      "niche": "apps",
+      "phrase": "A browser extension pulls leads from Google Maps and Apollo into one pipeline",
+      "kind": "project-wording",
+      "reason": "Supporting detail for `lead-drift` (src/data/apps/cases.ts): describes the current owner's Lead Drift literally.",
+      "fix": "Rewrite for your own project, or rename your project id."
+    },
+    {
+      "niche": "apps",
+      "phrase": "by a full-stack engineer",
+      "kind": "positioning",
+      "reason": "ProfessionalService JSON-LD description (src/lib/apps/jsonld.ts).",
+      "fix": "Keep if true; otherwise reword."
+    },
+    {
+      "niche": "ai",
+      "phrase": "AI &amp; automation engineer",
+      "kind": "positioning",
+      "reason": "Hero eyebrow (components/ai/Hero.astro); the nav says \"AI and automation engineer\" for screen readers.",
+      "fix": "Keep if it is your title; otherwise edit Hero.astro and Nav.astro."
+    },
+    {
+      "niche": "ai",
+      "phrase": "headlineMetric: { label: 'Pipeline stages', value: '6' }",
+      "kind": "metric",
+      "reason": "The lead-drift case card and page print \"Lead sources 4\" (src/data/ai/cases.ts): a figure about the current owner's Lead Drift, literal in the angle, so it prints for anyone who registers a `lead-drift` project.",
+      "fix": "Use your project's own figure (or a TODO field) in the lead-drift angle, or rename your project id."
+    },
+    {
+      "niche": "ai",
+      "phrase": "Before: prospecting, outreach and follow-up were manual steps.",
+      "kind": "project-wording",
+      "reason": "Baseline story of the lead-drift case (src/data/ai/cases.ts): the current owner's before-state, literal in the angle.",
+      "fix": "Rewrite the baseline for your own project, or rename your project id."
+    },
+    {
+      "niche": "ai",
+      "phrase": "custom models and Python",
+      "kind": "tools",
+      "reason": "Capability text names Python (src/data/ai/content.ts), not derived from config.ts › stack.",
+      "fix": "Edit if you don't write Python."
+    },
+    {
+      "niche": "funnels",
+      "phrase": "GoHighLevel, n8n, Make or Zapier",
+      "kind": "tools",
+      "reason": "The funnels offer's tool list (decisions.md › funnels › Tools you support) in the hero lede, meta description, JSON-LD and the all-sites hub. About \"Builds in\" and knowsAbout already follow config.ts › stack.",
+      "fix": "If your tools differ, edit the offer copy (src/data/funnels/content.ts, seo.ts, src/lib/funnels/jsonld.ts, src/data/all/sites.ts)."
+    },
+    {
+      "niche": "funnels",
+      "phrase": "Leads from Google Maps and Apollo, through a browser extension",
+      "kind": "project-wording",
+      "reason": "Lead Drift case fact (src/data/funnels/cases.ts): the current owner's project facts, literal in the `lead-drift` angle.",
+      "fix": "Rewrite for your own project, or rename your project id."
+    },
+    {
+      "niche": "funnels",
+      "phrase": "A browser extension collects leads from Google Maps and Apollo, job posts become leads",
+      "kind": "project-wording",
+      "reason": "Lead Drift case text (src/data/funnels/cases.ts): describes the current owner's project literally.",
+      "fix": "Rewrite for your own project, or rename your project id."
+    },
+    {
+      "niche": "funnels",
+      "phrase": "Lead sources its browser extension pulls from: Google Maps and Apollo",
+      "kind": "metric",
+      "reason": "Proof cell \"2\" (src/data/funnels/content.ts › PROOF), shown whenever a `lead-drift` project exists.",
+      "fix": "Use your project's own figure, or rename your project id."
+    },
+    {
+      "niche": "funnels",
+      "phrase": "GoHighLevel, n8n, Make and Zapier",
+      "kind": "tools",
+      "reason": "Proof cell \"4 tools\" and the FAQ \"Which tools do you work in?\" (src/data/funnels/content.ts).",
+      "fix": "Edit both to the tools you use."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "Support during business hours",
+      "kind": "claim",
+      "reason": "ProfessionalService JSON-LD description (src/lib/cloud/jsonld.ts) states a business-hours support term; it renders even when config.ts › supportHours is unset (then without a time).",
+      "fix": "Keep if you offer business-hours support; otherwise reword the description in src/lib/cloud/jsonld.ts."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "I’ll reply within business hours",
+      "kind": "claim",
+      "reason": "Contact form success message (src/components/cloud/FinalCta.astro): a reply-time promise, shown with or without supportHours.",
+      "fix": "Keep if true; otherwise reword the success message."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "all in business hours; there is no overnight pager",
+      "kind": "claim",
+      "reason": "Care-plan offer description (src/data/cloud/content.ts › OFFERS, also in the Service JSON-LD): a service term, shown in both the supportHours and the unset variant.",
+      "fix": "Keep if it matches your care plan; otherwise reword both variants."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "Infrastructure monitoring and maintenance (business hours)",
+      "kind": "claim",
+      "reason": "Care-plan serviceType (Service JSON-LD) names business-hours cover.",
+      "fix": "Keep if true; otherwise edit serviceType in src/data/cloud/content.ts › OFFERS."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "Fixes during ${SUPPORT_HOURS ?? 'business hours'}",
+      "kind": "claim",
+      "reason": "Care-plan \"gets\" list: falls back to \"business hours\" when supportHours is unset, so the term still prints.",
+      "fix": "Keep if true; otherwise edit the care-plan offer in src/data/cloud/content.ts."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "A care plan keeps me on it during",
+      "kind": "claim",
+      "reason": "Process step text (src/data/cloud/content.ts): falls back to \"business hours\" when supportHours is unset.",
+      "fix": "Keep if you offer a care plan; otherwise reword the step."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "The care plan is monitoring and fixes during business hours",
+      "kind": "claim",
+      "reason": "FAQ \"Do you do on-call?\" (and its FAQPage JSON-LD): service terms, including \"no overnight or weekend pager\".",
+      "fix": "Keep if it is your policy; otherwise rewrite the answer in src/data/cloud/content.ts › FAQ."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "(Oct 2026)",
+      "kind": "metric",
+      "reason": "Measurement date of the own-site test and check figures (src/data/cloud/cases.ts own-stack facts, src/data/cloud/content.ts proof note). The figures come from the registry, the date is literal: it prints for anyone whose own-site project has those facts.",
+      "fix": "Put the measurement date in your own project's facts (src/person/projects.ts) or edit the date in both files."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "I don’t offer a 24/7 pager",
+      "kind": "stance",
+      "reason": "Working principle tied to the support hours.",
+      "fix": "Keep if you don't offer 24/7 cover."
+    },
+    {
+      "niche": "cloud",
+      "phrase": "I won’t claim a certification I don’t hold",
+      "kind": "stance",
+      "reason": "Generic honesty principle (the cloud certifications themselves are a TODO chip).",
+      "fix": "Keep; list real certifications in place of the TODO once you have them."
+    },
+    {
+      "niche": "seo",
+      "phrase": "I don’t buy links, and I don’t promise rankings",
+      "kind": "stance",
+      "reason": "Generic professional principle (About, last paragraph).",
+      "fix": "Keep if it is your policy."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Bought links, ranking promises",
+      "kind": "stance",
+      "reason": "About fact \"Doesn’t do\" (components/seo/About.astro).",
+      "fix": "Keep if it is your policy."
+    },
+    {
+      "niche": "seo",
+      "phrase": "I won’t promise",
+      "kind": "stance",
+      "reason": "FAQ answers: no promised rankings, dates or link counts.",
+      "fix": "Keep if it is your policy."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Lighthouse 13.5, local production build, 2026-10-02",
+      "kind": "metric",
+      "reason": "Measured run of the own-site case (src/data/seo/cases.ts glance, src/data/seo/content.ts proof label): the current owner's Lighthouse version and date, literal in the `farazahmad-dev` angle.",
+      "fix": "Replace with your own measured run, or rename your project id."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Lighthouse 13.5 on a local production build, measured 2026-10-02.",
+      "kind": "metric",
+      "reason": "Scores panel note of the own-site case page (src/data/seo/cases.ts › scores): the per-page scores (all 100) are literal too.",
+      "fix": "Replace the scores and the note with your own run."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Lighthouse 13.5 · 2026-10-02",
+      "kind": "metric",
+      "reason": "Source line of the own-site case results (src/data/seo/cases.ts › results).",
+      "fix": "Replace with your own run."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Lighthouse SEO 100",
+      "kind": "metric",
+      "reason": "The own-site case angle, chips and meta description (src/data/seo/cases.ts) state the current owner's measured score literally.",
+      "fix": "Replace with your own measured score, or rename your project id."
+    },
+    {
+      "niche": "seo",
+      "phrase": "Layout shift at zero and desktop Performance at 100 on the home page.",
+      "kind": "metric",
+      "reason": "\"CLS 0\" module of the own-site case (src/data/seo/cases.ts › built): measured figures, literal.",
+      "fix": "Replace with your own figures."
+    },
+    {
+      "niche": "seo",
+      "phrase": "class=\"thumb__num\">100</text>",
+      "kind": "metric",
+      "reason": "The home results thumbnail for the `farazahmad-dev` slug draws a \"100 SEO\" ring (src/components/seo/Cases.astro): a measured score drawn for anyone who reuses the id.",
+      "fix": "Draw your own score, or rename your project id."
+    },
+    {
+      "niche": "seo",
+      "phrase": "An engineer who does SEO, not the other way round.",
+      "kind": "positioning",
+      "reason": "About title assumes an engineering background.",
+      "fix": "Keep if true; otherwise retitle in src/data/seo/content.ts › ABOUT."
+    }
+  ]
+}

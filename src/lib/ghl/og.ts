@@ -10,8 +10,10 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/ghl/site';
-import { CASES, type CaseSlug, type GhlCase } from '../../data/ghl/cases';
+import { fitSignatureRow } from '../shared/og-fit';
+import { ALL_CASES, type CaseSlug, type GhlCase } from '../../data/ghl/cases';
 import { HERO_PORTS } from '../../data/ghl/content';
+import { nicheHost } from '../../niches';
 
 const W = 1200;
 const H = 630;
@@ -111,15 +113,20 @@ function panel(title: string, rows: readonly { label: string; value: string }[],
   );
 }
 
-const footer = (): El =>
-  h({ position: 'absolute', left: M, bottom: M - 14, alignItems: 'baseline', gap: 20 }, [
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(22, C.ink2), 'GoHighLevel developer'),
+const FOOTER_TAGLINE = 'GoHighLevel developer';
+/** Room from the name's left edge to the right margin. A long name drops the tagline first (see ../shared/og-fit). */
+const FOOTER_BUDGET = W - 2 * M;
+const footer = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: FOOTER_TAGLINE, taglinePx: 22, gap: 20, budget: FOOTER_BUDGET });
+  return h({ position: 'absolute', left: M, bottom: M - 14, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(22, C.ink2), FOOTER_TAGLINE)] : []),
   ]);
+};
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 14 }), 'ghl.farazahmad.dev'),
+    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 14 }), nicheHost('ghl')),
     h(
       {
         position: 'absolute',
@@ -151,19 +158,20 @@ function homeTree(): El {
 /** A case: its name, its one-line angle, and its flow as a rack of ports. */
 function caseTree(c: GhlCase): El {
   // Every step: the pipeline is incomplete without its last port.
-  const rows = c.flow.map((s, i) => ({ label: String(i + 1).padStart(2, '0'), value: s }));
+  const rows = c.flow.slice(0, 6).map((s, i) => ({ label: String(i + 1).padStart(2, '0'), value: s }));
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
     h(
       mono(22, c.example ? C.ink2 : C.tealText, { position: 'absolute', left: M, top: M - 14, letterSpacing: '0.06em' }),
-      c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : 'CASE STUDY',
+      c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : c.confidential ? 'CASE STUDY · CONFIDENTIAL CLIENT' : 'CASE STUDY',
     ),
-    h(mono(22, C.ink2, { position: 'absolute', right: M, top: M - 14 }), 'ghl.farazahmad.dev'),
-    h({ position: 'absolute', left: M, top: 150, width: 600, flexDirection: 'column', gap: 26 }, [
+    h(mono(22, C.ink2, { position: 'absolute', right: M, top: M - 14 }), nicheHost('ghl')),
+    // The panel starts near x=640 (its padding sits outside its width), so long generated names get a narrower column.
+    h({ position: 'absolute', left: M, top: 150, width: c.generated ? 520 : 600, flexDirection: 'column', gap: 26 }, [
       h(
         {
           fontFamily: 'Saira Expanded',
           fontWeight: 800,
-          fontSize: c.name.length > 22 ? 50 : 58,
+          fontSize: c.generated ? (c.name.length > 26 ? 40 : 46) : c.name.length > 22 ? 50 : 58,
           lineHeight: 1.02,
           letterSpacing: '-0.045em',
           color: C.ink,
@@ -171,18 +179,18 @@ function caseTree(c: GhlCase): El {
         // The OG fonts have no arrow glyph; satori would draw a missing-glyph box.
         c.name.replace(' → ', ' to '),
       ),
-      h({ fontFamily: 'Red Hat Text', fontSize: 30, lineHeight: 1.3, color: C.ink2 }, c.title),
+      h({ fontFamily: 'Red Hat Text', fontSize: c.generated ? 26 : 30, lineHeight: 1.3, color: C.ink2 }, c.title),
     ]),
-    h({ position: 'absolute', right: M - 10, top: 112 }, [panel(c.example ? 'METHOD' : 'THE PIPELINE', rows, 440, 34, rows.length > 5 ? 54 : 62)]),
+    h({ position: 'absolute', right: M - 10, top: 112 }, [panel(c.example ? 'METHOD' : c.generated ? 'THE FLOW' : 'THE PIPELINE', rows, 440, 34, rows.length > 5 ? 54 : 62)]),
     footer(),
   ]);
 }
 
 export type OgTarget = 'home' | CaseSlug;
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.id)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.id)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const c = target === 'home' ? undefined : CASES.find((x) => x.id === target);
+  const c = target === 'home' ? undefined : ALL_CASES.find((x) => x.id === target);
   if (target !== 'home' && !c) throw new Error(`[og] unknown ghl case: ${target}`);
   const svg = await satori((c ? caseTree(c) : homeTree()) as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();

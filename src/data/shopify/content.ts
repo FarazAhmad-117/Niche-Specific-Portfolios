@@ -6,21 +6,35 @@
  *  - no prices anywhere: "scoped on a call"
  *  - not a Shopify Partner: no partner language, badges or implied affiliation
  *  - Shopify Plus work is in scope, and the copy says so
- *  - the only real case is Yard Terminal. Its facts come from docs/research/ai-web.md (the
- *    product's own site) and src/data/ai/cases.ts: one record per part, listed on eBay Motors
- *    and a Shopify storefront, the other listing ended when it sells. Amazon and Google
- *    Shopping are NOT supported there, and Facebook Marketplace is "coming soon" at most.
+ *  - the main real case is Yard Terminal (a team build, Indepth Solution's product). Its facts
+ *    come from docs/research/ai-web.md (the product's own site) checked against the code scan
+ *    (project-handoff/projects.json): one record per part, BUILT to list on eBay Motors and a
+ *    Shopify storefront and end the other listing when it sells. Today the eBay channel runs in
+ *    eBay's sandbox and the Shopify channel does not run yet. Amazon, Google Shopping and
+ *    Facebook Marketplace are not built: never stated.
  *  - storefront (speed / conversion) work is open: a visible placeholder, never invented
  *  - no testimonials
  * Case studies live in ./cases.ts, the signature section's model in ./teardown.ts, the sync
  * map's in ./sync.ts.
+ *
+ * Owner identity comes from src/person (via ./site.ts) and the Yard Terminal copy from the
+ * project registry: when the person has no `yard-terminal` project, the proof cells, About
+ * paragraph and FAQ sentence that name it drop out (the proof strip gets TODO cells instead, so
+ * it keeps four).
  */
+import { getProject, slotsToFill } from '../../person/case-helpers';
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, PROFESSION, ROLE_IN_SENTENCE, withArticle } from '../../person/claims';
+import { PERSON_NAME } from './site';
+
+/** The real project this page's sync copy is about; undefined in Example mode. */
+const yardTerminal = getProject('yard-terminal');
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = "You'll leave the call knowing what's slowing the store down or what to build, and what it involves";
 
 export const HERO = {
-  eyebrow: 'Shopify developer · Faraz Ahmad',
+  eyebrow: `Shopify developer · ${PERSON_NAME}`,
   /** decisions.md › shopify › Hero headline. "fewer apps." is set in clay. */
   headline: ['A faster', 'Shopify store', 'with fewer apps.'],
   accentFrom: 'fewer',
@@ -53,16 +67,29 @@ export const VERDICT_LABEL: Record<Verdict, string> = {
 };
 
 /** Proof strip (brief §4 item 2). Facts only; the storefront numbers are a TODO slot. */
-export const PROOF = [
-  { value: '2 channels', label: 'Yard Terminal lists every part on Shopify and eBay Motors from one record' },
-  { value: 'Sold once', label: 'When a part sells on one channel, its other listing is ended' },
+export const PROOF: readonly { readonly value: string; readonly label: string }[] = [
+  ...(yardTerminal
+    ? [
+        { value: '2 channels', label: `${yardTerminal.name} is built to list every part on Shopify and eBay Motors from one record` },
+        { value: 'Sold once', label: 'Built so that when a part sells on one channel, its other listing is ended' },
+      ]
+    : []),
   { value: 'Plus', label: 'Shopify Plus stores are in scope, Plus-only features included' },
-] as const;
+];
 
 export const PROOF_TODO = {
   title: 'Storefront results',
   chip: 'TODO · Stores sped up, with before and after numbers',
 } as const;
+
+/** Extra TODO cells so the strip keeps complete rows of four (none for the current owner). */
+export const PROOF_TODO_EXTRA: readonly { readonly title: string; readonly chip: string }[] = Array.from(
+  { length: slotsToFill(PROOF.length + 1, 4) },
+  (_, i) =>
+    i === 0
+      ? { title: 'Integration proof', chip: 'TODO · A sync or integration you built, with the channels it connects' }
+      : { title: 'Another fact', chip: 'TODO · A verified fact about your Shopify work' },
+);
 
 /**
  * The problem (brief: "Every extra second and every extra app costs you sales"). The shelf of
@@ -228,8 +255,13 @@ export const PROCESS = [
 export const ABOUT = {
   title: 'A full-stack developer who builds the integration too.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution. I’m a full-stack engineer, so when a store needs something no app does well, I write it instead of adding one more subscription.',
-    'Yard Terminal is mine: listing software that keeps one record per part, lists it on a Shopify storefront and on eBay Motors, and ends the other listing when it sells. That is the integration depth I bring to a store.',
+    // "I’m a full-stack engineer, so when" from config.ts › profession; else "When".
+    `I’m ${FIRST_NAME}, ${ROLE_IN_SENTENCE} of ${PERSON.company}. ${PROFESSION ? `I’m ${withArticle(PROFESSION)}, so when` : 'When'} a store needs something no app does well, I write it instead of adding one more subscription.`,
+    ...(yardTerminal
+      ? [
+          `${yardTerminal.name} is my company’s product, built with my team: listing software that keeps one record per part, is built to list it on a Shopify storefront and on eBay Motors, and ends the other listing when it sells. That is the integration depth I bring to a store.`,
+        ]
+      : []),
     'Speed work is the same habit: see what actually loads, keep what earns its place, and replace the rest with theme code your team can still edit.',
   ],
 } as const;
@@ -253,7 +285,9 @@ export const FAQ = [
   },
   {
     q: 'Which marketplaces can you sync?',
-    a: 'Yard Terminal, the product I built, lists on a Shopify storefront and eBay Motors from one record. For your store, other channels, an ERP or a 3PL depend on what their APIs allow; we check your exact setup on the call before anything is promised.',
+    a: yardTerminal
+      ? `${yardTerminal.name}, my company’s product, is built to list on a Shopify storefront and eBay Motors from one record (eBay runs in its sandbox today; the Shopify channel is not live yet). For your store, other channels, an ERP or a 3PL depend on what their APIs allow; we check your exact setup on the call before anything is promised.`
+      : 'For your store, marketplaces, an ERP or a 3PL depend on what their APIs allow; we check your exact setup on the call before anything is promised.',
   },
   {
     q: 'Will the launch disrupt sales?',

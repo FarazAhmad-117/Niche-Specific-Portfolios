@@ -3,8 +3,11 @@
  * title <= 60, description <= 155, so a copy edit that overruns fails the build
  * instead of shipping a truncated snippet.
  */
+import { PERSON_NAME } from './site';
+import { withNameSuffix } from '../../lib/shared/seo-title';
+
 export const HOME_SEO = {
-  title: 'AI Automation Developer: n8n, Make, Zapier | Faraz Ahmad',
+  title: withNameSuffix('AI Automation Developer: n8n, Make, Zapier', PERSON_NAME),
   description:
     'AI automation developer for n8n, Make, Zapier and custom AI agents. I build new systems and fix broken automations. Fixed scope, monitored, yours.',
 } as const;

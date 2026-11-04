@@ -2,8 +2,11 @@
  * Per-page meta. Lengths are asserted at build: title <= 60, description <= 155, so a copy
  * edit that overruns fails the build instead of shipping a truncated snippet.
  */
+import { PERSON_NAME } from './site';
+import { withNameSuffix } from '../../lib/shared/seo-title';
+
 export const HOME_SEO = {
-  title: 'Shopify Developer: Speed, Themes, Sync | Faraz Ahmad',
+  title: withNameSuffix('Shopify Developer: Speed, Themes, Sync', PERSON_NAME),
   description:
     'A faster Shopify store with fewer apps: speed and app audits, theme builds, custom features and marketplace sync. Shopify Plus in scope.',
 } as const;

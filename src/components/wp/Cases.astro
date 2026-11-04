@@ -1,7 +1,8 @@
 ---
 /**
- * Case studies on the home page: one row of three compact cards. AI SEO Automator (real, with
- * TODO chips for what isn't verified), the example teardown (labelled), and a dashed slot for
+ * Case studies on the home page: one row of three compact cards. The person's own product from
+ * the registry (AI SEO Automator, real, with TODO chips for what isn't verified; a dashed TODO
+ * slot in Example mode), the example teardown (labelled), and a dashed slot for
  * the open "Any rebuild / rescue" case, so the row is full and nothing pretends to be what it
  * isn't. Detail lives on the case pages.
  *
@@ -9,13 +10,16 @@
  * box uses the same name, so the card morphs into it (base.css). Only the box morphs. Cards are
  * never reveal-armed: a page transition may morph into one at load.
  */
-import { CASES, CASE_SLOT } from '../../data/wp/cases';
+import { CASES, CASE_SLOT, OWN_PRODUCT_SLOT } from '../../data/wp/cases';
 import { COUNTS } from '../../data/wp/player';
 import { folio } from '../../data/wp/site';
 import { caseHref } from '../../lib/wp/paths';
 
-const [main, teardown] = CASES;
-if (!main || !teardown) throw new Error('[wp] expected two cases');
+// The real case is absent in Example mode (no project in src/person/projects.ts): its card
+// becomes OWN_PRODUCT_SLOT, so the row of three stays full. The teardown is niche content.
+const main = CASES.find((c) => !c.example);
+const teardown = CASES.find((c) => c.example);
+if (!teardown) throw new Error('[wp] expected the example teardown case');
 const vt = (id: string) => `view-transition-name: case-${id}`;
 ---
 
@@ -28,36 +32,60 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
         <span>Proof</span>
       </p>
       <h2 id="work-title">What I can show you today.</h2>
-      <p class="lede">
-        My own publishing product, a teardown of the kind of site I’m usually called in to fix, and a slot for client work once
-        it’s cleared to publish.
-      </p>
+      {
+        main ? (
+          <p class="lede">
+            My own publishing product, a teardown of the kind of site I’m usually called in to fix, and a slot for client work once
+            it’s cleared to publish.
+          </p>
+        ) : (
+          <p class="lede">
+            A teardown of the kind of site I’m usually called in to fix, and slots for real work once it’s added and cleared to
+            publish.
+          </p>
+        )
+      }
     </div>
 
     <div class="cases__row">
-      <article class="case" id={`card-${main.id}`} style={vt(main.id)}>
-        <p class="case__kicker kicker">{main.kicker}</p>
-        <h3 class="case__name">
-          <a class="case__link" href={caseHref(main.id)}>{main.name}</a>
-        </h3>
-        <p class="case__title">{main.title}</p>
-        <ol class="case__flow" role="list" aria-label={`${main.name}, in order`}>
-          {
-            main.flow.map((s, i) => (
-              <li>
-                <span class="mono" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                {s}
-              </li>
-            ))
-          }
-        </ol>
-        <div class="case__end">
-          <span class="case__more" aria-hidden="true">Read the case <span class="case__arrow">→</span></span>
-          <span class="todo">{main.pending[0]}</span>
-        </div>
-      </article>
+      {
+        main ? (
+          <article class="case" id={`card-${main.id}`} style={vt(main.id)}>
+            <p class="case__kicker kicker">{main.kicker}</p>
+            <h3 class="case__name">
+              <a class="case__link" href={caseHref(main.id)}>{main.name}</a>
+            </h3>
+            <p class="case__title">{main.title}</p>
+            <ol class="case__flow" role="list" aria-label={`${main.name}, in order`}>
+              {main.flow.map((s, i) => (
+                <li>
+                  <span class="mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {s}
+                </li>
+              ))}
+            </ol>
+            <div class="case__end">
+              <span class="case__more" aria-hidden="true">Read the case <span class="case__arrow">→</span></span>
+              <span class="todo">{main.pending[0]}</span>
+            </div>
+          </article>
+        ) : (
+          <aside class="case case--slot" aria-label="Own project placeholder">
+            <p class="case__kicker kicker">{OWN_PRODUCT_SLOT.kicker}</p>
+            <p class="slot__title">{OWN_PRODUCT_SLOT.title}</p>
+            <p class="slot__text">{OWN_PRODUCT_SLOT.text}</p>
+            <ul class="slot__chips" role="list">
+              {OWN_PRODUCT_SLOT.chips.map((c) => (
+                <li>
+                  <span class="todo">{c}</span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
 
       <article class="case" id={`card-${teardown.id}`} style={vt(teardown.id)}>
         <p class="case__kicker kicker"><span class="stamp">Example</span> Illustrative teardown</p>

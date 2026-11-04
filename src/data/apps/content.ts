@@ -8,31 +8,63 @@
  *  - SolidMake / Yard Terminal numbers are missing: visible TODO chips, never figures
  *  - the Spec → shipped player is an example project and says so
  * Case studies live in ./cases.ts.
+ *
+ * Owner identity comes from src/person (via ./site and ./profile); copy that names a project
+ * reads it from src/person/projects.ts and drops out (or becomes a TODO) when it is absent.
  */
-import type { Diagram } from './cases';
+import { CASES, todo, type Diagram, type Field } from './cases';
+import { fact, getProject } from '../../person/case-helpers';
+import { PROFILE } from './profile';
+import { BRAND_COMPANY, PERSON_NAME, STACK } from './site';
+import { CAREER_LINE, EXPERIENCE_SHORT, FIRST_NAME, FOUNDED_VERB, PROFESSION, andList, roleInSentence, seniorNoun, sentences, withArticle } from '../../person/claims';
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = 'You’ll leave the call knowing what v1 should include, and what building it involves';
 
+/** The case the hero's second button opens: SolidMake when the person has it, else the first case. */
+const heroCase = CASES.find((c) => c.id === 'solidmake') ?? CASES[0];
+
 export const HERO = {
-  eyebrow: 'App development · Faraz Ahmad',
+  eyebrow: `App development · ${PERSON_NAME}`,
   /** decisions.md › apps › Hero headline. The second line gets the ink-blue underline. */
   headline: ['Products that ship —', 'and keep shipping.'],
   accent: 'keep shipping.',
-  lede: 'I’m a senior full-stack engineer. I take a product from spec to production: MVPs, SaaS and APIs, built in your repo with tests, CI and a demo every week, so v2 is the next step, not a rewrite.',
+  // "I’m a senior full-stack engineer." from config.ts › seniority + profession; left out without a profession.
+  lede: `${PROFESSION ? `I’m ${withArticle(seniorNoun(PROFESSION))}. ` : ''}I take a product from spec to production: MVPs, SaaS and APIs, built in your repo with tests, CI and a demo every week, so v2 is the next step, not a rewrite.`,
   primary: 'Book a scoping call',
-  secondary: 'See how SolidMake was built',
+  /** No case at all: the button goes to the (placeholder) case studies section instead. */
+  secondary: heroCase ? `See how ${heroCase.name} was built` : 'See the case studies',
+  /** Case slug the second button opens; undefined = the #work section. */
+  secondaryCase: heroCase?.id,
   note: 'Free 30-minute call. No price list: scope and cost are agreed on the call.',
 } as const;
 
-/** Proof strip. Each value is measured and dated, or the owner's own statement. */
-export const PROOF = [
-  { value: '3+ yrs', label: 'Of full-stack engineering, including as a senior full-stack team lead' },
-  { value: '257', label: 'Tests passing on farazahmad.dev, my own production Next.js app (6 Oct 2026)' },
-  { value: '100', label: 'Lighthouse Accessibility, Best Practices and SEO on its home page (2 Oct 2026)' },
-  { value: 'CLS 0', label: 'No layout shift in the same run; Performance 93–95 mobile, 100 desktop' },
-] as const;
-export const PROOF_NOTE = 'Lighthouse 13.5 on a local production build of farazahmad.dev.';
+/**
+ * Proof strip. Each value is measured and dated, or the owner's own statement. The three
+ * measured cells are facts about the person's own site (registry project 'farazahmad-dev');
+ * without it they are TODO cells, so the strip keeps its four cells. Looked up by id, not by
+ * findOwnSite(): the Lighthouse and CLS cells are that one site's measured numbers, written here.
+ */
+const ownSite = getProject('farazahmad-dev');
+export const PROOF: readonly { readonly value: Field; readonly label: string }[] = [
+  // config.ts › experienceShort; a TODO cell without it, so the strip keeps four cells.
+  EXPERIENCE_SHORT
+    ? { value: EXPERIENCE_SHORT.value, label: EXPERIENCE_SHORT.label }
+    : { value: todo('Experience'), label: 'Your experience in a few words, e.g. years in the field' },
+  ...(ownSite
+    ? [
+        { value: fact(ownSite, 'testsCount'), label: `Tests passing on ${ownSite.name}, my own production Next.js app (6 Oct 2026)` },
+        { value: '100', label: 'Lighthouse Accessibility, Best Practices and SEO on its home page (2 Oct 2026)' },
+        { value: 'CLS 0', label: 'No layout shift in the same run; Performance 93–95 mobile, 100 desktop' },
+      ]
+    : [
+        { value: todo('Tests'), label: 'Tests passing on your own production app, with the date' },
+        { value: todo('Lighthouse'), label: 'Measured Lighthouse scores on its home page, with the date' },
+        { value: todo('Layout shift'), label: 'CLS and Performance from the same run' },
+      ]),
+];
+/** Undefined (no note) when the person's own site is not in the registry. */
+export const PROOF_NOTE: string | undefined = ownSite && `Lighthouse 13.5 on a local production build of ${ownSite.name}.`;
 
 /** The problem: the fears from the brief as struck revision notes, each answered in ink. */
 export const PROBLEM = {
@@ -165,7 +197,7 @@ export const OFFERS: readonly Offer[] = [
   {
     id: 'retainer',
     name: 'Retainer',
-    bestFor: 'A live product that needs a senior engineer every month.',
+    bestFor: `A live product that needs ${withArticle(seniorNoun('engineer'))} every month.`,
     description: 'Ongoing development: an agreed number of days each month, priorities set by you.',
     serviceType: 'Ongoing product development retainer',
     gets: ['Agreed days each month', 'A standing weekly demo', 'Priorities set by you'],
@@ -216,7 +248,7 @@ export const COMPARE = {
   rows: [
     {
       label: 'Who writes the code',
-      cells: ['Me, with my team at Indepth Solution', 'Often a team you never meet', 'Varies by person', 'Your employee'],
+      cells: [`Me, with my team at ${BRAND_COMPANY}`, 'Often a team you never meet', 'Varies by person', 'Your employee'],
     },
     {
       label: 'Your repo and accounts',
@@ -242,14 +274,38 @@ export const COMPARE = {
   note: 'Typical, not universal. Plenty of agencies and freelancers do excellent work; this is how the options usually differ.',
 } as const;
 
+/** One clause per product the person has, in the order the paragraph names them. */
+const productClauses: string[] = [];
+const yt = getProject('yard-terminal');
+if (yt) {
+  // "the company I founded" only when it is the person's own company and config.ts › companyRole is a founder role.
+  const maker = yt.madeBy ?? BRAND_COMPANY;
+  const founded = maker === BRAND_COMPANY && FOUNDED_VERB ? `, the company I ${FOUNDED_VERB}` : '';
+  productClauses.push(`${yt.name}, a multi-channel commerce product from ${maker}${founded}`);
+}
+const sm = getProject('solidmake');
+if (sm) productClauses.push(`${sm.name}, my final-year project, turning text into CAD`);
+if (ownSite) productClauses.push(`${ownSite.name}, my own site, held to the same tests and checks as client work`);
+const productList =
+  productClauses.length > 1
+    ? `${productClauses.slice(0, -1).join('; ')}; and ${productClauses[productClauses.length - 1]}`
+    : (productClauses[0] ?? '');
+
 export const ABOUT = {
   title: 'You work with the engineer, not an account manager.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution, based in Lahore. I’ve worked in full-stack engineering across three roles in three offices, including as a senior full-stack team lead.',
-    'The products on this page are ones I built or led: Yard Terminal, a multi-channel commerce product from Indepth Solution, the company I founded; SolidMake, my final-year project, turning text into CAD; and farazahmad.dev, my own site, held to the same tests and checks as client work.',
+    // The career sentence is config.ts › careerLine; left out when unset.
+    sentences(`I’m ${FIRST_NAME}, ${roleInSentence(PROFILE.companyRole)} of ${BRAND_COMPANY}, based in ${PROFILE.city}.`, CAREER_LINE),
+    // Dropped when the person has none of these products in src/person/projects.ts.
+    ...(productList ? [`The products on this page are ones I built or led: ${productList}.`] : []),
     'No account managers in between: you work with me directly, from the scoping call to the code in your repo.',
   ],
 } as const;
+
+/** True when the person uses every tool the apps stack sentence names. */
+const STACK_FULL = (['Next.js', 'React', 'Node.js', 'Python', 'MongoDB', 'TypeScript', 'Vercel'] as const).every((t) =>
+  (STACK as readonly string[]).includes(t),
+);
 
 export const FAQ = [
   {
@@ -260,10 +316,20 @@ export const FAQ = [
     q: 'Do I own the code?',
     a: 'Yes. The repo lives in your GitHub organisation from the first commit, and every account (hosting, database, email) is in your name. At handover nothing depends on me.',
   },
-  {
-    q: 'What stack do you use, and why?',
-    a: 'Usually Next.js and React on the front, Node.js or Python behind it, MongoDB for data and TypeScript throughout, deployed on Vercel. It is common enough that the next engineer can pick it up. If your product needs something else, we decide that on the call.',
-  },
+  // Names tools, so it follows config.ts › stack: the full sentence only with every tool of
+  // STACK, a plain list with some, and no entry at all (nor in the FAQPage JSON-LD) with none.
+  ...(STACK.length > 0
+    ? [
+        {
+          q: 'What stack do you use, and why?',
+          a: `${
+            STACK_FULL
+              ? 'Usually Next.js and React on the front, Node.js or Python behind it, MongoDB for data and TypeScript throughout, deployed on Vercel.'
+              : `Usually ${andList(STACK)}.`
+          } It is common enough that the next engineer can pick it up. If your product needs something else, we decide that on the call.`,
+        },
+      ]
+    : []),
   {
     q: 'Can you take over an existing codebase?',
     a: 'Yes, that is the code rescue offer. I audit it first, put tests around the risky parts, then continue. You get the written audit before any big change is made.',

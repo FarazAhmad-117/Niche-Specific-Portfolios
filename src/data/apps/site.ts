@@ -4,30 +4,33 @@
  * Keep free of Astro-only imports: it is also used by build-time endpoints (OG, JSON-LD).
  */
 
-export const SITE_ORIGIN = 'https://apps.farazahmad.dev';
-export const MAIN_SITE_URL = 'https://farazahmad.dev';
-export const AI_SITE_URL = 'https://ai.farazahmad.dev';
-export const PERSON_NAME = 'Faraz Ahmad';
-export const BRAND_COMPANY = 'Indepth Solution';
+import { nicheOrigin } from '../../niches';
+import { PERSON, bookingUrlFor } from '../../person/person';
+import { stackFor } from '../../person/claims';
+// Owner identity comes from src/person/config.ts; edit it there, not here.
+
+export const SITE_ORIGIN = nicheOrigin('apps');
+export const MAIN_SITE_URL = PERSON.mainSiteUrl;
+export const AI_SITE_URL = nicheOrigin('ai');
+export const PERSON_NAME = PERSON.name;
+export const BRAND_COMPANY = PERSON.company;
 
 /** decisions.md › global › Contact & booking. */
-export const BOOKING_URL = 'https://calendly.com/farazahmad1/30min';
-export const CONTACT_EMAIL = 'farazahmad31048@gmail.com';
+export const BOOKING_URL = PERSON.bookingUrl;
+export const CONTACT_EMAIL = PERSON.email;
 
 /** Booking link with the placement recorded as a UTM, e.g. bookingUrl('hero'). */
 export function bookingUrl(content?: string): string {
-  const url = new URL(BOOKING_URL);
-  url.searchParams.set('utm_source', 'apps');
-  if (content) url.searchParams.set('utm_content', content);
-  return url.toString();
+  return bookingUrlFor('apps', content);
 }
 
 /**
  * Stack marks for the proof strip. Only what the owner's own repos show
  * (docs/research/ai-local.md › Tech stack). Postgres and AWS from the brief are not
  * verified, so they are not listed (docs/todo/apps.md).
+ * Shown only where the tool is also in src/person/config.ts › stack (stackFor).
  */
-export const STACK = ['Next.js', 'React', 'TypeScript', 'Node.js', 'Python', 'MongoDB', 'Vercel'] as const;
+export const STACK = stackFor(['Next.js', 'React', 'TypeScript', 'Node.js', 'Python', 'MongoDB', 'Vercel'] as const);
 
 /**
  * Home sections in page order (brief §4, testimonials omitted per decisions).

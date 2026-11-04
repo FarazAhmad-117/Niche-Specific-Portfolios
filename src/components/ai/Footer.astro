@@ -6,6 +6,7 @@
  * Layout. No props.
  */
 import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/ai/site';
+import { signatureStyle } from '../../lib/shared/signature';
 import { CALL_PROMISE } from '../../data/ai/content';
 import { createLink } from '../../lib/link';
 import { nicheHost } from '../../niches';
@@ -15,6 +16,8 @@ const homePath = link('/');
 const isHome = Astro.url.pathname.replace(/\/?$/, '/') === homePath;
 const href = (id: string) => (isHome ? `#${id}` : `${homePath}#${id}`);
 const year = new Date().getFullYear();
+// Shrinks the signature for names longer than 11 characters (no style attribute otherwise).
+const sigStyle = signatureStyle(PERSON_NAME);
 const mainHost = new URL(MAIN_SITE_URL).host;
 const bookingHost = new URL(BOOKING_URL).host;
 ---
@@ -73,7 +76,7 @@ const bookingHost = new URL(BOOKING_URL).host;
     </div>
 
     <div class="foot__sig-wrap" data-reveal>
-      <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+      <p class="foot__signature" style={sigStyle} aria-hidden="true">{PERSON_NAME}</p>
     </div>
 
     <div class="foot__legal">

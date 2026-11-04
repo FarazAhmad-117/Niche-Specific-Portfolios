@@ -1,0 +1,264 @@
+---
+/**
+ * More builds (home): the cases generated from the registry (data/cloud/cases.ts › MORE_CASES),
+ * one per project whose `niches` lists cloud and that has no hand-written angle here. Drawn as
+ * service panels on the ops board: a probe header, the build's flow as a numbered run list, and
+ * the stack it runs on. No uptime bars and no figures: nothing measured is in the registry.
+ *
+ * Rows stay complete: three panels sit in one row of three from 900px (one column below).
+ * A count that does not fill the row takes the full width per panel instead (see `cols`).
+ *
+ * Page transition: like the case grid, each panel carries data-vt-case="<slug>" so the Layout's
+ * head script can name it `case-<slug>` and morph it into the case hero. Panels are never
+ * reveal-armed (a transition may morph into one at load); only the heading reveals.
+ */
+import { MORE_CASES } from '../../data/cloud/cases';
+import { caseHref } from '../../lib/cloud/paths';
+
+const count = MORE_CASES.length;
+/** Columns at desktop: 3 when the count fills rows of three, else 2 when it fills rows of two, else 1. */
+const cols = count % 3 === 0 ? 3 : count % 2 === 0 ? 2 : 1;
+const STACK_SHOWN = 3;
+---
+
+{
+  count > 0 && (
+    <section class="section more" id="more-builds" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split" data-reveal>
+          <p class="eyebrow">More builds</p>
+          <h2 id="more-title">More systems I built, and how they run.</h2>
+          <p class="lede">
+            Pipelines, queues and webhook services, each written up with its flow and the stack read from the code. Client
+            work stays confidential.
+          </p>
+        </div>
+
+        <ul class="more__grid" role="list" style={`--cols: ${cols}`}>
+          {MORE_CASES.map((c) => {
+            const steps = c.arch[0]?.nodes ?? [];
+            const stack = c.stack ?? [];
+            return (
+              <li class="svc panel" id={`card-${c.slug}`} data-vt-case={c.slug}>
+                <div class="svc__probe mono">
+                  <span class="svc__led" aria-hidden="true" />
+                  <span class="svc__id">svc/{c.slug}</span>
+                  {c.confidential ? <span class="stamp svc__stamp">Confidential</span> : <span class="stamp svc__stamp">{c.status.label}</span>}
+                </div>
+                <p class="svc__kicker mono">{c.kicker}</p>
+                <h3 class="svc__name">
+                  <a class="svc__link" href={caseHref(c.slug)}>
+                    {c.name}
+                  </a>
+                </h3>
+                <p class="svc__line">{c.line ?? c.title}</p>
+
+                {steps.length > 0 && (
+                  <ol class="svc__run" role="list" aria-label={`${c.name}: flow`}>
+                    {steps.map((s, i) => (
+                      <li class="svc__step">
+                        <span class="svc__no mono" aria-hidden="true">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span>{typeof s.label === 'string' ? s.label : ''}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                <div class="svc__end">
+                  {stack.length > 0 && (
+                    <p class="svc__stack mono">
+                      <span class="visually-hidden">Stack: </span>
+                      {stack.slice(0, STACK_SHOWN).join(' · ')}
+                      {stack.length > STACK_SHOWN && <span class="svc__plus"> +{stack.length - STACK_SHOWN}</span>}
+                    </p>
+                  )}
+                  <span class="svc__more" aria-hidden="true">
+                    Read the case study <span class="svc__arrow">→</span>
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .more {
+    padding-top: 0;
+  }
+  .more__grid {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .more__grid {
+      grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    }
+  }
+
+  /* A service panel on the ops board. */
+  .svc {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto auto 1fr auto;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(1.125rem, 0.9rem + 0.8vw, 1.625rem);
+    scroll-margin-top: var(--space-4);
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+  }
+  /* A mint deploy bar runs along the top edge on hover, slow and even. */
+  .svc::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-fill, 1s) var(--ease-out-quint);
+  }
+  .svc__probe {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px dashed var(--line-strong);
+    color: var(--text-3);
+  }
+  .svc__led {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .svc__id {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .svc__stamp {
+    flex: none;
+  }
+  .svc__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .svc__name {
+    font-family: var(--font-display);
+    font-stretch: 108%;
+    font-weight: 700;
+    font-size: clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  /* The name's link stretches over the panel: one tab stop, the whole panel is the target. */
+  .svc__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .svc__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-m);
+  }
+  .svc__link:focus-visible {
+    outline: none;
+  }
+  .svc:has(.svc__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .svc__line {
+    color: var(--text-2);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* The flow as a run list: numbered steps on one hairline. */
+  .svc__run {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    align-self: start;
+    margin: var(--space-2) 0 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .svc__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    align-items: baseline;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .svc__no {
+    color: var(--accent-text);
+  }
+  .svc__step:last-child span:last-child {
+    color: var(--text);
+  }
+
+  .svc__end {
+    display: grid;
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+  }
+  .svc__stack {
+    color: var(--text-2);
+    overflow-wrap: anywhere;
+  }
+  .svc__plus {
+    color: var(--text-3);
+  }
+  .svc__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+  .svc__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .svc:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .svc:hover::before {
+      transform: scaleX(1);
+    }
+    .svc:hover .svc__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .svc:has(.svc__link:focus-visible)::before {
+    transform: scaleX(1);
+  }
+</style>

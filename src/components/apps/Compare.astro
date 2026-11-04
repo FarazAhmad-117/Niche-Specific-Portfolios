@@ -6,6 +6,10 @@
  * the note under it says so.
  */
 import { COMPARE } from '../../data/apps/content';
+import { seniorNoun, withArticle } from '../../person/claims';
+
+/** "a senior engineer" from src/person/config.ts › seniority; "an engineer" without it. */
+const who = withArticle(seniorNoun('engineer'));
 ---
 
 <section class="section compare" id="compare" aria-labelledby="compare-title">
@@ -13,7 +17,7 @@ import { COMPARE } from '../../data/apps/content';
     <div class="head head--split">
       <p class="eyebrow"><span class="eyebrow__no">07</span>Comparison</p>
       <h2 id="compare-title">Four ways to get it built.</h2>
-      <p class="lede">Each has its place. This is where a senior engineer working in your repo fits.</p>
+      <p class="lede">Each has its place. This is where {who} working in your repo fits.</p>
     </div>
 
     {/* Explicit roles: on phones the table is restyled as blocks (display: block), which would

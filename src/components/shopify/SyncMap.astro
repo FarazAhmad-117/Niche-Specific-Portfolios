@@ -3,9 +3,11 @@
  * Sync map (brief §4 item 5; decisions: include, Yard Terminal). Drawn as Yard Terminal really
  * works: the Part record is the hub and owns the count; each channel connects to it directly
  * and only holds a listing. Shopify is the emphasised spoke (the brief asked for Shopify in the
- * centre; accuracy wins, see docs/todo/shopify.md). Spokes: Shopify and eBay Motors (live), the
- * counter (Yard Terminal's own point of sale, live), and Facebook Marketplace dashed as
- * "coming soon, not live". Amazon and Google Shopping are not supported, so they are not drawn.
+ * centre; accuracy wins, see docs/todo/shopify.md). Spokes: Shopify (channel built, not live yet)
+ * and eBay Motors (eBay sandbox today), each tile flagged with that status; the counter (Yard
+ * Terminal's own point of sale, by design); and the approval gate on top, dashed (a gate, not a
+ * channel). The map is labelled a simulation of the designed flow. Amazon, Google Shopping and
+ * Facebook Marketplace are not built, so they are not drawn.
  *
  * Motion: one event per beat (2.8s). A "packet" slides along a spoke between the record and a
  * channel (in-out-quart), then the tile it reaches changes state (listed → sold → ended →
@@ -14,11 +16,15 @@
  * example; the steps are the real flow. Pausable; paused off screen and in hidden tabs.
  * Without JS or under reduced motion the map shows its finished state with every wire drawn.
  */
-import { BEATS, EXAMPLE_PART, LISTING_LABEL, NODES, RECORD_LABEL, SYNC_TODOS, type NodeId } from '../../data/shopify/sync';
+import { BEATS, EXAMPLE_PART, LISTING_LABEL, NODES, RECORD_LABEL, SYNC_PROJECT, SYNC_TODOS, type NodeId } from '../../data/shopify/sync';
 import { caseHref } from '../../lib/shopify/paths';
 
+// The map is the yard-terminal project's: without it (Example mode) nothing renders. The home
+// page also leaves the component out then (lib/shopify/sections.ts), so the nav loses "Sync".
+const project = SYNC_PROJECT;
+
 const lastBeat = BEATS[BEATS.length - 1]!;
-const order: NodeId[] = ['facebook', 'shopify', 'record', 'ebay', 'counter'];
+const order: NodeId[] = ['approve', 'shopify', 'record', 'ebay', 'counter'];
 const stateOf = (id: NodeId): { key: string; label: string } | null =>
   id === 'shopify'
     ? { key: lastBeat.shopify, label: LISTING_LABEL[lastBeat.shopify] }
@@ -29,20 +35,22 @@ const stateOf = (id: NodeId): { key: string; label: string } | null =>
         : null;
 const facts = [
   'The record owns the count; Shopify and eBay Motors only hold listings',
-  'Each ended listing is checked against its channel; a failed write is retried',
-  'A sale at the counter ends the online listings too',
+  'Built to check each ended listing against its channel and retry a failed write',
+  'A sale at the counter is designed to end the online listings too',
+  'Today: eBay runs in eBay’s sandbox; the Shopify channel is built, not live yet',
 ];
 ---
 
+{project && (
 <section class="section sync" id="sync" aria-labelledby="sync-title">
   <div class="container sync__grid">
     <div class="sync__copy">
-      <p class="eyebrow">Sync map · Yard Terminal</p>
+      <p class="eyebrow">Sync map · {project.name}</p>
       <h2 id="sync-title">Sold once. Ended everywhere.</h2>
       <p class="lede">
-        Yard Terminal, the product I built, keeps one record per part and lists it on the yard’s own Shopify storefront and on
-        eBay Motors. When it sells on one, the other listing is ended. The same thinking keeps your stock, orders and channels in
-        step.
+        {project.name}, a product my team at {project.madeBy ?? 'my company'} builds, keeps one record per part and is built to list it on the
+        yard’s own Shopify storefront and on eBay Motors. When it sells on one, the other listing is ended. The same thinking keeps
+        your stock, orders and channels in step.
       </p>
       <ul class="sync__facts" role="list">
         {facts.map((f) => <li>{f}</li>)}
@@ -51,7 +59,7 @@ const facts = [
         {SYNC_TODOS.map((t) => <span class="todo">{t}</span>)}
       </div>
       <a class="btn btn--ghost btn--side" href={caseHref('yard-terminal')}>
-        <span>Read the Yard Terminal case</span>
+        <span>Read the {project.name} case</span>
         <span class="btn__arrow" aria-hidden="true">→</span>
       </a>
     </div>
@@ -66,6 +74,7 @@ const facts = [
     >
       <div class="map__top">
         <span class="tag tag--example">Example part</span>
+        <span class="tag tag--example">Simulated flow</span>
         <span class="map__part mono">{EXAMPLE_PART}</span>
         <button class="map__pp" type="button" data-map-pp aria-label="Pause the sync animation" aria-pressed="false" hidden>
           {/* Fixed label + aria-pressed: "Pause the sync animation, pressed" = paused. */}
@@ -83,12 +92,13 @@ const facts = [
               <div class:list={['nd', `nd--${id}`]} data-node={id} data-listing={state?.key}>
                 <span class="nd__name">{nd.name}</span>
                 <span class="nd__sub">{nd.sub}</span>
+                {(id === 'shopify' || id === 'ebay') && <span class="nd__flag mono">{nd.status}</span>}
                 {state ? (
                   <span class="nd__state mono" data-state-label>
                     {state.label}
                   </span>
                 ) : (
-                  <span class:list={['nd__state mono', { 'nd__state--soon': id === 'facebook' }]}>{nd.status}</span>
+                  <span class:list={['nd__state mono', { 'nd__state--soon': id === 'approve' }]}>{nd.status}</span>
                 )}
               </div>
             );
@@ -102,12 +112,14 @@ const facts = [
         <span data-map-log>{lastBeat.log}</span>
       </p>
       <figcaption id="map-cap" class="map__cap text-3">
-        Yard Terminal’s channels, each connected to the part record, which owns the count. The part is an example; the steps
-        are the real flow. Facebook Marketplace is listed as coming soon and is not live.
+        A simulation of how {project.name} is designed to keep channels in step: each channel connects to the part record, which
+        owns the count, and a person approves every AI draft first. The part is an example. Today the eBay channel runs in eBay’s
+        sandbox and the Shopify channel is not live yet.
       </figcaption>
     </figure>
   </div>
 </section>
+)}
 
 <style>
   .sync {
@@ -218,7 +230,7 @@ const facts = [
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
     grid-template-areas:
-      '. facebook .'
+      '. approve .'
       'shopify record ebay'
       '. counter .';
     gap: var(--gy) var(--gx);
@@ -240,8 +252,8 @@ const facts = [
       inset 0 0 0 1px var(--line-strong),
       var(--shadow-soft);
   }
-  .nd--facebook {
-    grid-area: facebook;
+  .nd--approve {
+    grid-area: approve;
   }
   /* The hub: an ink tile, because it is the source of truth. */
   .nd--record {
@@ -281,7 +293,7 @@ const facts = [
   .nd--counter {
     grid-area: counter;
   }
-  .nd--facebook {
+  .nd--approve {
     background: transparent;
     box-shadow: none;
     border: 1.5px dashed var(--line-strong);
@@ -295,6 +307,18 @@ const facts = [
     font-family: var(--font-display);
     font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
     letter-spacing: -0.015em;
+  }
+  /* Where the channel really is today (sandbox / not live yet): always visible, phones included. */
+  .nd__flag {
+    justify-self: start;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .nd__flag::before {
+    content: '● ';
+    color: var(--warn);
   }
   .nd__sub {
     color: var(--text-3);
@@ -348,7 +372,7 @@ const facts = [
      the tiles reflow to. */
   .nd--shopify::after,
   .nd--ebay::before,
-  .nd--facebook::after,
+  .nd--approve::after,
   .nd--counter::before {
     content: '';
     position: absolute;
@@ -375,8 +399,8 @@ const facts = [
     height: var(--gy);
     margin-left: -1px;
   }
-  /* Coming soon: a dashed wire that never carries anything. */
-  .nd--facebook::after {
+  /* The approval gate: a dashed wire (a gate, not a channel); the first beat crosses it. */
+  .nd--approve::after {
     top: 100%;
     left: 50%;
     width: 0;

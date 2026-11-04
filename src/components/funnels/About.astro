@@ -5,15 +5,17 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/funnels/content';
-import { PROFILE, yearsBuilding } from '../../data/funnels/profile';
+import { PROFILE } from '../../data/funnels/profile';
+import { yearsSuffix } from '../../person/person';
 import { TOOLS } from '../../data/funnels/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
-  { k: 'Builds in', v: TOOLS.join(', ') },
+  // Tools from src/person/config.ts › stack; the row is left out when none is listed.
+  ...(TOOLS.length ? [{ k: 'Builds in', v: TOOLS.join(', ') }] : []),
 ];
 ---
 

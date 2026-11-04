@@ -1,0 +1,253 @@
+---
+/**
+ * More builds (home): the generated cases (src/data/ai/cases.ts › MORE_CASES), i.e. registry
+ * projects listed for this niche that have no hand-written case study. A console band: an ink
+ * section with a channel grid, one compact "channel" card per build. Each card shows only
+ * registry facts (kind, title, one line, the flow as mono chips, the first stack items); the
+ * detail lives on its case page. No figures, no samples, no TODO chips.
+ *
+ * Grid: three channels per row from 1024px. A short last row is completed with empty, dashed
+ * channel slots (slotsToFill), so rows are always whole. Renders nothing when there is no
+ * generated case.
+ *
+ * View transitions: the card box carries `--vt: case-<slug>`, shared with the fact plate on the
+ * case page. It is never reveal-armed (only the heading reveals).
+ */
+import Section from './Section.astro';
+import WorkflowDiagram from './WorkflowDiagram.astro';
+import { MORE_CASES } from '../../data/ai/cases';
+import { slotsToFill } from '../../person/case-helpers';
+import { createLink } from '../../lib/link';
+
+const link = createLink('ai');
+const PER_ROW = 3;
+const slots = slotsToFill(MORE_CASES.length, PER_ROW);
+/** Stack chips on a card: the first few, the rest on the case page. */
+const STACK_ON_CARD = 3;
+---
+
+{
+  MORE_CASES.length > 0 && (
+    <Section id="more" theme="ink">
+      <div class="sec-head sec-head--split" data-reveal>
+        <h2 id="more-title">More builds, on the same wire.</h2>
+        <p class="lede">
+          Smaller write-ups of other systems I built. Client work stays confidential: what it does, never who it is for.
+        </p>
+      </div>
+
+      <ul class="chan plain-list" style={`--per-row: ${PER_ROW}`}>
+        {MORE_CASES.map((c, i) => (
+          <li class="chan__cell">
+            <article id={`card-${c.slug}`} class="chan__card" style={`--vt: case-${c.slug}`}>
+              <p class="chan__top mono">
+                <span class="chan__ch" aria-hidden="true">
+                  ch.{String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="chan__kicker">{c.kicker}</span>
+              </p>
+              <h3 class="chan__title">
+                <a class="chan__link" href={link(`/work/${c.slug}/`)}>{c.name}</a>
+              </h3>
+              <p class="chan__line">{c.angle}</p>
+              <WorkflowDiagram variant="mini" nodes={c.diagram.nodes} title={`How ${c.name} runs`} class="chan__flow" />
+              <p class="chan__foot">
+                {c.status ? (
+                  <span class:list={['pill', c.status.tone !== 'live' && 'pill--idle']}>{c.status.label}</span>
+                ) : c.confidential ? (
+                  <span class="chan__seal mono">Confidential client</span>
+                ) : (
+                  <span class="chan__seal chan__seal--own mono">Own build</span>
+                )}
+                <span class="chan__stack mono">{c.stack.slice(0, STACK_ON_CARD).join(' · ')}</span>
+              </p>
+              <span class="chan__arrow" aria-hidden="true">→</span>
+            </article>
+          </li>
+        ))}
+        {Array.from({ length: slots }, () => (
+          <li class="chan__cell chan__cell--slot" aria-hidden="true">
+            <span class="chan__empty mono">open channel</span>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}
+
+<style>
+  /* The channel grid: hairline cells like a patch bay; the gaps are the grid lines. */
+  .chan {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 1px;
+    padding: 1px;
+    background: var(--line-strong);
+  }
+  .chan__cell {
+    display: grid;
+    background: var(--bg);
+  }
+  .chan__card {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    view-transition-name: var(--vt);
+    transition: background-color var(--dur-hover) var(--ease-out);
+  }
+  .chan__card > * {
+    margin: 0;
+  }
+  /* The signal: a lime trace that draws across the top edge on hover/focus (out-expo snap). */
+  .chan__card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    block-size: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .chan__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .chan__ch {
+    color: var(--accent);
+  }
+  .chan__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    line-height: 1.15;
+    letter-spacing: var(--tr-h3);
+  }
+  .chan__link {
+    text-decoration: underline 2px transparent;
+    text-underline-offset: 5px;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  /* Stretched link: the whole channel is one target, the link text stays the build's name. */
+  .chan__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .chan__link:focus-visible {
+    outline: none;
+    text-decoration-color: var(--accent);
+  }
+  .chan__card:has(.chan__link:focus-visible) {
+    outline: var(--bw-focus) solid var(--focus);
+    outline-offset: -3px;
+  }
+  .chan__line {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+  .chan__card :global(.chan__flow) {
+    align-self: end;
+  }
+  .chan__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--line);
+  }
+  .chan__seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    font-size: var(--fs-mono-label);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text);
+    border: 1px dashed var(--line-strong);
+  }
+  .chan__seal::before {
+    content: "";
+    inline-size: 6px;
+    block-size: 6px;
+    border: 1px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .chan__seal--own {
+    border-style: solid;
+  }
+  .chan__stack {
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+    min-inline-size: 0;
+  }
+  .chan__arrow {
+    position: absolute;
+    inset-block-start: var(--space-5);
+    inset-inline-end: var(--space-5);
+    font-size: var(--fs-lede);
+    line-height: 1;
+    color: var(--text-3);
+    transition:
+      transform var(--dur-hover) cubic-bezier(0.16, 1, 0.3, 1),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .chan__card:has(.chan__link:focus-visible)::before {
+    transform: scaleX(1);
+  }
+  .chan__card:has(.chan__link:focus-visible) .chan__arrow {
+    transform: translateX(4px);
+    color: var(--accent);
+  }
+  @media (hover: hover) {
+    .chan__card:hover {
+      background: var(--surface-1);
+    }
+    .chan__card:hover::before {
+      transform: scaleX(1);
+    }
+    .chan__card:hover .chan__link {
+      text-decoration-color: var(--accent);
+    }
+    .chan__card:hover .chan__arrow {
+      transform: translateX(4px);
+      color: var(--accent);
+    }
+  }
+  .chan__cell--slot {
+    place-items: center;
+    min-block-size: 12rem;
+    background:
+      repeating-linear-gradient(-45deg, transparent 0 10px, color-mix(in srgb, var(--line) 60%, transparent) 10px 11px),
+      var(--bg);
+  }
+  .chan__empty {
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  /* One column below 1024px, so a row is always whole there; slots only matter in the grid. */
+  .chan__cell--slot {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .chan {
+      grid-template-columns: repeat(var(--per-row), minmax(0, 1fr));
+    }
+    .chan__cell--slot {
+      display: grid;
+    }
+    .chan__card {
+      padding: var(--space-6) var(--space-5) var(--space-5);
+    }
+  }
+</style>

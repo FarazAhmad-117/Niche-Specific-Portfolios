@@ -12,8 +12,11 @@
  *    (in-out-quart), then that port's branch draws, its jack seats (spring) and its LED lights.
  *    Calm by design: one port at a time, a held "Delivered" state, then a quiet reset.
  * Without JS, or under reduced motion, the rack shows its finished state (every port lit).
+ *
+ * Without a `lead-pipeline` project (Example mode) the rack is the same generic mechanism,
+ * stamped "Example" and captioned as illustrative (HERO_RACK), never "the real pipeline".
  */
-import { HERO, HERO_PORTS } from '../../data/ghl/content';
+import { HERO, HERO_PORTS, HERO_RACK } from '../../data/ghl/content';
 import { bookingUrl } from '../../data/ghl/site';
 
 const words = HERO.headline.map((line) => line.split(' '));
@@ -67,6 +70,7 @@ const last = HERO_PORTS.length - 1;
       <div class="rack__depth" aria-hidden="true"></div>
       <div class="rack__panel" data-pause-offscreen>
         <div class="rack__head">
+          {HERO_RACK.example && <span class="tape">Example</span>}
           <span class="tape tape--accent">Lead in</span>
           <span class="rack__src mono">Website form → GoHighLevel</span>
           <span class="rack__status mono" data-rack-status>
@@ -115,7 +119,7 @@ const last = HERO_PORTS.length - 1;
         </div>
       </div>
       <figcaption id="rack-cap" class="rack__cap text-3">
-        The real pipeline behind this site’s form. The contact is an example.
+        {HERO_RACK.caption}
       </figcaption>
     </figure>
   </div>

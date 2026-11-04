@@ -7,7 +7,8 @@ import { PROFILE } from '../../data/cloud/profile';
 import { FAQ, OFFERS, type Offer } from '../../data/cloud/content';
 import type { CloudCase } from '../../data/cloud/cases';
 import { isTodo } from '../../data/cloud/todo';
-import { CONTACT_EMAIL, MAIN_SITE_URL, PERSON_NAME, SITE_ORIGIN, TOOLS_VERIFIED } from '../../data/cloud/site';
+import { CONTACT_EMAIL, MAIN_SITE_URL, PERSON_NAME, SITE_ORIGIN, SUPPORT_HOURS } from '../../data/cloud/site';
+import { SHOWN_TOOLS } from './tools';
 
 type Ld = Record<string, unknown>;
 
@@ -28,7 +29,7 @@ export function personLd(): Ld {
     email: CONTACT_EMAIL,
     address: { '@type': 'PostalAddress', addressLocality: PROFILE.city, addressCountry: PROFILE.countryCode },
     worksFor: { '@type': 'Organization', name: PROFILE.company },
-    knowsAbout: ['CI/CD', 'Cloud cost optimization', 'Infrastructure monitoring', ...TOOLS_VERIFIED.map((t) => t.name)],
+    knowsAbout: ['CI/CD', 'Cloud cost optimization', 'Infrastructure monitoring', ...SHOWN_TOOLS.map((t) => t.name)],
   };
 }
 
@@ -40,7 +41,7 @@ export function professionalServiceLd(): Ld {
     name: `${PERSON_NAME}: cloud & DevOps`,
     url: SITE_ORIGIN + '/',
     description:
-      'CI/CD setup, migrations, monitoring and cloud cost optimization for small teams without a dedicated DevOps engineer. Support during business hours, 8AM–5PM EST.',
+      `CI/CD setup, migrations, monitoring and cloud cost optimization for small teams without a dedicated DevOps engineer. Support during business hours${SUPPORT_HOURS ? `, ${SUPPORT_HOURS}` : ''}.`,
     founder: { '@id': PERSON_ID },
     provider: { '@id': PERSON_ID },
     email: CONTACT_EMAIL,
@@ -89,7 +90,7 @@ export function caseLdGraph(c: CloudCase): Ld[] {
       creator: { '@id': PERSON_ID },
       author: { '@id': PERSON_ID },
       ...(isTodo(c.client) ? {} : { about: c.client }),
-      isPartOf: { '@type': 'WebSite', name: 'Faraz Ahmad: Cloud & DevOps', url: SITE_ORIGIN + '/' },
+      isPartOf: { '@type': 'WebSite', name: `${PERSON_NAME}: Cloud & DevOps`, url: SITE_ORIGIN + '/' },
       image: abs(`og/${c.slug}.png`),
     },
     {

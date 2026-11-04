@@ -4,7 +4,7 @@ import type { NicheSlug } from '../niches';
  * Link helper.
  *
  * Every niche is built under /<slug>/ but served from the root of
- * <slug>.farazahmad.dev, so internal links differ per environment:
+ * <slug>.<rootDomain>, so internal links differ per environment:
  *
  *   dev         link('/about')  ->  /<slug>/about/
  *   production  link('/about')  ->  /about/

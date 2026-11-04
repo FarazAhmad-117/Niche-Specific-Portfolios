@@ -21,7 +21,7 @@ import { CONTACT_EMAIL, SUPPORT_HOURS, bookingUrl } from '../../data/cloud/site'
         <p class="cta__mail">
           Or email <a class="link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
-        <p class="cta__hours mono">Support {SUPPORT_HOURS} · not on-call</p>
+        {SUPPORT_HOURS && <p class="cta__hours mono">Support {SUPPORT_HOURS} · not on-call</p>}
       </div>
 
       <div class="cta__form">
@@ -31,7 +31,7 @@ import { CONTACT_EMAIL, SUPPORT_HOURS, bookingUrl } from '../../data/cloud/site'
           cta="Send message"
           fallbackEmail={CONTACT_EMAIL}
           labels={{ message: 'What do you run, and what keeps breaking (or costing too much)?' }}
-          messages={{ success: 'Thanks, it’s through. I’ll reply within business hours (8AM–5PM EST).' }}
+          messages={{ success: `Thanks, it’s through. I’ll reply within business hours${SUPPORT_HOURS ? ` (${SUPPORT_HOURS})` : ''}.` }}
         />
       </div>
     </div>

@@ -4,20 +4,30 @@
  *
  * Rules (docs/brief/DECISIONS.md › cloud):
  *  - no prices anywhere: "scoped on a call"
- *  - no on-call: the care plan is monitoring and fixes during 8AM–5PM EST
+ *  - no on-call: the care plan is monitoring and fixes during the support hours (config.ts ›
+ *    supportHours); when unset the hours drop out and the copy says "business hours"
  *  - clouds and certifications are OPEN: no logos, no certification claims
  *  - every case number is a baseline TODO; the status board's numbers are illustrative
  * Case studies live in ./cases.ts, the board in ./board.ts.
+ *
+ * Owner identity comes from src/person (via ./site.ts). Lines about the owner's own stack (the
+ * test count, the About paragraph and FAQ sentence on his main site) show only while the
+ * `farazahmad-dev` project backs them (./own-stack.ts): otherwise (a new person) the proof cell
+ * becomes a TODO and the sentences that name it drop out.
  */
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, ROLE_IN_SENTENCE, originStory, sentences } from '../../person/claims';
 import { getNiche } from '../../niches';
-import { SUPPORT_HOURS, TOOLS_TODO } from './site';
+import { fact } from '../../person/case-helpers';
+import { OWN_SITE as ownSite } from './own-stack';
+import { PERSON_NAME, SUPPORT_HOURS, TOOLS_TODO } from './site';
 import { assertLaunchReady, todo, type Field } from './todo';
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = "You'll leave the call knowing what to fix first, and what fixing it involves";
 
 export const HERO = {
-  eyebrow: 'Cloud & DevOps · Faraz Ahmad',
+  eyebrow: `Cloud & DevOps · ${PERSON_NAME}`,
   /** decisions.md › cloud › Hero headline. The two promises get the mint underline. */
   headline: [
     { text: 'Infrastructure that ', em: false },
@@ -72,11 +82,13 @@ export const PROOF: readonly { label: string; value: Field; note: string }[] = [
   { label: 'Uptime', value: todo('baseline'), note: 'Measured on a real client service, published once cleared' },
   { label: 'Deploys a week', value: todo('baseline'), note: 'Before and after a CI/CD setup' },
   { label: 'Measured savings', value: todo('baseline'), note: 'Monthly bill, before and after an audit' },
-  {
-    label: 'Tests on my own site',
-    value: '257',
-    note: 'Passing on farazahmad.dev, typecheck and lint clean (Oct 2026)',
-  },
+  ownSite
+    ? {
+        label: 'Tests on my own site',
+        value: fact(ownSite, 'testsCount'),
+        note: `Passing on ${ownSite.name}, ${fact(ownSite, 'checks')} (Oct 2026)`,
+      }
+    : { label: 'Tests on my own site', value: todo('your own site'), note: 'A verified number from a system you run yourself' },
 ];
 
 export const PROBLEM = {
@@ -154,11 +166,13 @@ export const OFFERS: readonly Offer[] = [
   {
     id: 'care',
     name: 'On-call / care plan',
-    tag: `Business hours · ${SUPPORT_HOURS} · not 24/7`,
+    tag: SUPPORT_HOURS ? `Business hours · ${SUPPORT_HOURS} · not 24/7` : 'Business hours · not 24/7',
     bestFor: 'It runs today and you want someone watching it next month too.',
-    description: `Not on-call: monitoring and fixes, ${SUPPORT_HOURS}. Alerts, patching and a monthly report, all in business hours; there is no overnight pager.`,
+    description: SUPPORT_HOURS
+      ? `Not on-call: monitoring and fixes, ${SUPPORT_HOURS}. Alerts, patching and a monthly report, all in business hours; there is no overnight pager.`
+      : 'Not on-call: monitoring, fixes, alerts, patching and a monthly report, all in business hours; there is no overnight pager.',
     serviceType: 'Infrastructure monitoring and maintenance (business hours)',
-    gets: ['Monitoring and alert tuning', `Fixes during ${SUPPORT_HOURS}`, 'Monthly report'],
+    gets: ['Monitoring and alert tuning', `Fixes during ${SUPPORT_HOURS ?? 'business hours'}`, 'Monthly report'],
     priceLine: 'Monthly, scoped on a call',
     cta: 'Book a scoping call',
   },
@@ -229,19 +243,24 @@ export const PROCESS = [
   },
   {
     title: 'Monitor',
-    text: `We watch errors, latency and the bill after each change. A care plan keeps me on it during ${SUPPORT_HOURS}.`,
+    text: `We watch errors, latency and the bill after each change. A care plan keeps me on it during ${SUPPORT_HOURS ?? 'business hours'}.`,
     leaves: 'Dashboards and alerts',
   },
 ] as const;
 
-export const ABOUT = {
+export const ABOUT: { readonly title: string; readonly paragraphs: readonly string[] } = {
   title: 'A developer who reads the app, not only the servers.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution. I came to infrastructure from full-stack work, so when a deploy breaks or a bill jumps I can read the application code that caused it, not only the dashboard that shows it.',
-    'I run my own stack the way I would run yours: farazahmad.dev on Next.js and MongoDB with Sentry watching errors, and these niche sites, built to run as one Vercel project, one subdomain each, generated from a single registry.',
-    'Support runs 8AM–5PM EST. I don’t offer a 24/7 pager, and I’ll say so before you sign anything.',
+    // The second sentence is config.ts › originStories.cloud, left out when unset.
+    sentences(`I’m ${FIRST_NAME}, ${ROLE_IN_SENTENCE} of ${PERSON.company}.`, originStory('cloud')?.text),
+    ...(ownSite
+      ? [
+          `I run my own stack the way I would run yours: ${ownSite.name} on Next.js and MongoDB with Sentry watching errors, and these niche sites, built to run as one Vercel project, one subdomain each, generated from a single registry.`,
+        ]
+      : []),
+    `Support runs ${SUPPORT_HOURS ?? 'in business hours'}. I don’t offer a 24/7 pager, and I’ll say so before you sign anything.`,
   ],
-} as const;
+};
 
 export interface FaqItem {
   readonly q: string;
@@ -253,7 +272,9 @@ export interface FaqItem {
 export const FAQ: readonly FaqItem[] = [
   {
     q: 'Which clouds do you work with?',
-    a: 'These niche sites are built to run on Vercel; farazahmad.dev uses GitHub, Sentry and MongoDB. Which other clouds I take on is confirmed on the scoping call against your setup, and I won’t claim a certification I don’t hold.',
+    a: ownSite
+      ? `These niche sites are built to run on Vercel; ${ownSite.name} uses GitHub, Sentry and MongoDB. Which other clouds I take on is confirmed on the scoping call against your setup, and I won’t claim a certification I don’t hold.`
+      : 'These niche sites are built to run on Vercel. Which other clouds I take on is confirmed on the scoping call against your setup, and I won’t claim a certification I don’t hold.',
     pending: 'TODO · confirm clouds and any certifications',
   },
   {
@@ -266,7 +287,7 @@ export const FAQ: readonly FaqItem[] = [
   },
   {
     q: 'Do you do on-call?',
-    a: `No. The care plan is monitoring and fixes during business hours, ${SUPPORT_HOURS}. There is no overnight or weekend pager. If you need 24/7 cover, that has to be your own team or a dedicated provider; I can set up the alerting so it reaches them.`,
+    a: `No. The care plan is monitoring and fixes during business hours${SUPPORT_HOURS ? `, ${SUPPORT_HOURS}` : ''}. There is no overnight or weekend pager. If you need 24/7 cover, that has to be your own team or a dedicated provider; I can set up the alerting so it reaches them.`,
   },
   {
     q: 'How do you estimate savings?',

@@ -1,0 +1,298 @@
+---
+/**
+ * More builds (home): the sheets generated from the registry (data/apps/cases.ts › MORE_CASES),
+ * one per project whose `niches` lists apps with no hand-written angle here. Drawn as a second
+ * sheet set on light paper, unlike the dark case prints above: a drawing number, the name and
+ * angle, a parts list (the first three modules), and a small title block (client, status).
+ *
+ * Rows stay complete: three sheets fill one row of three from 1024px (one column below); a
+ * count that does not fill rows of three uses rows of two, or one wide sheet (`cols`).
+ *
+ * Page transition: each sheet carries data-vt-case="<id>" (the Layout's head script names it
+ * `case-<id>`, matching the case page hero). Sheets are never reveal-armed; only the heading is.
+ */
+import Arrow from './Arrow.astro';
+import { MORE_CASES } from '../../data/apps/cases';
+import { caseHref } from '../../lib/apps/paths';
+
+const count = MORE_CASES.length;
+const cols = count % 3 === 0 ? 3 : count % 2 === 0 ? 2 : 1;
+---
+
+{
+  count > 0 && (
+    <section class="section more paper" id="more-builds" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split" data-reveal>
+          <p class="eyebrow">
+            <span class="eyebrow__no">03B</span>More builds
+          </p>
+          <h2 id="more-title">More products, drawn up.</h2>
+          <p class="lede">
+            SaaS and developer tools I built, each with its parts list and its stack as read from the code. Client work stays
+            confidential.
+          </p>
+        </div>
+
+        <ul class="more__set" role="list" style={`--cols: ${cols}`}>
+          {MORE_CASES.map((c, i) => (
+            <li class="more__cell">
+              <article class="bom crops" id={`card-${c.id}`} data-vt-case={c.id} aria-labelledby={`bom-${c.id}`}>
+                <p class="bom__top">
+                  <span class="bom__no mono">DWG B-{String(i + 1).padStart(2, '0')}</span>
+                  <span class="bom__kicker label">{c.kicker}</span>
+                </p>
+                <h3 class="bom__name" id={`bom-${c.id}`}>
+                  <a class="bom__link" href={caseHref(c.id)}>
+                    {c.name}
+                    <span class="visually-hidden"> case study</span>
+                  </a>
+                </h3>
+                <p class="bom__line">{c.title}</p>
+
+                <table class="bom__parts">
+                  <caption class="visually-hidden">{c.name}: parts list</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" class="label">Item</th>
+                      <th scope="col" class="label">Part</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c.facts.map((f, k) => (
+                      <tr>
+                        <td class="mono">{String(k + 1).padStart(2, '0')}</td>
+                        <td>{f}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <dl class="bom__tb">
+                  <div>
+                    <dt class="label">Client</dt>
+                    <dd>{c.confidential ? 'Confidential' : 'Own'}</dd>
+                  </div>
+                  <div>
+                    <dt class="label">Status</dt>
+                    <dd>
+                      <span class:list={['bom__dot', { 'is-live': c.status.live }]} aria-hidden="true" />
+                      {c.status.label}
+                    </dd>
+                  </div>
+                </dl>
+                <span class="bom__more" aria-hidden="true">
+                  <span>Open the sheet</span>
+                  <Arrow class="bom__arrow" />
+                </span>
+              </article>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .more {
+    border-bottom: 1px solid var(--line);
+  }
+  .more__set {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+  }
+  @media (min-width: 1024px) {
+    .more__set {
+      grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+      gap: clamp(1rem, 0.4rem + 1.2vw, 1.75rem);
+    }
+  }
+  .more__cell {
+    display: grid;
+    min-width: 0;
+  }
+
+  /* A light drawing sheet: a hairline frame with a ruled inner border, like a sheet edge. */
+  .bom {
+    --crop-c: transparent;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto auto;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-s);
+    background: var(--surface-1);
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      inset 0 0 0 6px var(--surface-1),
+      inset 0 0 0 7px var(--line);
+    scroll-margin-top: var(--space-6);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+  }
+  .bom.crops::after {
+    transition: opacity 360ms var(--ease-out-quint);
+    opacity: 0;
+  }
+  .bom__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px var(--space-3);
+    padding: 4px 2px 0;
+  }
+  .bom__no {
+    color: var(--accent-text);
+  }
+  .bom__kicker {
+    color: var(--text-3);
+  }
+  .bom__name {
+    font-family: var(--font-display);
+    font-weight: 780;
+    font-stretch: 108%;
+    font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+  /* The whole sheet is the target, one tab stop. */
+  .bom__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .bom__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-s);
+  }
+  .bom__link:focus-visible {
+    outline: none;
+  }
+  .bom:has(.bom__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .bom__line {
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+
+  /* Parts list: a ruled table, item numbers in ink blue. */
+  .bom__parts {
+    align-self: start;
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1.5px solid var(--text);
+    font-size: var(--fs-small);
+  }
+  .bom__parts th,
+  .bom__parts td {
+    padding: 7px 8px 7px 0;
+    border-bottom: 1px solid var(--line-strong);
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.35;
+  }
+  .bom__parts th {
+    color: var(--text-3);
+  }
+  .bom__parts th:first-child,
+  .bom__parts td:first-child {
+    width: 3rem;
+  }
+  .bom__parts td:first-child {
+    color: var(--accent-text);
+  }
+
+  /* Title block. */
+  .bom__tb {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    margin: 0;
+    border-top: 1.5px solid var(--text);
+    border-left: 1px solid var(--line-strong);
+  }
+  .bom__tb > div {
+    display: grid;
+    gap: 2px;
+    padding: 7px 10px 8px;
+    border-right: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
+    min-width: 0;
+  }
+  .bom__tb dt {
+    color: var(--text-3);
+    font-size: 0.625rem;
+  }
+  .bom__tb dd {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78125rem;
+    line-height: 1.35;
+  }
+  .bom__dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .bom__dot.is-live {
+    background: var(--success);
+    box-shadow: none;
+  }
+  .bom__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-stretch: 108%;
+    font-size: 0.9375rem;
+    text-decoration: underline 1px transparent;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color 600ms var(--ease-out-quint);
+  }
+  .bom__more :global(.bom__arrow) {
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .bom:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 0 0 1px var(--accent),
+        inset 0 0 0 6px var(--surface-1),
+        inset 0 0 0 7px var(--line),
+        var(--shadow-lift);
+    }
+    .bom:hover {
+      --crop-c: var(--accent);
+    }
+    .bom:hover.crops::after {
+      opacity: 1;
+    }
+    .bom:hover .bom__more {
+      text-decoration-color: currentColor;
+    }
+    .bom:hover :global(.bom__arrow) {
+      transform: translateX(5px);
+    }
+  }
+  .bom:has(.bom__link:focus-visible) .bom__more {
+    text-decoration-color: currentColor;
+  }
+  @media (forced-colors: active) {
+    .bom {
+      border: 1px solid CanvasText;
+    }
+  }
+</style>

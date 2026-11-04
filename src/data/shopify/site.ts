@@ -4,31 +4,41 @@
  * Keep free of Astro-only imports: it is also used by build-time endpoints.
  */
 
-export const SITE_ORIGIN = 'https://shopify.farazahmad.dev';
-export const MAIN_SITE_URL = 'https://farazahmad.dev';
-export const YARD_TERMINAL_URL = 'https://yardterminal.com';
-export const PERSON_NAME = 'Faraz Ahmad';
-export const BRAND_COMPANY = 'Indepth Solution';
+import { nicheOrigin } from '../../niches';
+import { PERSON, bookingUrlFor } from '../../person/person';
+import { getProject } from '../../person/case-helpers';
+import { stackFor } from '../../person/claims';
+// Owner identity comes from src/person/config.ts; edit it there, not here.
+
+export const SITE_ORIGIN = nicheOrigin('shopify');
+export const MAIN_SITE_URL = PERSON.mainSiteUrl;
+/** The Yard Terminal project's public link (registry). Undefined when the person has no such project or link. */
+export const YARD_TERMINAL_URL: string | undefined = getProject('yard-terminal')?.link?.href;
+export const PERSON_NAME = PERSON.name;
+export const BRAND_COMPANY = PERSON.company;
 
 /** decisions.md › global › Contact & booking. */
-export const BOOKING_URL = 'https://calendly.com/farazahmad1/30min';
-export const CONTACT_EMAIL = 'farazahmad31048@gmail.com';
+export const BOOKING_URL = PERSON.bookingUrl;
+export const CONTACT_EMAIL = PERSON.email;
 
 /** Booking link with the placement recorded as a UTM, e.g. bookingUrl('hero'). */
 export function bookingUrl(content?: string): string {
-  const url = new URL(BOOKING_URL);
-  url.searchParams.set('utm_source', 'shopify');
-  if (content) url.searchParams.set('utm_content', content);
-  return url.toString();
+  return bookingUrlFor('shopify', content);
 }
 
 /**
- * What the work touches. Shopify is the platform; Admin API and webhooks are what Yard
- * Terminal's Shopify channel runs on; the rest is the owner's real stack
+ * What the work touches ("Works with" in About). Shopify is the platform; Shopify Admin API and
+ * Webhooks are the integration surface; the rest is the current owner's real stack
  * (docs/research/ai-local.md). Liquid / Online Store 2.0 follow from the decided theme offer:
- * listed in docs/todo/shopify.md for the owner to confirm.
+ * listed in docs/todo/shopify.md for the owner to confirm. This is the owner's own tool list,
+ * not derived from any project: a new person keeps only the tools they really work with.
+ * The Shopify Admin API and webhooks are the niche's platform and always show; the rest only where
+ * the tool is also in src/person/config.ts › stack (stackFor).
  */
-export const STACK = ['Liquid', 'Online Store 2.0', 'Shopify Admin API', 'Webhooks', 'Node.js', 'Next.js', 'MongoDB'] as const;
+export const STACK = stackFor(
+  ['Liquid', 'Online Store 2.0', 'Shopify Admin API', 'Webhooks', 'Node.js', 'Next.js', 'MongoDB'] as const,
+  ['Shopify Admin API', 'Webhooks'],
+);
 
 /**
  * Home sections in page order (brief §4, testimonials omitted per decisions).

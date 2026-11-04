@@ -589,6 +589,36 @@ main:focus {
   ::view-transition-new(case-farazahmad-dev) {
     animation: vt-fade-in 520ms var(--ease-out-quint) 320ms both;
   }
+
+  /* The same tuning by class for any case box, so a sheet generated from the registry (a slug
+     the named rules above do not list) morphs the same way. */
+  [data-vt-case] {
+    view-transition-class: case;
+  }
+  ::view-transition-group(*.case) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(*.case) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-m);
+  }
+  ::view-transition-old(*.case),
+  ::view-transition-new(*.case) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(*.case) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(*.case) {
+    animation: vt-fade-in 520ms var(--ease-out-quint) 320ms both;
+  }
 }
 @keyframes vt-under {
   to {

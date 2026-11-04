@@ -8,9 +8,12 @@
  * about (`case-<slug>`), on both documents, so the card box morphs into the hero (base.css).
  * Only the box morphs, never the title (different wrapping would stretch the text).
  * Cards are never reveal-armed: a transition may morph into one at load.
+ *
+ * Example mode (a project case absent from src/person/projects.ts): the grid's last row is
+ * completed with dashed CASE_SLOT cards (none for the current owner, whose four cases fill it).
  */
 import Todo from './Todo.astro';
-import { CASES } from '../../data/cloud/cases';
+import { CASES, CASE_SLOT, CASE_SLOTS } from '../../data/cloud/cases';
 import { caseHref } from '../../lib/cloud/paths';
 import { isTodo } from '../../data/cloud/todo';
 ---
@@ -68,6 +71,19 @@ import { isTodo } from '../../data/cloud/todo';
             </li>
           );
         })
+      }
+      {
+        Array.from({ length: CASE_SLOTS }, () => (
+          <li class="case panel" aria-label="Case study placeholder">
+            <div class="case__top">
+              <span class="case__kicker mono">{CASE_SLOT.kicker}</span>
+            </div>
+            <p class="case__title">{CASE_SLOT.title}</p>
+            <div class="case__end">
+              {CASE_SLOT.chips.map((t) => <span class="todo">{t}</span>)}
+            </div>
+          </li>
+        ))
       }
     </ul>
   </div>

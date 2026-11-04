@@ -7,11 +7,14 @@
  */
 import Arrow from './Arrow.astro';
 import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/apps/site';
+import { signatureStyle } from '../../lib/shared/signature';
 import { CALL_PROMISE } from '../../data/apps/content';
 import { nicheHost } from '../../niches';
 import { isHome, sectionHref } from '../../lib/apps/paths';
 
 const year = new Date().getFullYear();
+// Shrinks the signature for names longer than 11 characters (no style attribute otherwise).
+const sigStyle = signatureStyle(PERSON_NAME);
 const host = (u: string) => new URL(u).host;
 ---
 
@@ -70,7 +73,7 @@ const host = (u: string) => new URL(u).host;
     </div>
 
     <div class="foot__sig-wrap" data-reveal>
-      <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+      <p class="foot__signature" style={sigStyle} aria-hidden="true">{PERSON_NAME}</p>
     </div>
 
     <div class="foot__legal">

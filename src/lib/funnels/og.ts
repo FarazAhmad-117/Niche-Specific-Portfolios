@@ -10,7 +10,12 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/funnels/site';
-import { CASES, type CaseSlug, type FunnelCase } from '../../data/funnels/cases';
+import { fitSignatureRow } from '../shared/og-fit';
+import { ALL_CASES, type CaseSlug, type FunnelCase } from '../../data/funnels/cases';
+import { nicheHost } from '../../niches';
+
+/** This niche's host (funnels.<rootDomain>), printed in the top corner. */
+const HOST = nicheHost('funnels');
 
 const W = 1200;
 const H = 630;
@@ -57,6 +62,14 @@ const mono = (size: number, color: string, extra: Style = {}): Style => ({
   ...extra,
 });
 
+const SIG_TAGLINE = 'Marketing automation';
+/** Room from the name's left edge to the right margin. A long name drops the tagline first (see ../shared/og-fit). */
+const sigFit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: SIG_TAGLINE, taglinePx: 22, gap: 20, budget: W - 2 * M });
+const signature = (): El =>
+  h({ position: 'absolute', left: M, bottom: M - 10, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: sigFit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(sigFit.showTagline ? [h(mono(22, C.ink2), SIG_TAGLINE)] : []),
+  ]);
 const pill = (text: string, rose = false): El =>
   h(
     {
@@ -90,7 +103,7 @@ const bubble = (text: string, out: boolean): El =>
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.cream, position: 'relative' }, [
-    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 6 }), 'funnels.farazahmad.dev'),
+    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 6 }), HOST),
     h(
       {
         position: 'absolute',
@@ -124,10 +137,7 @@ function homeTree(): El {
         pill('Booked · Thu 10:30', true),
       ],
     ),
-    h({ position: 'absolute', left: M, bottom: M - 10, alignItems: 'baseline', gap: 20 }, [
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-      h(mono(22, C.ink2), 'Marketing automation'),
-    ]),
+    signature(),
   ]);
 }
 
@@ -135,14 +145,14 @@ function homeTree(): El {
 function caseTree(c: FunnelCase): El {
   const steps = c.flow.slice(0, 5);
   return h({ width: W, height: H, background: C.cream, position: 'relative' }, [
-    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 6, letterSpacing: '0.06em' }), 'CASE STUDY'),
-    h(mono(22, C.ink2, { position: 'absolute', right: M, top: M - 6 }), 'funnels.farazahmad.dev'),
+    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 6, letterSpacing: '0.06em' }), c.confidential ? 'CASE STUDY · CONFIDENTIAL CLIENT' : 'CASE STUDY'),
+    h(mono(22, C.ink2, { position: 'absolute', right: M, top: M - 6 }), HOST),
     h({ position: 'absolute', left: M, top: 150, width: 620, flexDirection: 'column', gap: 26 }, [
       h(
         {
           fontFamily: 'Cabinet Grotesk',
           fontWeight: 800,
-          fontSize: c.name.length > 20 ? 64 : 92,
+          fontSize: c.name.length > 40 ? 52 : c.name.length > 20 ? 64 : 92,
           lineHeight: 0.95,
           letterSpacing: '-0.035em',
           color: C.ink,
@@ -169,18 +179,15 @@ function caseTree(c: FunnelCase): El {
         ),
       ),
     ),
-    h({ position: 'absolute', left: M, bottom: M - 10, alignItems: 'baseline', gap: 20 }, [
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-      h(mono(22, C.ink2), 'Marketing automation'),
-    ]),
+    signature(),
   ]);
 }
 
 export type OgTarget = 'home' | CaseSlug;
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.id)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.id)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const c = target === 'home' ? undefined : CASES.find((x) => x.id === target);
+  const c = target === 'home' ? undefined : ALL_CASES.find((x) => x.id === target);
   if (target !== 'home' && !c) throw new Error(`[og] unknown funnels case: ${target}`);
   const svg = await satori((c ? caseTree(c) : homeTree()) as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();

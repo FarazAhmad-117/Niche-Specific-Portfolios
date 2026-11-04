@@ -1,6 +1,6 @@
 ---
 /**
- * all.farazahmad.dev: one page linking every niche site.
+ * all.<rootDomain>: one page linking every niche site.
  *
  * Which niches show comes from the registry (src/niches.ts): enabled ones are live cards,
  * disabled ones sit in the quiet "Coming soon" row, `all` itself is left out. Copy comes from
@@ -8,8 +8,8 @@
  *
  * Dev/prod switch: in dev (`import.meta.env.DEV`) every card opens the LOCAL niche on this
  * same dev server (/<slug>/, relative, so any port works) and previews /<slug>/og/home.png.
- * In production it opens https://<slug>.farazahmad.dev/ and previews its /og/home.png.
- * The main site is always https://farazahmad.dev/.
+ * In production it opens https://<slug>.<rootDomain>/ and previews its /og/home.png.
+ * The main site is always the owner's mainSiteUrl (src/person/config.ts).
  */
 import Layout from '../../layouts/all/Layout.astro';
 import SiteCard from '../../components/all/SiteCard.astro';

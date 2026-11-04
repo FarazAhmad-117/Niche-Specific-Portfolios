@@ -7,6 +7,7 @@ import { PROFILE } from '../../data/seo/profile';
 import { FAQ, OFFERS, type Offer } from '../../data/seo/content';
 import type { CaseStudy } from '../../data/seo/cases';
 import { CONTACT_EMAIL, MAIN_SITE_URL, PERSON_NAME, SITE_ORIGIN } from '../../data/seo/site';
+import { stackFor } from '../../person/claims';
 
 type Ld = Record<string, unknown>;
 
@@ -34,7 +35,8 @@ export function personLd(): Ld {
       'Backlink analysis',
       'Core Web Vitals',
       'AI-assisted content pipelines',
-      'Next.js',
+      // A tool, so only when it is in src/person/config.ts › stack.
+      ...stackFor(['Next.js']),
     ],
   };
 }

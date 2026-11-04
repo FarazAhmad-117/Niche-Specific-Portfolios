@@ -24,32 +24,58 @@ import GridLines from '../../../components/ai/GridLines.astro';
 import SampleNote from '../../../components/ai/SampleNote.astro';
 import StackMarks from '../../../components/ai/StackMarks.astro';
 import WorkflowDiagram from '../../../components/ai/WorkflowDiagram.astro';
-import { CASES, nextCase, type CaseStudy } from '../../../data/ai/cases';
+import { ALL_CASES, nextCase, relatedCases, type AnyCase } from '../../../data/ai/cases';
 import { fanOutOf } from '../../../data/ai/content';
 import { hasSample, textOf } from '../../../data/ai/todo';
 import { assertMeta } from '../../../data/ai/seo';
 import { abs, caseLdGraph } from '../../../lib/ai/jsonld';
 import { createLink } from '../../../lib/link';
 
+/*
+ * Hand-written cases (src/data/ai/cases.ts › CASES) tell the full story below. Generated cases
+ * (MORE_CASES: registry projects with no hand-written angle here) render the chapters their
+ * registry facts support: the problem (when the angle has one), what I built, the flow and stack,
+ * the project's caveats ("Good to know") and links to the other builds. No figures, no samples.
+ */
 export const getStaticPaths = (() =>
-  CASES.map((study) => ({ params: { slug: study.slug }, props: { study } }))) satisfies GetStaticPaths;
+  ALL_CASES.map((study) => ({ params: { slug: study.slug }, props: { study } }))) satisfies GetStaticPaths;
 
 interface Props {
-  study: CaseStudy;
+  study: AnyCase;
 }
+
+/**
+ * Internal-tool screenshots, keyed by `hw.tool.shot`. Imported here (not in cases.ts) so the
+ * built files stay the Picture outputs only. Rendered only for a case whose project has one.
+ */
+const TOOL_SHOTS = { leadrift } as const;
 
 const { study } = Astro.props;
 const next = nextCase(study.slug);
 const link = createLink('ai');
 assertMeta(study.slug, study.seo);
 
+const hw = study.generated ? undefined : study;
+const gen = study.generated ? study : undefined;
 /** A year that is still an illustrative sample is not worth a note in the hero: leave it out. */
-const year = textOf(study.year);
-const storyBody = study.baseline.story.replace(/^Before:\s*/i, '');
+const year = hw ? textOf(hw.year) : undefined;
+const storyBody = hw ? hw.baseline.story.replace(/^Before:\s*/i, '') : '';
 const baselineStory = storyBody.charAt(0).toUpperCase() + storyBody.slice(1);
 const linkHost = study.link ? study.link.label : undefined;
 /** Pre-launch with only verified product facts: say plainly why there are no figures. */
-const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.status?.tone === 'building';
+const preLaunchNote = hw ? !hasSample(hw.results) && !hw.inProduction && hw.status?.tone === 'building' : false;
+/** Screenshot caption: the case's own (hand-written override), else an honest default. */
+const shotCaption = study.screenshot
+  ? 'caption' in study.screenshot && study.screenshot.caption
+    ? study.screenshot.caption
+    : gen
+      ? `${study.name}${linkHost ? `, ${linkHost}` : ''}. A screenshot of the real app${gen.confidential ? '; client details are blurred' : ''}.`
+      : `${study.name}'s own product site${linkHost ? `, ${linkHost}` : ''}. A screenshot of the live page.`
+  : '';
+/** The exhibit frame keeps the image's own proportions (the default suits the 1443×877 shots). */
+const shotRatio = study.screenshot ? study.screenshot.src.width / study.screenshot.src.height : 0;
+const shotStyle = study.screenshot && Math.abs(shotRatio - 1443 / 877) > 0.01 ? `aspect-ratio: ${study.screenshot.src.width} / ${study.screenshot.src.height}` : undefined;
+const related = gen ? relatedCases(gen.slug) : [];
 ---
 
 <Layout
@@ -65,14 +91,20 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
     <div class="chero__inner container grid">
       <nav class="chero__crumbs mono-label" aria-label="Breadcrumb">
         <ol class="plain-list">
-          <li><a class="link" href={link('/#work')}>Case studies</a></li>
+          <li>{gen ? <a class="link" href={link(`/#card-${gen.slug}`)}>More builds</a> : <a class="link" href={link('/#work')}>Case studies</a>}</li>
           <li aria-current="page">{study.name}</li>
         </ol>
       </nav>
 
       <div class="chero__copy">
-        <p class="chero__eyebrow mono-label">Case study · {study.role}</p>
-        <h1 class="chero__title case-vt" style={`--vt: case-${study.slug}`}>{study.h1}</h1>
+        <p class="chero__eyebrow mono-label">Case study · {hw ? hw.role : gen?.kicker}</p>
+        {
+          hw ? (
+            <h1 class="chero__title case-vt" style={`--vt: case-${study.slug}`}>{study.h1}</h1>
+          ) : (
+            <h1 class="chero__title chero__title--gen">{study.h1}</h1>
+          )
+        }
         <p class="chero__lede lede">{study.summary}</p>
         <div class="chero__actions">
           <Button variant="secondary" href="#how" arrow="↓">See how it runs</Button>
@@ -84,30 +116,69 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
               </Button>
             )
           }
+          {
+            gen?.repo && (
+              <Button variant="ghost" href={gen.repo.href} target="_blank" rel="noopener" arrow="↗">
+                Source on GitHub
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </Button>
+            )
+          }
         </div>
       </div>
 
-      <aside class="plate theme-ink" aria-label={`${study.name} at a glance`}>
+      {
+        gen && (
+          <aside class="plate plate--gen theme-ink case-box" style={`--vt: case-${gen.slug}`} aria-label={`${gen.name} at a glance`}>
+            <p class="plate__top">
+              <span class="plate__k">At a glance</span>
+              {gen.status ? (
+                <span class:list={['pill', gen.status.tone !== 'live' && 'pill--idle']}>{gen.status.label}</span>
+              ) : gen.confidential ? (
+                <span class="plate__seal">Confidential client</span>
+              ) : null}
+            </p>
+            <div class="plate__metric">
+              <p class="plate__kind">{gen.kind}</p>
+              <p class="plate__label">Type of work</p>
+            </div>
+            <dl class="plate__facts">
+              {gen.client && (
+                <div>
+                  <dt>Built for</dt>
+                  <dd>{gen.client}</dd>
+                </div>
+              )}
+              <div>
+                <dt>Built with</dt>
+                <dd>{gen.stack.join(' · ')}</dd>
+              </div>
+            </dl>
+          </aside>
+        )
+      }
+      {hw && (
+      <aside class="plate theme-ink" aria-label={`${hw.name} at a glance`}>
         <p class="plate__top">
           <span class="plate__k">At a glance</span>
           {
-            study.status && (
-              <span class:list={['pill', study.status.tone !== 'live' && 'pill--idle']}>{study.status.label}</span>
+            hw.status && (
+              <span class:list={['pill', hw.status.tone !== 'live' && 'pill--idle']}>{hw.status.label}</span>
             )
           }
         </p>
         <div class="plate__metric">
-          <p class="plate__value"><Field value={study.headlineMetric.value} variant="metric" size="m" /></p>
-          <p class="plate__label">{study.headlineMetric.label}</p>
+          <p class="plate__value"><Field value={hw.headlineMetric.value} variant="metric" size="m" /></p>
+          <p class="plate__label">{hw.headlineMetric.label}</p>
         </div>
         <dl class="plate__facts">
           <div>
             <dt>Built for</dt>
-            <dd>{study.client}</dd>
+            <dd>{hw.client}</dd>
           </div>
           <div>
             <dt>My role</dt>
-            <dd>{study.role}</dd>
+            <dd>{hw.role}</dd>
           </div>
           {
             year && (
@@ -119,11 +190,12 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
           }
           <div>
             <dt>Built with</dt>
-            <dd>{study.stack.join(' · ')}</dd>
+            <dd>{hw.stack.join(' · ')}</dd>
           </div>
         </dl>
-        <SampleNote data={study.headlineMetric} class="plate__note" />
+        <SampleNote data={hw.headlineMetric} class="plate__note" />
       </aside>
+      )}
     </div>
   </header>
 
@@ -143,25 +215,24 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
             loading="lazy"
             decoding="async"
             class="exhibit__img"
+            style={shotStyle}
           />
-          <figcaption class="exhibit__cap mono">
-            {study.name}'s own product site{linkHost ? `, ${linkHost}` : ''}. A screenshot of the live page.
-          </figcaption>
+          <figcaption class="exhibit__cap mono">{shotCaption}</figcaption>
         </figure>
       </div>
     )
   }
 
-  <!-- ============ Lead Drift only: Leadrift, its internal tool (real screenshot) ============ -->
+  <!-- ============ the project's own internal tool, when it has one (real screenshot) ============ -->
   {
-    study.slug === 'lead-drift' && (
+    hw?.tool && (
       <div class="own container">
         <figure class="own__frame theme-ink" data-reveal>
           <div class="own__bar mono" aria-hidden="true">
-            <span>Leadrift · sign-in page</span>
+            <span>{hw.tool.bar}</span>
           </div>
           <Picture
-            src={leadrift}
+            src={TOOL_SHOTS[hw.tool.shot]}
             formats={['avif', 'webp']}
             fallbackFormat="png"
             quality={85}
@@ -169,13 +240,12 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
             sizes="min(1024px, calc(100vw - 2rem))"
             width={1352}
             height={888}
-            alt="Leadrift's sign-in page: the headline “Someone just posted a job. That’s your next client.”, a line on what the tool does for the Indepth Solution sales team, and a Help wanted panel of job posts."
+            alt={hw.tool.alt}
             loading="lazy"
             decoding="async"
           />
           <figcaption class="own__cap mono">
-            Leadrift, the internal tool Indepth Solution's sales team works in: hiring ads and LinkedIn &amp; Facebook research
-            turned into conversations. Screenshot of its sign-in page.
+            {hw.tool.name}, the internal tool {hw.tool.team}'s sales team works in: {hw.tool.does}
           </figcaption>
         </figure>
       </div>
@@ -183,16 +253,17 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
   }
 
   <!-- ============ the problem + before ============ -->
+  {hw && (
   <CaseSection id="problem" label="The problem">
-    <h2 id="problem-title" class="c-h2">{study.problem.title}</h2>
+    <h2 id="problem-title" class="c-h2">{hw.problem.title}</h2>
     <div class="pb">
-      <p class="pb__text lede">{study.problem.text}</p>
+      <p class="pb__text lede">{hw.problem.text}</p>
       <div class="before">
         <h3 class="before__title"><span class="before__k">Before:</span> How it worked</h3>
         <p class="before__story">{baselineStory}</p>
         <dl class="before__facts">
           {
-            study.baseline.facts.map((f) => (
+            hw.baseline.facts.map((f) => (
               <div class="before__fact">
                 <dt>{f.label}</dt>
                 <dd>
@@ -202,10 +273,19 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
             ))
           }
         </dl>
-        <SampleNote data={study.baseline.facts} />
+        <SampleNote data={hw.baseline.facts} />
       </div>
     </div>
   </CaseSection>
+  )}
+  {
+    gen?.problem && (
+      <CaseSection id="problem" label="The problem">
+        <h2 id="problem-title" class="c-h2">{gen.problem.title}</h2>
+        <p class="pb__text lede">{gen.problem.text}</p>
+      </CaseSection>
+    )
+  }
 
   <!-- ============ what I built ============ -->
   <CaseSection id="built" label="What I built" tone="sunk">
@@ -236,18 +316,21 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
       title={`How ${study.name} runs`}
       caption={`${study.slug} / flow`}
     />
+    {gen && <p class="how__note mono">Diagram of the flow, drawn from what the build does. Not a screenshot.</p>}
     <div class="how__stack">
       <p class="mono-label">Built with</p>
       <StackMarks tools={study.stack} label={`${study.name} stack`} provisional={study.stackProvisional} />
     </div>
   </CaseSection>
 
+  {hw && (
+  <>
   <!-- ============ result ============ -->
   <CaseSection id="result" label="The result">
     <h2 id="result-title" class="c-h2">What changed.</h2>
     <ul class="results plain-list" data-reveal-stagger>
       {
-        study.results.map((r) => (
+        hw.results.map((r) => (
           <li class="result">
             <h3 class="result__label">{r.label}</h3>
             <div class="result__pair">
@@ -271,7 +354,7 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
         ))
       }
     </ul>
-    <SampleNote data={study.results} />
+    <SampleNote data={hw.results} />
     {
       preLaunchNote && (
         <p class="result__note">
@@ -286,17 +369,17 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
     <h2 id="now-title" class="c-h2">What runs it now.</h2>
     <div class="now">
       <p class="now__statement">
-        {study.status && <span class:list={['pill', study.status.tone !== 'live' && 'pill--idle']}>{study.status.label}</span>}
-        <span>{study.runsNow.statement}</span>
+        {hw.status && <span class:list={['pill', hw.status.tone !== 'live' && 'pill--idle']}>{hw.status.label}</span>}
+        <span>{hw.runsNow.statement}</span>
       </p>
       <ul class="now__points plain-list">
-        {study.runsNow.points.map((p) => <li>{p}</li>)}
+        {hw.runsNow.points.map((p) => <li>{p}</li>)}
       </ul>
       {
-        study.link && (
+        hw.link && (
           <p class="now__link">
-            <a class="link ext" href={study.link.href} target="_blank" rel="noopener">
-              {study.link.label}
+            <a class="link ext" href={hw.link.href} target="_blank" rel="noopener">
+              {hw.link.label}
               <span class="visually-hidden"> (opens in a new tab)</span>
             </a>
           </p>
@@ -304,18 +387,57 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
       }
     </div>
   </CaseSection>
+  </>
+  )}
 
-  <!-- ============ next case ============ -->
-  <section class="next" aria-labelledby="next-title">
-    <div class="container">
-      <a class="next__link" href={link(`/work/${next.slug}/`)}>
-        <span class="next__k mono-label">Next case study</span>
-        <h2 id="next-title" class="next__title case-vt" style={`--vt: case-${next.slug}`}>{next.name}</h2>
-        <span class="next__angle">{next.angle}</span>
-        <span class="next__arrow" aria-hidden="true">→</span>
-      </a>
-    </div>
-  </section>
+  <!-- ============ caveats from the registry (`notes`) ============ -->
+  {
+    study.notes && study.notes.length > 0 && (
+      <CaseSection id="notes" label="Good to know">
+        <h2 id="notes-title" class="c-h2">Good to know.</h2>
+        <ul class="notes plain-list">
+          {study.notes.map((n) => <li>{n}</li>)}
+        </ul>
+      </CaseSection>
+    )
+  }
+
+  <!-- ============ the other generated builds ============ -->
+  {
+    related.length > 0 && (
+      <CaseSection id="more" label="More builds" tone="sunk">
+        <h2 id="more-title" class="c-h2">More builds.</h2>
+        <ul class="rel plain-list">
+          {related.map((r) => (
+            <li>
+              <a class="rel__link" href={link(`/work/${r.slug}/`)}>
+                <span class="rel__k mono-label">{r.kicker}</span>
+                <span class="rel__name">{r.name}</span>
+                <span class="rel__line">{r.angle}</span>
+                <span class="rel__arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </CaseSection>
+    )
+  }
+
+  <!-- ============ next case (only when there is another one) ============ -->
+  {
+    next && (
+      <section class="next" aria-labelledby="next-title">
+        <div class="container">
+          <a class="next__link" href={link(`/work/${next.slug}/`)}>
+            <span class="next__k mono-label">Next case study</span>
+            <h2 id="next-title" class:list={['next__title', !next.generated && 'case-vt']} style={next.generated ? undefined : `--vt: case-${next.slug}`}>{next.name}</h2>
+            <span class="next__angle">{next.angle}</span>
+            <span class="next__arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </section>
+    )
+  }
 
   <FinalCta form={false} />
 </Layout>
@@ -479,7 +601,7 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
     border-block-start: 1px solid var(--line);
   }
 
-  /* ---------- own: Leadrift, Lead Drift's internal tool (a sibling of the hero, outside every view-transition box) ---------- */
+  /* ---------- own: the project's internal tool (a sibling of the hero, outside every view-transition box) ---------- */
   .own {
     padding-block: var(--space-7) 0;
   }
@@ -851,4 +973,112 @@ const preLaunchNote = !hasSample(study.results) && !study.inProduction && study.
       font-size: clamp(3.5rem, 1.5rem + 2.8vw, 5.25rem);
     }
   }
-</style>
+
+  /* ---------- generated cases (registry-only facts) ---------- */
+  /* The shared element is the fact plate (box ↔ the home "More builds" card box), never the title. */
+  .case-box {
+    view-transition-name: var(--vt);
+  }
+  .chero__title--gen {
+    font-size: var(--fs-display-m);
+    line-height: 1.02;
+    max-inline-size: 22ch;
+  }
+  .plate__kind {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-display-m);
+    line-height: 1;
+    letter-spacing: var(--tr-heading);
+  }
+  /* "Confidential client": a stamped seal in the console's mono, outlined, never a fill. */
+  .plate__seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    font: 500 var(--fs-mono-label) / 1.3 var(--font-mono);
+    letter-spacing: var(--tr-mono-label);
+    text-transform: uppercase;
+    color: var(--text);
+    border: 1px dashed var(--line-strong);
+  }
+  .plate__seal::before {
+    content: "";
+    inline-size: 7px;
+    block-size: 7px;
+    border: 1px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .how__note {
+    margin: 0;
+    font-size: var(--fs-mono-label);
+    color: var(--text-3);
+  }
+  .notes {
+    display: grid;
+    gap: var(--space-3);
+    max-inline-size: 64ch;
+  }
+  .notes > li {
+    position: relative;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--line);
+    border-inline-start: 3px solid var(--text);
+    background: var(--surface-2);
+    color: var(--text-2);
+  }
+  .rel {
+    display: grid;
+    gap: 0;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .rel__link {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-7) var(--space-5) 0;
+    border-block-end: 1px solid var(--line);
+    text-decoration: none;
+  }
+  .rel__k {
+    color: var(--text-3);
+  }
+  .rel__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    letter-spacing: var(--tr-h3);
+    text-decoration: underline 2px transparent;
+    text-underline-offset: 5px;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  }
+  .rel__line {
+    color: var(--text-2);
+    max-inline-size: 60ch;
+  }
+  .rel__arrow {
+    position: absolute;
+    inset-inline-end: var(--space-2);
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    font-size: var(--fs-h3);
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .rel__link:focus-visible .rel__name {
+    text-decoration-color: var(--accent-text);
+  }
+  @media (hover: hover) {
+    .rel__link:hover .rel__name {
+      text-decoration-color: var(--accent-text);
+    }
+    .rel__link:hover .rel__arrow {
+      transform: translateX(6px);
+    }
+  }
+  @media (min-width: 1024px) {
+    .rel {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--gutter);
+    }
+  }</style>

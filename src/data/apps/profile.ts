@@ -1,24 +1,25 @@
 /**
- * Facts about the owner, from docs/research/ai-local.md only (§3 Bio facts). Nothing here
- * is inferred. The career start year is not in the repo, so experience is stated the way
- * the owner states it: "3+ years of full-stack engineering" (July 2026 brief).
+ * Facts about the owner, for the `apps` niche. The values live in src/person/config.ts (the one
+ * file to edit for a new owner); this module only selects them. Nothing here is inferred.
+ * Experience is stated the way the owner states it (config.ts › experience) instead of a start
+ * year, so this PROFILE has no sinceYear.
  */
-import portrait from '../../assets/apps/faraz.jpg';
+import { PERSON, PORTRAIT, jobTitleFor } from '../../person/profile';
+import type { PersonConfig } from '../../person/schema';
+
+/** Typed as PersonConfig so the optional experience stays readable when a config omits it. */
+const cfg: PersonConfig = PERSON;
 
 export const PROFILE = {
-  name: 'Faraz Ahmad',
-  jobTitle: 'Full-Stack Engineer & Founder, Indepth Solution',
-  company: 'Indepth Solution',
-  companyRole: 'Founder',
-  experience: '3+ years of full-stack engineering',
-  city: 'Lahore',
-  countryCode: 'PK',
-  location: 'Lahore, Pakistan',
-  timeZone: 'PKT (UTC+5)',
-  github: 'https://github.com/FarazAhmad-117',
-  /** Real studio portrait from the owner's repo: black and white on black. */
-  portrait: {
-    src: portrait,
-    alt: 'Faraz Ahmad, black and white studio portrait',
-  },
+  name: PERSON.name,
+  jobTitle: jobTitleFor('apps'),
+  company: PERSON.company,
+  companyRole: PERSON.companyRole,
+  experience: cfg.experience,
+  city: PERSON.city,
+  countryCode: PERSON.countryCode,
+  location: PERSON.location,
+  timeZone: PERSON.timeZone,
+  github: PERSON.github,
+  portrait: PORTRAIT,
 } as const;

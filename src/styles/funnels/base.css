@@ -568,6 +568,35 @@ main:focus {
     animation: vt-fade-in 520ms var(--ease-out-quint) 300ms both;
   }
 }
+/* The same morph for generated cases (More builds), keyed by view-transition-class `case-box`
+   so a new registry project needs no rule of its own. A separate block: a browser without
+   view-transition-class drops only these rules. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*.case-box) {
+    animation-duration: 900ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(*.case-box) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-xl);
+  }
+  ::view-transition-old(*.case-box),
+  ::view-transition-new(*.case-box) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(*.case-box) {
+    animation: vt-fade-out 360ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(*.case-box) {
+    animation: vt-fade-in 520ms var(--ease-out-quint) 300ms both;
+  }
+}
 @keyframes vt-sink {
   to {
     opacity: 0.35;

@@ -11,7 +11,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { nicheHost } from '../../niches';
 import { PERSON_NAME } from '../../data/webflow/site';
+import { fitSignatureRow } from '../shared/og-fit';
 import { CASES, type CaseSlug, type WebflowCase } from '../../data/webflow/cases';
 import { HERO } from '../../data/webflow/content';
 
@@ -108,11 +110,20 @@ const chip = (text: string, accent = true): El =>
     [h({ width: 11, height: 11, borderRadius: 3, background: accent ? C.violet : C.ink3 }), text],
   );
 
-const footer = (): El =>
-  h({ position: 'absolute', left: M, bottom: M - 16, alignItems: 'baseline', gap: 20 }, [
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(21, C.ink2), 'Webflow developer'),
+/**
+ * Room for the footer row: from the left margin to the home card's artboard (470px wide on the
+ * right), less a 16px margin. A long name drops the tagline first and shrinks only if needed.
+ */
+const FOOTER_BUDGET = W - 470 - 16 - M;
+const FOOTER_TAGLINE = 'Webflow developer';
+
+const footer = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: FOOTER_TAGLINE, taglinePx: 21, gap: 20, budget: FOOTER_BUDGET });
+  return h({ position: 'absolute', left: M, bottom: M - 16, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(21, C.ink2), FOOTER_TAGLINE)] : []),
   ]);
+};
 
 /** The right-hand artboard: a mini page with its heading selected. Shapes and labels only. */
 function artboard(): El {
@@ -170,7 +181,7 @@ function artboard(): El {
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    h(mono(21, C.ink2, { position: 'absolute', left: M, top: M - 16 }), 'webflow.farazahmad.dev'),
+    h(mono(21, C.ink2, { position: 'absolute', left: M, top: M - 16 }), nicheHost('webflow')),
     h(
       {
         position: 'absolute',
@@ -206,7 +217,7 @@ function caseTree(c: WebflowCase): El {
       mono(21, c.example ? C.ink2 : C.violetText, { position: 'absolute', left: M, top: M - 16, letterSpacing: '0.05em' }),
       c.example ? 'EXAMPLE BUILD · ILLUSTRATIVE' : 'CASE STUDY · ASTRO, NOT WEBFLOW',
     ),
-    h(mono(21, C.ink2, { position: 'absolute', right: M, top: M - 16 }), 'webflow.farazahmad.dev'),
+    h(mono(21, C.ink2, { position: 'absolute', right: M, top: M - 16 }), nicheHost('webflow')),
     h({ position: 'absolute', left: M, top: 150, width: 560, flexDirection: 'column', gap: 26 }, [
       h(
         {

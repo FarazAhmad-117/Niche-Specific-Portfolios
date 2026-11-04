@@ -1,0 +1,302 @@
+---
+/**
+ * More builds: every registry project whose `niches` lists ghl and that has no hand-written case
+ * (src/data/ghl/cases.ts › MORE_CASES), drawn as modules in a patch bay. Each module is one link
+ * to its /work/<id>/ page: a sealed tape for client work, the build's name and one-line angle,
+ * and its first three steps as ports on a short cable. Detail stays on the case page.
+ *
+ * Complete rows: three across when the count divides by three, else two, else one; any gap is a
+ * dashed, empty bay (slotsToFill). Nothing renders when there are no generated cases.
+ *
+ * Page transition: each module carries view-transition-name `case-<id>` and the class
+ * `case-box`, the same as its case page hero, so the box morphs (base.css). Modules are never
+ * reveal-armed (an armed box is invisible when a back navigation morphs into it).
+ */
+import { MORE_CASES } from '../../data/ghl/cases';
+import { slotsToFill } from '../../person/case-helpers';
+import { caseHref } from '../../lib/ghl/paths';
+
+const count = MORE_CASES.length;
+const perRow = count % 3 === 0 ? 3 : count % 2 === 0 ? 2 : count === 1 ? 1 : 3;
+const slots = Array.from({ length: slotsToFill(count, perRow) }, (_, i) => i);
+/** Tablet: two across only when the total (cards + slots) divides by two. */
+const midCols = perRow === 1 ? 1 : (count + slots.length) % 2 === 0 ? 2 : 1;
+const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] as const;
+const countWord = WORDS[count] ?? String(count);
+const allClient = MORE_CASES.every((c) => c.confidential);
+const heading = `${countWord} more GoHighLevel ${count === 1 ? 'build' : 'builds'}${allClient ? ', anonymised.' : '.'}`;
+const vt = (id: string) => `view-transition-name: case-${id}; view-transition-class: case-box`;
+---
+
+{
+  count > 0 && (
+    <section class="section more" id="more-builds" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split">
+          <p class="eyebrow">More builds</p>
+          <h2 id="more-title">{heading}</h2>
+          <p class="lede">
+            Dashboards, syncs, outbound and AI workflows built for clients. Each one is written up without names, accounts or
+            figures: what it does and how it is wired.
+          </p>
+        </div>
+
+        <ul class="bay" role="list" style={`--cols:${perRow};--cols-mid:${midCols}`}>
+          {MORE_CASES.map((c, i) => (
+            <li class="bay__cell">
+              <article class="mod" id={`card-${c.id}`} style={vt(c.id)}>
+                <div class="mod__top">
+                  <span class="mod__slot mono" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {c.confidential ? (
+                    <span class="tape tape--sealed">
+                      <span class="led mod__led" aria-hidden="true" />
+                      Confidential client
+                    </span>
+                  ) : (
+                    c.status && <span class="chip chip--live">{c.status}</span>
+                  )}
+                </div>
+                <p class="mod__kicker mono">{c.kicker}</p>
+                <h3 class="mod__name">
+                  <a class="mod__link" href={caseHref(c.id)}>
+                    {c.name}
+                  </a>
+                </h3>
+                <p class="mod__line">{c.title}</p>
+                <ol class="cable" role="list" aria-label={`${c.name}, first steps`}>
+                  {c.flow.slice(0, 3).map((s) => (
+                    <li class="cable__port">
+                      <span class="cable__jack" aria-hidden="true" />
+                      <span class="cable__text">{s}</span>
+                    </li>
+                  ))}
+                </ol>
+                <span class="mod__more" aria-hidden="true">
+                  Read the build <span class="mod__arrow">→</span>
+                </span>
+              </article>
+            </li>
+          ))}
+          {slots.map(() => (
+            <li class="bay__cell">
+              <div class="mod mod--empty" aria-hidden="true">
+                <span class="mod__slot mono">··</span>
+                <span class="mod__kicker mono">Empty bay</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* The bay: a recessed rack plate the modules sit in. */
+  .bay {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+    border-radius: var(--radius-xl);
+    background: var(--surface-1);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  @media (min-width: 720px) {
+    .bay {
+      grid-template-columns: repeat(var(--cols-mid), minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1100px) {
+    .bay {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    }
+  }
+  .bay__cell {
+    display: grid;
+  }
+
+  /* A module: a faceplate with two screw heads, a slot number and a sealed tape. */
+  .mod {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto auto;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    scroll-margin-top: var(--space-4);
+  }
+  .mod::before,
+  .mod::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--line);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  }
+  .mod::before {
+    left: 12px;
+  }
+  .mod::after {
+    right: 12px;
+  }
+  .mod__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-inline: 10px;
+  }
+  .mod__slot {
+    color: var(--text-3);
+    letter-spacing: 0.08em;
+  }
+  .tape--sealed {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .mod__led {
+    background: var(--accent-inv);
+    box-shadow: none;
+    transition: box-shadow 700ms var(--ease-out-expo);
+  }
+  .mod__kicker {
+    color: var(--text-3);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+  .mod__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.125rem, 1rem + 0.45vw, 1.375rem);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+  .mod__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* The name link covers the module: one tab stop, the whole faceplate is the target. */
+  .mod__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-l);
+  }
+  .mod__link:focus-visible {
+    outline: none;
+  }
+  .mod:has(.mod__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .mod__line {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+
+  /* Three ports on a short cable: the build's first steps, in order. */
+  .cable {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    margin: var(--space-2) 0 0;
+    padding: var(--space-3) var(--space-3) var(--space-3) 30px;
+    border-radius: var(--radius-m);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .cable::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: calc(var(--space-3) + 0.7em);
+    bottom: calc(var(--space-3) + 0.7em);
+    width: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+    transform-origin: top;
+    transition: transform 900ms var(--ease-out-quint);
+  }
+  .cable__port {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 1.6em;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .cable__jack {
+    position: absolute;
+    left: -19px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 3.5px var(--bg),
+      inset 0 0 0 6px var(--accent);
+  }
+  .mod__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: var(--fs-small);
+  }
+  .mod__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .mod:has(.mod__link):hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .mod:hover .mod__arrow {
+      transform: translateX(5px);
+    }
+    .mod:hover .mod__led {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-inv) 35%, transparent);
+    }
+  }
+  .mod--empty {
+    align-content: start;
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .mod--empty::before,
+  .mod--empty::after {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mod,
+    .mod__arrow,
+    .mod__led {
+      transition: none;
+    }
+  }
+</style>

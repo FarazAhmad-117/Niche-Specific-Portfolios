@@ -5,13 +5,14 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/wp/content';
-import { PROFILE, yearsBuilding } from '../../data/wp/profile';
+import { PROFILE } from '../../data/wp/profile';
+import { yearsSuffix } from '../../person/person';
 import { folio } from '../../data/wp/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
 ];
 ---

@@ -10,7 +10,9 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/cloud/site';
-import { CASES, type CaseSlug, type CloudCase } from '../../data/cloud/cases';
+import { fitSignatureRow } from '../shared/og-fit';
+import { nicheHost } from '../../niches';
+import { ALL_CASES, type CaseSlug, type CloudCase } from '../../data/cloud/cases';
 import { isTodo } from '../../data/cloud/todo';
 
 const W = 1200;
@@ -74,6 +76,10 @@ function bars(count: number, dim: readonly number[] = []): El {
 const stamp = (text: string): El =>
   h({ padding: '6px 12px', border: `1px solid ${C.line2}`, borderRadius: 4, ...mono(15, C.text2) }, text);
 
+const SIG_TAGLINE = 'Cloud & DevOps';
+/** Room from the name's left edge to the right margin. A long name drops the tagline first (see ../shared/og-fit). */
+const sigFit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: SIG_TAGLINE, taglinePx: 19, gap: 20, budget: W - 2 * M });
+
 function frame(children: El[]): El {
   return h({ width: W, height: H, background: C.bg, position: 'relative' }, [
     // hairline grid of the ops room
@@ -88,8 +94,8 @@ function frame(children: El[]): El {
     }),
     ...children,
     h({ position: 'absolute', left: M, bottom: M - 12, alignItems: 'baseline', gap: 20 }, [
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
-      h(mono(19, C.text2), 'Cloud & DevOps'),
+      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: sigFit.namePx, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
+      ...(sigFit.showTagline ? [h(mono(19, C.text2), SIG_TAGLINE)] : []),
     ]),
   ]);
 }
@@ -97,7 +103,7 @@ function frame(children: El[]): El {
 function homeTree(): El {
   const rows = ['web', 'api', 'worker', 'database'];
   return frame([
-    h(mono(19, C.text2, { position: 'absolute', left: M, top: M - 6 }), 'cloud.farazahmad.dev'),
+    h(mono(19, C.text2, { position: 'absolute', left: M, top: M - 6 }), nicheHost('cloud')),
     h(
       {
         position: 'absolute',
@@ -145,7 +151,7 @@ function caseTree(c: CloudCase): El {
   const nodes = (c.arch[0]?.nodes ?? []).filter((n) => !isTodo(n.label)).slice(0, 4);
   return frame([
     h(mono(19, C.text2, { position: 'absolute', left: M, top: M - 6 }), 'CASE STUDY'),
-    h(mono(19, C.text2, { position: 'absolute', right: M, top: M - 6 }), 'cloud.farazahmad.dev'),
+    h(mono(19, C.text2, { position: 'absolute', right: M, top: M - 6 }), nicheHost('cloud')),
     h({ position: 'absolute', left: M, top: 140, width: 640, flexDirection: 'column', gap: 24 }, [
       h(
         {
@@ -184,10 +190,10 @@ function caseTree(c: CloudCase): El {
 }
 
 export type OgTarget = 'home' | CaseSlug;
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.slug)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.slug)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const c = target === 'home' ? undefined : CASES.find((x) => x.slug === target);
+  const c = target === 'home' ? undefined : ALL_CASES.find((x) => x.slug === target);
   if (target !== 'home' && !c) throw new Error(`[og] unknown cloud case: ${target}`);
   const svg = await satori((c ? caseTree(c) : homeTree()) as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();

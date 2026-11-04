@@ -12,10 +12,23 @@
  *    built, so it is framed as the step built on top of that data, with a TODO chip.
  *  - six-rules is an EXAMPLE teardown, labelled illustrative everywhere, describing method.
  *  - the two client cases have no material yet: visible placeholders (PLACEHOLDERS), no page.
+ *
+ * offline-conversions describes the owner's own lead pipeline, so it is built from the shared
+ * registry (src/person/projects.ts): it needs the `lead-pipeline` project, and its Lead Drift
+ * line also needs `lead-drift` to be live. A person without `lead-pipeline` gets no such case
+ * (Example mode): no page, no OG image, no sitemap entry, and the home grid gets one more dashed
+ * slot (OWN_BUILD_SLOT) so its rows stay full. six-rules is niche content and always present.
  */
+import type { ProjectId } from '../../person/projects';
+import { exampleCase, fromProject, getProject, present, slotsToFill } from '../../person/case-helpers';
+import { withNameSuffix } from '../../lib/shared/seo-title';
+import { BRAND_COMPANY, MAIN_SITE_URL, PERSON_NAME } from './site';
 
-export const CASE_SLUGS = ['offline-conversions', 'six-rules'] as const;
-export type CaseSlug = (typeof CASE_SLUGS)[number];
+/** The registry projects this niche shows, in card order. */
+export const NICHE_PROJECTS = ['lead-pipeline', 'lead-drift'] as const satisfies readonly ProjectId[];
+
+/** Every slug this niche can have (the type); CASE_SLUGS lists the ones present. */
+export type CaseSlug = 'offline-conversions' | 'six-rules';
 
 export interface FlowStep {
   readonly label: string;
@@ -50,13 +63,24 @@ export interface AdsCase {
   readonly seo: { readonly title: string; readonly description: string };
 }
 
-export const CASES: readonly AdsCase[] = [
-  {
+/** The host the person's own lead pipeline runs on (their main site). */
+const siteHost = new URL(MAIN_SITE_URL).host;
+
+/** Lead Drift, only when the person has it AND it is confirmed live (the fact says it runs in production). */
+const leadDrift = ((p) => (p?.live ? p : undefined))(getProject('lead-drift'));
+
+/** `<core> | <name>`, falling back to a shorter suffix when a long name would break the 60-char limit. */
+const caseTitle = (core: string): string => withNameSuffix(core, PERSON_NAME);
+
+/** The person's lead pipeline from the registry, with the ads angle (offline conversions). */
+const offlineConversions = fromProject(
+  'lead-pipeline',
+  (): AdsCase => ({
     id: 'offline-conversions',
     name: 'Offline conversions, from the lead up',
-    kicker: 'Own build · Lead Drift / farazahmad.dev',
+    kicker: leadDrift ? `Own build · ${leadDrift.name} / ${siteHost}` : `Own build · ${siteHost}`,
     title: 'Every lead keeps where it came from, so the ad platforms can be told what happened next.',
-    text: 'An offline-conversion upload is only as good as the lead record behind it. On farazahmad.dev every lead is saved to MongoDB first, with the landing page, referrer and UTMs from its first visit, then sent to GoHighLevel through its API with that source on the contact.',
+    text: `An offline-conversion upload is only as good as the lead record behind it. On ${siteHost} every lead is saved to MongoDB first, with the landing page, referrer and UTMs from its first visit, then sent to GoHighLevel through its API with that source on the contact.`,
     status: 'Lead pipeline live',
     example: false,
     flow: [
@@ -71,7 +95,7 @@ export const CASES: readonly AdsCase[] = [
       'Landing page, referrer and UTM source, medium and campaign captured at first touch',
       'Stored with every lead in MongoDB before anything else',
       'Sent to GoHighLevel through its API, mapped onto custom fields',
-      'Lead Drift, Indepth Solution’s own growth engine, runs in production with MongoDB as its data layer',
+      ...(leadDrift ? [`${leadDrift.name}, ${leadDrift.madeBy ?? BRAND_COMPANY}’s own growth engine, runs in production with MongoDB as its data layer`] : []),
     ],
     problem: {
       title: 'The ad platform never hears what happened next',
@@ -98,7 +122,7 @@ export const CASES: readonly AdsCase[] = [
     ],
     runsNow: {
       label: 'Where it is now',
-      text: 'Capture, storage and the CRM hand-off run on farazahmad.dev. The upload back to ad platforms is what the tracking setup builds on top of a pipeline like this.',
+      text: `Capture, storage and the CRM hand-off run on ${siteHost}. The upload back to ad platforms is what the tracking setup builds on top of a pipeline like this.`,
     },
     pending: [
       'TODO · Match rate and conversions uploaded, once the upload runs',
@@ -106,80 +130,95 @@ export const CASES: readonly AdsCase[] = [
       'TODO · Confirm leads from these niche sites go through the same pipeline',
     ],
     seo: {
-      title: 'Offline Conversions: Lead Source to CRM | Faraz Ahmad',
+      title: caseTitle('Offline Conversions: Lead Source to CRM'),
       description:
         'Every lead saved to MongoDB with its first-visit landing page, referrer and UTMs, then sent to GoHighLevel: the base offline conversions need.',
     },
+  }),
+);
+
+/** Niche content, not a project: an illustrative teardown, labelled as such everywhere. */
+const sixRules = exampleCase<AdsCase>({
+  id: 'six-rules',
+  name: '6 rules every account should run',
+  kicker: 'Teardown · anonymized',
+  title: 'The guards I’d put on any account first, and what each one catches.',
+  text: 'An anonymized, illustrative teardown, not a client account: six rules written the way they run, each with the failure it exists for and what keeps it from doing harm.',
+  status: null,
+  example: true,
+  flow: [
+    { label: 'CPA guard' },
+    { label: 'Budget cap' },
+    { label: 'Zero-conversion spend' },
+    { label: 'Tracking check' },
+    { label: 'Spend anomaly' },
+    { label: 'Creative fatigue' },
+  ],
+  facts: [
+    'Each rule is one IF / FOR / THEN sentence you can read',
+    'Alert-only first; rules act once their thresholds prove out',
+    'Every action logged, capped and reversible',
+  ],
+  problem: {
+    title: 'Most waste happens between two reports',
+    text: 'Nobody decides to waste budget. An ad set drifts for a week, a pixel breaks on a Friday, a budget gets an extra zero. Each one is obvious in hindsight and invisible in the moment, because nobody reads the account every few hours. Rules do.',
   },
-  {
-    id: 'six-rules',
-    name: '6 rules every account should run',
-    kicker: 'Teardown · anonymized',
-    title: 'The guards I’d put on any account first, and what each one catches.',
-    text: 'An anonymized, illustrative teardown, not a client account: six rules written the way they run, each with the failure it exists for and what keeps it from doing harm.',
-    status: null,
-    example: true,
-    flow: [
-      { label: 'CPA guard' },
-      { label: 'Budget cap' },
-      { label: 'Zero-conversion spend' },
-      { label: 'Tracking check' },
-      { label: 'Spend anomaly' },
-      { label: 'Creative fatigue' },
-    ],
-    facts: [
-      'Each rule is one IF / FOR / THEN sentence you can read',
-      'Alert-only first; rules act once their thresholds prove out',
-      'Every action logged, capped and reversible',
-    ],
-    problem: {
-      title: 'Most waste happens between two reports',
-      text: 'Nobody decides to waste budget. An ad set drifts for a week, a pixel breaks on a Friday, a budget gets an extra zero. Each one is obvious in hindsight and invisible in the moment, because nobody reads the account every few hours. Rules do.',
+  built: [
+    {
+      title: 'CPA guard',
+      text: 'Catches slow drift: an ad set that crept over target and stayed there. It waits for a minimum number of conversions before judging, so a quiet morning doesn’t pause a good ad set.',
+      rule: { if: 'CPA > target', for: '2 days', then: 'pause ad set' },
     },
-    built: [
-      {
-        title: 'CPA guard',
-        text: 'Catches slow drift: an ad set that crept over target and stayed there. It waits for a minimum number of conversions before judging, so a quiet morning doesn’t pause a good ad set.',
-        rule: { if: 'CPA > target', for: '2 days', then: 'pause ad set' },
-      },
-      {
-        title: 'Budget cap',
-        text: 'Catches runaway days. The cap is yours, not the platform’s pacing; the rule only enforces it.',
-        rule: { if: 'spend ≥ daily cap', then: 'stop for the day' },
-      },
-      {
-        title: 'Zero-conversion spend',
-        text: 'Catches the ad that spends and never converts. Twice the target CPA with nothing to show is enough evidence to stop it.',
-        rule: { if: 'spend ≥ 2× target CPA, 0 conversions', then: 'pause ad' },
-      },
-      {
-        title: 'Tracking check',
-        text: 'Catches a broken pixel or tag. Clicks keep coming and conversions stop: that is usually tracking, not the ads, so it alerts rather than pauses.',
-        rule: { if: 'clicks, 0 conversions', for: '6 hours', then: 'alert on Slack' },
-      },
-      {
-        title: 'Spend anomaly',
-        text: 'Catches what a cap can’t: a jump well above normal that is still under the cap, like a budget edit with an extra zero.',
-        rule: { if: 'spend > 7-day avg + 50%', then: 'alert and hold' },
-      },
-      {
-        title: 'Creative fatigue',
-        text: 'Catches an ad the audience has stopped seeing. When its click-through rate falls well below its own first week, the next creative in the queue goes in.',
-        rule: { if: 'CTR < first week − 30%', then: 'rotate creative' },
-      },
-    ],
-    runsNow: {
-      label: 'What you get at the end',
-      text: 'These six rules tuned to your own targets and caps, running in alert-only mode first, and a change log that says what each one did and why.',
+    {
+      title: 'Budget cap',
+      text: 'Catches runaway days. The cap is yours, not the platform’s pacing; the rule only enforces it.',
+      rule: { if: 'spend ≥ daily cap', then: 'stop for the day' },
     },
-    pending: ['TODO · Replace with a real anonymized account teardown and its numbers'],
-    seo: {
-      title: '6 Rules Every Ad Account Should Run (Example) | Faraz Ahmad',
-      description:
-        'An illustrative teardown of six ad account rules: CPA guard, budget cap, zero-conversion spend, tracking check, spend anomaly and creative fatigue.',
+    {
+      title: 'Zero-conversion spend',
+      text: 'Catches the ad that spends and never converts. Twice the target CPA with nothing to show is enough evidence to stop it.',
+      rule: { if: 'spend ≥ 2× target CPA, 0 conversions', then: 'pause ad' },
     },
+    {
+      title: 'Tracking check',
+      text: 'Catches a broken pixel or tag. Clicks keep coming and conversions stop: that is usually tracking, not the ads, so it alerts rather than pauses.',
+      rule: { if: 'clicks, 0 conversions', for: '6 hours', then: 'alert on Slack' },
+    },
+    {
+      title: 'Spend anomaly',
+      text: 'Catches what a cap can’t: a jump well above normal that is still under the cap, like a budget edit with an extra zero.',
+      rule: { if: 'spend > 7-day avg + 50%', then: 'alert and hold' },
+    },
+    {
+      title: 'Creative fatigue',
+      text: 'Catches an ad the audience has stopped seeing. When its click-through rate falls well below its own first week, the next creative in the queue goes in.',
+      rule: { if: 'CTR < first week − 30%', then: 'rotate creative' },
+    },
+  ],
+  runsNow: {
+    label: 'What you get at the end',
+    text: 'These six rules tuned to your own targets and caps, running in alert-only mode first, and a change log that says what each one did and why.',
   },
-];
+  pending: ['TODO · Replace with a real anonymized account teardown and its numbers'],
+  seo: {
+    title: caseTitle('6 Rules Every Ad Account Should Run (Example)'),
+    description:
+      'An illustrative teardown of six ad account rules: CPA guard, budget cap, zero-conversion spend, tracking check, spend anomaly and creative fatigue.',
+  },
+});
+
+/** The cases that exist for this person, in card order. `offline-conversions` is omitted without its project. */
+export const CASES: readonly AdsCase[] = present([offlineConversions, sixRules]);
+export const CASE_SLUGS: readonly CaseSlug[] = CASES.map((c) => c.id);
+
+/** A dashed placeholder card on the home grid: no page, no link, no invented result. */
+export interface CaseSlot {
+  readonly id: string;
+  readonly kicker: string;
+  readonly title: string;
+  readonly text: string;
+  readonly todos: readonly string[];
+}
 
 /** Client cases decided but with no material yet: dashed placeholders on the home page only. */
 export const PLACEHOLDERS = [
@@ -197,16 +236,42 @@ export const PLACEHOLDERS = [
     text: 'Conversions the platform was missing or double-counting, found and fixed. No made-up numbers in the meantime.',
     todos: ['TODO · Conversions recovered', 'TODO · Platform and setup'],
   },
-] as const;
+] as const satisfies readonly CaseSlot[];
+
+/**
+ * Takes the place of the lead-pipeline case when the person has no `lead-pipeline` project
+ * (Example mode): their own build, to be added in src/person/projects.ts. Never someone else's.
+ */
+export const OWN_BUILD_SLOT: CaseSlot = {
+  id: 'own-build',
+  kicker: 'Own build · pipeline',
+  title: 'A build of my own',
+  text: 'The lead or tracking pipeline behind my own site, once it is written up here. This slot stays empty until it is.',
+  todos: ['TODO · Add your own project to src/person/projects.ts', 'TODO · What it captures, and where it sends it'],
+};
+
+/** Cards per row of the home grid (2 × n). */
+export const GRID_COLUMNS = 2;
+
+/**
+ * Every dashed slot the home grid shows: the client placeholders, plus the own-build slot(s)
+ * needed so cases + slots fill complete rows (4 = 2 × 2 today, so none are added).
+ */
+export const HOME_SLOTS: readonly CaseSlot[] = [
+  ...PLACEHOLDERS,
+  ...Array.from({ length: slotsToFill(CASES.length + PLACEHOLDERS.length, GRID_COLUMNS) }, () => OWN_BUILD_SLOT),
+];
 
 export const getCase = (slug: string): AdsCase | undefined => CASES.find((c) => c.id === slug);
 
-/** Next case in a fixed ring. */
-export function nextCase(slug: CaseSlug): AdsCase {
+/**
+ * Next case in a fixed ring, or undefined when this is the only case (the ring would point at
+ * itself) or the slug is unknown.
+ */
+export function nextCase(slug: CaseSlug): AdsCase | undefined {
   const i = CASES.findIndex((c) => c.id === slug);
-  const next = CASES[(i + 1) % CASES.length];
-  if (!next) throw new Error(`[ads] no case after ${slug}`);
-  return next;
+  if (i < 0 || CASES.length < 2) return undefined;
+  return CASES[(i + 1) % CASES.length];
 }
 
 /**

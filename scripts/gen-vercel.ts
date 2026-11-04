@@ -3,7 +3,7 @@
  * Run via `npm run gen:vercel` (also runs automatically before `npm run build`).
  *
  * One rewrite per enabled niche:
- *   <slug>.farazahmad.dev/<anything except _astro/...>  ->  /<slug>/<anything>
+ *   <slug>.<rootDomain>/<anything except _astro/...>  ->  /<slug>/<anything>
  *
  * Node runs this file directly (native TypeScript type stripping).
  */

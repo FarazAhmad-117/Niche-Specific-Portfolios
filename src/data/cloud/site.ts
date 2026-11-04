@@ -4,24 +4,28 @@
  * Keep free of Astro-only imports: build-time endpoints use it too.
  */
 
-export const SITE_ORIGIN = 'https://cloud.farazahmad.dev';
-export const MAIN_SITE_URL = 'https://farazahmad.dev';
-export const PERSON_NAME = 'Faraz Ahmad';
-export const BRAND_COMPANY = 'Indepth Solution';
+import { nicheOrigin } from '../../niches';
+import { PERSON, bookingUrlFor } from '../../person/person';
+// Owner identity comes from src/person/config.ts; edit it there, not here.
+
+export const SITE_ORIGIN = nicheOrigin('cloud');
+export const MAIN_SITE_URL = PERSON.mainSiteUrl;
+export const PERSON_NAME = PERSON.name;
+export const BRAND_COMPANY = PERSON.company;
 
 /** decisions.md › global › Contact & booking. */
-export const BOOKING_URL = 'https://calendly.com/farazahmad1/30min';
-export const CONTACT_EMAIL = 'farazahmad31048@gmail.com';
+export const BOOKING_URL = PERSON.bookingUrl;
+export const CONTACT_EMAIL = PERSON.email;
 
-/** decisions.md › cloud › "On-call hours / time zone". Business hours, not a 24/7 pager. */
-export const SUPPORT_HOURS = '8AM–5PM EST';
+/**
+ * Support hours (src/person/config.ts › supportHours), e.g. "8AM–5PM EST". Business hours, not a
+ * 24/7 pager. Undefined when unset: the hours lines drop out and the copy says "business hours".
+ */
+export { SUPPORT_HOURS } from '../../person/claims';
 
 /** Booking link with the placement recorded as a UTM, e.g. bookingUrl('hero'). */
 export function bookingUrl(content?: string): string {
-  const url = new URL(BOOKING_URL);
-  url.searchParams.set('utm_source', 'cloud');
-  if (content) url.searchParams.set('utm_content', content);
-  return url.toString();
+  return bookingUrlFor('cloud', content);
 }
 
 /**
@@ -30,7 +34,11 @@ export function bookingUrl(content?: string): string {
  */
 export const TOOLS_VERIFIED = [
   { name: 'Vercel', where: 'These niche sites are built to run on it: one project, a subdomain each' },
-  { name: 'GitHub', where: 'Where the code lives: github.com/FarazAhmad-117' },
+  { name: 'GitHub', where: `Where the code lives: ${PERSON.github.replace(/^https:\/\//, '')}` },
+  // The two lines below are claims about the current owner's own stack (main site), not
+  // identity, so they stay literal on purpose. Never print TOOLS_VERIFIED directly: pages and
+  // JSON-LD read lib/cloud/tools.ts › SHOWN_TOOLS, which keeps each line only while the
+  // registry projects it names (by name) are present with that tool in their stack.
   { name: 'Sentry', where: 'Error monitoring on farazahmad.dev' },
   { name: 'MongoDB', where: 'Data layer of farazahmad.dev and Yard Terminal' },
 ] as const;

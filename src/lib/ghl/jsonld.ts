@@ -92,7 +92,7 @@ export function caseLdGraph(c: GhlCase): Ld[] {
       inLanguage: 'en',
       creator: { '@id': PERSON_ID },
       author: { '@id': PERSON_ID },
-      isPartOf: { '@type': 'WebSite', name: 'Faraz Ahmad: GoHighLevel', url: SITE_ORIGIN + '/' },
+      isPartOf: { '@type': 'WebSite', name: `${PERSON_NAME}: GoHighLevel`, url: SITE_ORIGIN + '/' },
       image: abs(`og/${c.id}.png`),
       ...(c.example ? { genre: 'Illustrative example' } : {}),
     },

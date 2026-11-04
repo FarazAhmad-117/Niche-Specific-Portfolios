@@ -4,27 +4,30 @@
  * Keep free of Astro-only imports: it is also used by build-time endpoints.
  */
 
-export const SITE_ORIGIN = 'https://ai.farazahmad.dev';
-export const MAIN_SITE_URL = 'https://farazahmad.dev';
-export const PERSON_NAME = 'Faraz Ahmad';
-export const BRAND_COMPANY = "Indepth Solution";
+import { nicheOrigin } from '../../niches';
+import { PERSON, bookingUrlFor } from '../../person/person';
+import { stackFor } from '../../person/claims';
+// Owner identity comes from src/person/config.ts; edit it there, not here.
 
-export const BOOKING_URL = 'https://calendly.com/farazahmad1/30min';
-export const CONTACT_EMAIL = 'farazahmad31048@gmail.com';
+export const SITE_ORIGIN = nicheOrigin('ai');
+export const MAIN_SITE_URL = PERSON.mainSiteUrl;
+export const PERSON_NAME = PERSON.name;
+export const BRAND_COMPANY = PERSON.company;
+
+export const BOOKING_URL = PERSON.bookingUrl;
+export const CONTACT_EMAIL = PERSON.email;
 
 /** Booking link with the offer/placement recorded as a UTM, e.g. bookingUrl('audit'). */
 export function bookingUrl(content?: string): string {
-  const url = new URL(BOOKING_URL);
-  url.searchParams.set('utm_source', 'ai');
-  if (content) url.searchParams.set('utm_content', content);
-  return url.toString();
+  return bookingUrlFor('ai', content);
 }
 
 /**
  * Tools actually used: decisions.md plus the owner's own repo and instruction
  * (React, Tailwind CSS and NestJS added on the owner's word). Never add one that is not real.
+ * Shown only where the tool is also in src/person/config.ts › stack (stackFor).
  */
-export const STACK = [
+export const STACK = stackFor([
   'n8n',
   'Make',
   'Zapier',
@@ -37,7 +40,7 @@ export const STACK = [
   'React',
   'Tailwind CSS',
   'NestJS',
-] as const;
+] as const);
 export type StackTool = (typeof STACK)[number];
 
 /**
@@ -50,6 +53,7 @@ export const SECTIONS = [
   { id: 'problem', label: 'The problem' },
   { id: 'build', label: 'What I build' },
   { id: 'work', label: 'Case studies' },
+  { id: 'more', label: 'More builds' },
   { id: 'offers', label: 'Services' },
   { id: 'checklist', label: 'Production checklist' },
   { id: 'process', label: 'Process' },

@@ -6,6 +6,12 @@
 import ContactForm from '../shared/ContactForm.astro';
 import { CALL_PROMISE } from '../../data/funnels/content';
 import { CONTACT_EMAIL, bookingUrl } from '../../data/funnels/site';
+import { CONTACT_FEEDS_CRM } from '../../person/claims';
+
+/** "into my CRM" only when config.ts › contactFeedsCrm says the form feeds the owner's CRM. */
+const success = CONTACT_FEEDS_CRM
+  ? 'Thanks, it’s on its way into my CRM, source and all. I’ll reply soon.'
+  : 'Thanks, it’s on its way to me. I’ll reply soon.';
 ---
 
 <section class="section cta" id="contact" aria-labelledby="contact-title">
@@ -31,7 +37,7 @@ import { CONTACT_EMAIL, bookingUrl } from '../../data/funnels/site';
           cta="Send message"
           fallbackEmail={CONTACT_EMAIL}
           labels={{ message: 'Where do your leads come from, and where do they go quiet?' }}
-          messages={{ success: 'Thanks, it’s on its way into my CRM, source and all. I’ll reply soon.' }}
+          messages={{ success }}
         />
       </div>
     </div>

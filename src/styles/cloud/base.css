@@ -589,6 +589,36 @@ main:focus {
   ::view-transition-new(case-own-stack) {
     animation: vt-fade-in 500ms var(--ease-out-quint) 300ms both;
   }
+
+  /* The same tuning for any case box by class, so a case generated from the registry (a new
+     slug that the named rules above do not list) morphs the same way. */
+  [data-vt-case] {
+    view-transition-class: case;
+  }
+  ::view-transition-group(*.case) {
+    animation-duration: 850ms;
+    animation-timing-function: var(--ease-in-out-quart);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(*.case) {
+    isolation: auto;
+    overflow: clip;
+    border-radius: var(--radius-m);
+  }
+  ::view-transition-old(*.case),
+  ::view-transition-new(*.case) {
+    width: 100%;
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(*.case) {
+    animation: vt-fade-out 340ms var(--ease-out-quint) both;
+  }
+  ::view-transition-new(*.case) {
+    animation: vt-fade-in 500ms var(--ease-out-quint) 300ms both;
+  }
 }
 @keyframes vt-dim-up {
   to {

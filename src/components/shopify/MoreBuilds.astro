@@ -1,0 +1,247 @@
+---
+/**
+ * More builds (home): the generated cases (src/data/shopify/cases.ts › MORE_CASES), i.e. registry
+ * projects listed for this niche that have no hand-written case. Drawn as products on a shelf:
+ * each build is a compact product card with a hang tag (what kind of work it is), its one line,
+ * and a short receipt of its flow; the shelf edge runs under the row. Registry facts only: no
+ * numbers, no TODO chips. Detail lives on the case page.
+ *
+ * Row: two cards per row from 900px. A short last row gets a dashed "shelf space" slot
+ * (slotsToFill), so rows stay whole. Renders nothing without a generated case.
+ *
+ * Page transition: each card box carries `view-transition-name: case-<id>`, the same name as the
+ * case page's hero panel (only the box morphs). Cards are never reveal-armed.
+ */
+import { MORE_CASES } from '../../data/shopify/cases';
+import { slotsToFill } from '../../person/case-helpers';
+import { caseHref } from '../../lib/shopify/paths';
+
+const PER_ROW = 2;
+const slots = slotsToFill(MORE_CASES.length, PER_ROW);
+/** Receipt rows on a card: the first few flow steps; the full flow is on the case page. */
+const ROWS = 4;
+---
+
+{
+  MORE_CASES.length > 0 && (
+    <section class="section more" id="more" aria-labelledby="more-title">
+      <div class="container">
+        <div class="head head--split">
+          <p class="eyebrow">More builds</p>
+          <h2 id="more-title">More off the same workbench.</h2>
+          <p class="lede">
+            Smaller builds for Shopify: my own theme work and catalogue pipelines for clients, who stay confidential.
+          </p>
+        </div>
+
+        <ul class="more__row" role="list">
+          {MORE_CASES.map((c) => (
+            <li class="more__cell">
+              <article class="prod" id={`card-${c.id}`} style={`view-transition-name: case-${c.id}`}>
+                <span class:list={['prod__tag mono', c.confidential && 'prod__tag--client']}>
+                  {c.confidential ? 'Confidential client' : c.kicker.split(' · ')[0]}
+                </span>
+                <p class="prod__kicker mono">{c.kicker}</p>
+                <h3 class="prod__name">
+                  <a class="prod__link" href={caseHref(c.id)}>{c.name}</a>
+                </h3>
+                <p class="prod__line">{c.title}</p>
+                <ol class="prod__receipt receipt" role="list" aria-label={`How ${c.name} runs`}>
+                  {c.flow.slice(0, ROWS).map((s, i) => (
+                    <li class="leader">
+                      <span>{s}</span>
+                      <span class="prod__n">{String(i + 1).padStart(2, '0')}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p class="prod__foot">
+                  {c.status && <span class="chip">{c.status}</span>}
+                  <span class="prod__more" aria-hidden="true">
+                    Read the case <span class="prod__arrow">→</span>
+                  </span>
+                </p>
+              </article>
+            </li>
+          ))}
+          {Array.from({ length: slots }, () => (
+            <li class="more__cell more__cell--slot" aria-hidden="true">
+              <span class="more__space mono">Shelf space</span>
+            </li>
+          ))}
+        </ul>
+        <div class="shelf more__shelf" aria-hidden="true"></div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .more__row {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .more__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .more__cell {
+    display: grid;
+  }
+  .more__cell--slot {
+    display: none;
+    place-items: center;
+    min-height: 14rem;
+    border-radius: var(--radius-xl);
+    border: 1.5px dashed var(--line-strong);
+  }
+  @media (min-width: 900px) {
+    .more__cell--slot {
+      display: grid;
+    }
+  }
+  .more__space {
+    color: var(--text-3);
+  }
+
+  /* A product card: paper box, hang tag in the corner, a receipt of the flow. */
+  .prod {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto auto;
+    gap: var(--space-3);
+    padding: clamp(1.25rem, 1rem + 1.2vw, 2.25rem);
+    padding-top: calc(clamp(1.25rem, 1rem + 1.2vw, 2.25rem) + 10px);
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition:
+      transform 700ms var(--ease-out-expo),
+      box-shadow 700ms var(--ease-out-expo);
+    scroll-margin-top: var(--space-4);
+  }
+  /* The hang tag: a small label on a string, tipped a few degrees, settling straight on hover. */
+  .prod__tag {
+    position: absolute;
+    top: -12px;
+    right: clamp(1rem, 0.8rem + 1vw, 1.75rem);
+    padding: 5px 12px 5px 20px;
+    border-radius: 4px 4px 4px 4px;
+    background: var(--accent-fill);
+    color: var(--on-accent);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: rotate(3deg);
+    transform-origin: 85% -40%;
+    transition: transform 900ms var(--ease-out-quint);
+  }
+  .prod__tag::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--surface-2);
+  }
+  .prod__tag--client {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .prod__kicker {
+    color: var(--text-3);
+    font-size: 0.8125rem;
+  }
+  .prod__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 1.25rem + 1vw, 2.125rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    max-width: 100%;
+  }
+  .prod__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .prod__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+  }
+  .prod__link:focus-visible {
+    outline: none;
+  }
+  .prod:has(.prod__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .prod__line {
+    color: var(--text-2);
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    max-width: 40ch;
+  }
+  .prod__receipt {
+    align-self: end;
+    display: grid;
+    gap: 2px;
+    margin: var(--space-2) 0 0;
+    background: var(--bg);
+  }
+  .prod__receipt li {
+    padding: 6px 0;
+    font-size: 0.9375rem;
+  }
+  .prod__n {
+    color: var(--accent-text);
+  }
+  .prod__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+  }
+  .prod__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    font-weight: 600;
+  }
+  .prod__arrow {
+    display: inline-block;
+    color: var(--accent-text);
+    transition: transform 620ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .prod:hover {
+      transform: translateY(-6px);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        var(--shadow-lift);
+    }
+    .prod:hover .prod__tag {
+      transform: rotate(0deg);
+    }
+    .prod:hover .prod__arrow {
+      transform: translateX(5px);
+    }
+  }
+  .prod:has(.prod__link:focus-visible) .prod__tag {
+    transform: rotate(0deg);
+  }
+  .more__shelf {
+    margin-top: 6px;
+  }
+</style>

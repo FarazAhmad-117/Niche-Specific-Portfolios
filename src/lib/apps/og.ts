@@ -12,8 +12,10 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/apps/site';
+import { nicheHost } from '../../niches';
 import { markSvg } from './brand-mark';
-import { CASES, type AppCase, type CaseSlug } from '../../data/apps/cases';
+import { ALL_CASES, type AppCase, type CaseSlug } from '../../data/apps/cases';
+import { MONO_EM_PER_CHAR, estimateWidth, fitSignatureRow } from '../shared/og-fit';
 
 const W = 1200;
 const H = 630;
@@ -84,6 +86,23 @@ function grid(color: string, major: string): El[] {
   return out;
 }
 
+/** Title block geometry: row width, horizontal padding, mono size and tracking (em). */
+const TB_WIDTH = 330;
+const TB_PAD_X = 14;
+const TB_PX = 14;
+const TB_TRACK = 0.04;
+/** A key/value row that would not fit side by side is stacked (key over value), never truncated. */
+const tbStacked = (k: string, v: string): boolean =>
+  estimateWidth(`${k}  ${v}`, TB_PX, MONO_EM_PER_CHAR, TB_TRACK) > TB_WIDTH - 2 * TB_PAD_X;
+
+/**
+ * Bottom-left signature row (mark, name, tagline): the room from the name's left edge to the
+ * title block, less a 16px margin. A long name drops the tagline (and shrinks only if needed).
+ */
+const SIG_BUDGET = W - 24 - TB_WIDTH - 2 - 16 - (M + 40 + 20);
+const sigFit = (tagline: string) =>
+  fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline, taglinePx: 20, taglineTrackingEm: TB_TRACK, gap: 20, budget: SIG_BUDGET });
+
 /** Inner drawing border with a title block in the bottom-right corner. */
 function frame(stroke: string, text: string, rows: [string, string][]): El[] {
   return [
@@ -104,6 +123,7 @@ function frame(stroke: string, text: string, rows: [string, string][]): El[] {
             padding: '8px 14px',
             borderTop: i ? `1px solid ${stroke}` : 'none',
             justifyContent: 'space-between',
+            ...(tbStacked(k, v) ? { flexDirection: 'column', justifyContent: 'flex-start', gap: 2 } : {}),
           },
           [h(mono(14, text, { textTransform: 'uppercase' }), k), h(mono(14, text), v)],
         ),
@@ -133,7 +153,7 @@ function homeTree(): El {
       ['Drawn by', PERSON_NAME],
       ['Sheet', 'App development'],
     ]),
-    h(mono(18, C.ink2, { position: 'absolute', left: M, top: M - 8 }), 'APPS.FARAZAHMAD.DEV'),
+    h(mono(18, C.ink2, { position: 'absolute', left: M, top: M - 8 }), nicheHost('apps').toUpperCase()),
     h(
       {
         position: 'absolute',
@@ -159,11 +179,17 @@ function homeTree(): El {
       wire(false),
       node('Shipped', true, false),
     ]),
-    h({ position: 'absolute', left: M, bottom: M - 6, alignItems: 'baseline', gap: 20 }, [
-      mark(40),
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-      h(mono(20, C.ink2), 'MVPs · SaaS · APIs'),
-    ]),
+    signatureRow(C.ink, C.ink2, 'MVPs · SaaS · APIs'),
+  ]);
+}
+
+/** The bottom-left mark, name and tagline, fitted to the room left of the title block. */
+function signatureRow(nameColor: string, tagColor: string, tagline: string): El {
+  const fit = sigFit(tagline);
+  return h({ position: 'absolute', left: M, bottom: M - 6, alignItems: 'baseline', gap: 20 }, [
+    mark(40),
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: nameColor, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(20, tagColor), tagline)] : []),
   ]);
 }
 
@@ -184,7 +210,7 @@ function caseTree(c: AppCase): El {
         {
           fontFamily: 'Mona Sans',
           fontWeight: 800,
-          fontSize: c.name.length > 13 ? 76 : 96,
+          fontSize: c.name.length > 20 ? 60 : c.name.length > 13 ? 76 : 96,
           lineHeight: 0.95,
           letterSpacing: '-0.03em',
           color: C.navyText,
@@ -197,19 +223,15 @@ function caseTree(c: AppCase): El {
       { position: 'absolute', right: 110, top: 100, flexDirection: 'column', alignItems: 'flex-start' },
       path.flatMap((n, i) => (i ? [wire(true), node(n.label, i === path.length - 1, true)] : [node(n.label, false, true)])),
     ),
-    h({ position: 'absolute', left: M, bottom: M - 6, alignItems: 'baseline', gap: 20 }, [
-      mark(40),
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.navyText, letterSpacing: '-0.02em' }, PERSON_NAME),
-      h(mono(20, C.navyText2), 'App development'),
-    ]),
+    signatureRow(C.navyText, C.navyText2, 'App development'),
   ]);
 }
 
 export type OgTarget = 'home' | CaseSlug;
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.id)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.id)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const c = target === 'home' ? undefined : CASES.find((x) => x.id === target);
+  const c = target === 'home' ? undefined : ALL_CASES.find((x) => x.id === target);
   if (target !== 'home' && !c) throw new Error(`[og] unknown apps case: ${target}`);
   const svg = await satori((c ? caseTree(c) : homeTree()) as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();

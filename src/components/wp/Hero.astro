@@ -15,7 +15,7 @@
  */
 import { HERO, HERO_BLOCKS, HERO_CAPTION } from '../../data/wp/content';
 import { EXAMPLE_SITE } from '../../data/wp/player';
-import { bookingUrl } from '../../data/wp/site';
+import { PERSON_NAME, bookingUrl } from '../../data/wp/site';
 
 const n = HERO_BLOCKS.length;
 ---
@@ -27,7 +27,7 @@ const n = HERO_BLOCKS.length;
       <p class="hero__dateline mono">
         <span>{HERO.eyebrow}</span>
         <span class="hero__dot" aria-hidden="true"></span>
-        <span>Faraz Ahmad</span>
+        <span>{PERSON_NAME}</span>
       </p>
       <h1 id="hero-title" class="hero__title" aria-label={HERO.headlineText}>
         {

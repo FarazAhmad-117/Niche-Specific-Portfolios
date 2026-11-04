@@ -6,7 +6,7 @@
  * ratings, reviews or credentials we cannot back up; placeholders never leak
  * (case data goes through textOf()).
  */
-import type { CaseStudy } from '../../data/ai/cases';
+import type { AnyCase } from '../../data/ai/cases';
 import { PROFILE } from '../../data/ai/profile';
 import { FAQ, OFFERS, type Offer } from '../../data/ai/content';
 import { MAIN_SITE_URL, PERSON_NAME, SITE_ORIGIN, STACK, CONTACT_EMAIL } from '../../data/ai/site';
@@ -100,7 +100,7 @@ export function breadcrumbLd(trail: readonly { name: string; url: string }[]): L
 export const caseUrl = (slug: string): string => abs(`work/${slug}/`);
 
 /** CreativeWork rather than Article: there is no publish date to state truthfully. */
-export function caseLd(c: CaseStudy): Ld {
+export function caseLd(c: AnyCase): Ld {
   return {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
@@ -112,12 +112,12 @@ export function caseLd(c: CaseStudy): Ld {
     inLanguage: 'en',
     creator: { '@id': PERSON_ID },
     author: { '@id': PERSON_ID },
-    isPartOf: { '@type': 'WebSite', name: 'Faraz Ahmad: AI & Automation', url: SITE_ORIGIN + '/' },
+    isPartOf: { '@type': 'WebSite', name: `${PERSON_NAME}: AI & Automation`, url: SITE_ORIGIN + '/' },
     image: abs(`og/${c.slug}.png`),
   };
 }
 
-export const caseBreadcrumb = (c: CaseStudy): Ld =>
+export const caseBreadcrumb = (c: AnyCase): Ld =>
   breadcrumbLd([
     { name: 'Home', url: SITE_ORIGIN + '/' },
     { name: 'Work', url: `${SITE_ORIGIN}/#work` },
@@ -125,4 +125,4 @@ export const caseBreadcrumb = (c: CaseStudy): Ld =>
   ]);
 
 /** Person referenced by cases when the person node is not on the page. */
-export const caseLdGraph = (c: CaseStudy): Ld[] => [personLd(), caseLd(c), caseBreadcrumb(c)];
+export const caseLdGraph = (c: AnyCase): Ld[] => [personLd(), caseLd(c), caseBreadcrumb(c)];

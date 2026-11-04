@@ -1,16 +1,18 @@
 ---
 /**
- * Case studies, laid out as a results page for `site:seo.farazahmad.dev`: three results with
- * favicon, breadcrumb URL, blue title, snippet and "rich result" facts, and a thumbnail.
+ * Case studies, laid out as a results page for `site:<seo host>`: one result per present case
+ * with favicon, breadcrumb URL, blue title, snippet and "rich result" facts, and a thumbnail.
  * The title of each linked result shares a view-transition-name with the case page h1, so it
  * morphs into the page heading on navigation.
- * The third result (any client site) has no data yet: no page, a visible placeholder.
+ * The last result (any client site) has no data yet: no page, a visible placeholder. When the
+ * person has no project case at all, OWN_RESULT_SLOT (also a placeholder) comes before it.
  */
 import Todo from './Todo.astro';
-import { CASES, CLIENT_CASE } from '../../data/seo/cases';
+import { CASES, CASES_LEDE, CLIENT_CASE, OWN_RESULT_SLOT, SEO_HOST } from '../../data/seo/cases';
 import { createLink } from '../../lib/link';
 
 const link = createLink('seo');
+const resultCount = CASES.length + (OWN_RESULT_SLOT ? 1 : 0) + 1;
 ---
 
 <section class="section section--rule cases" id="work" aria-labelledby="work-title">
@@ -18,15 +20,15 @@ const link = createLink('seo');
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
       <h2 id="work-title">Work you can <span class="mark" data-mark>check yourself.</span></h2>
-      <p class="lede">One product I built to automate SEO, and my own site, where every claim below is a page you can open. Client results go up as soon as their screenshots are cleared.</p>
+      <p class="lede">{CASES_LEDE}</p>
     </div>
 
     <div class="serp">
       <div class="serp__bar" aria-hidden="true">
         <svg viewBox="0 0 20 20" width="16" height="16"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-        <span class="mono">site:seo.farazahmad.dev case studies</span>
+        <span class="mono">site:{SEO_HOST} case studies</span>
       </div>
-      <p class="serp__count mono">3 results</p>
+      <p class="serp__count mono">{resultCount} results</p>
 
       <ol class="serp__list" role="list" data-reveal-stagger>
         {
@@ -38,7 +40,7 @@ const link = createLink('seo');
                     <span class="res__fav">{c.name.charAt(0).toUpperCase()}</span>
                   </span>
                   <span class="serp-name">{c.name}</span>
-                  <span class="serp-url">seo.farazahmad.dev › work › {c.slug}</span>
+                  <span class="serp-url">{SEO_HOST} › work › {c.slug}</span>
                 </div>
                 <h3 class="res__title case-vt" style={`--vt: case-${c.slug}`}>
                   <a class="serp-title res__link" href={link(`/work/${c.slug}/`)}>
@@ -73,6 +75,23 @@ const link = createLink('seo');
               </div>
             </li>
           ))
+        }
+        {
+          OWN_RESULT_SLOT && (
+            <li class="res res--pending">
+              <div class="res__main">
+                <div class="serp-site">
+                  <span class="serp-fav" aria-hidden="true"><span class="res__fav">?</span></span>
+                  <span class="serp-name">{OWN_RESULT_SLOT.name}</span>
+                  <span class="serp-url">{OWN_RESULT_SLOT.url}</span>
+                </div>
+                <h3 class="res__title res__title--plain">{OWN_RESULT_SLOT.cardTitle}</h3>
+                <p class="res__snippet">{OWN_RESULT_SLOT.angle}</p>
+                <p class="res__rich"><Todo value={OWN_RESULT_SLOT.placeholder} /></p>
+              </div>
+              <div class="res__thumb res__thumb--empty" aria-hidden="true" />
+            </li>
+          )
         }
         <li class="res res--pending">
           <div class="res__main">

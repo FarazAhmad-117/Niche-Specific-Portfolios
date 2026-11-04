@@ -1,5 +1,5 @@
 /**
- * Copy for the `all` hub (all.farazahmad.dev). Display labels and one-liners per niche slug.
+ * Copy for the `all` hub (all.<rootDomain>). Display labels and one-liners per niche slug.
  *
  * Hard-coded on purpose: importing other niches' data modules would let their refactors break
  * this page. Every headline is quoted verbatim from that niche's own hero (source noted per
@@ -8,10 +8,15 @@
  *
  * Which niches show, and whether they are live, comes from the registry (src/niches.ts).
  * A slug missing here still renders, with the registry name and no headline.
+ *
+ * The owner's name and main site come from src/person/config.ts (not another niche's data).
  */
+import { PERSON } from '../../person/person';
+import { withNameSuffix } from '../../lib/shared/seo-title';
 
-export const PERSON_NAME = 'Faraz Ahmad';
-export const MAIN_SITE_URL = 'https://farazahmad.dev/';
+export const PERSON_NAME = PERSON.name;
+/** The main site with a trailing slash (config.ts › mainSiteUrl has none). */
+export const MAIN_SITE_URL = `${PERSON.mainSiteUrl}/`;
 
 export interface SiteCopy {
   /** Short display label (the registry `name` is sometimes branded, e.g. ghl). */
@@ -93,12 +98,37 @@ export const HERO = {
 
 export const MAIN_SITE = {
   label: 'Main site',
-  title: 'farazahmad.dev',
+  title: new URL(MAIN_SITE_URL).host,
   description: 'My main portfolio. The specialised sites above each go deeper on one kind of work.',
 } as const;
 
+const DESCRIPTION_LIST =
+  'AI automation, GoHighLevel, apps, cloud, marketing automation, ads, Shopify, SEO, WordPress and Webflow.';
+
+/**
+ * Meta description that survives long person names (Layout.astro asserts <= 155). Pure TS,
+ * deterministic; first variant that fits wins, never truncated:
+ *  1. `Every specialised site by ${name}: …`       the full name.
+ *  2. `Every specialised site by ${firstName}: …`  first word only, if shorter than the name.
+ *  3. `Every specialised site: …`                   no name at all.
+ * Nothing fits (impossible with the fixed list above): variant 3 is returned and the layout's
+ * guard fails the build with its normal message.
+ */
+export function describeAllSites(name: string, max = 155): string {
+  const trimmed = name.trim();
+  const full = `Every specialised site by ${trimmed}: ${DESCRIPTION_LIST}`;
+  if (full.length <= max) return full;
+
+  const firstName = trimmed.split(/\s+/)[0] ?? '';
+  if (firstName && firstName.length < trimmed.length) {
+    const short = `Every specialised site by ${firstName}: ${DESCRIPTION_LIST}`;
+    if (short.length <= max) return short;
+  }
+
+  return `Every specialised site: ${DESCRIPTION_LIST}`;
+}
+
 export const PAGE_SEO = {
-  title: 'All Sites: Every Specialised Portfolio | Faraz Ahmad',
-  description:
-    'Every specialised site by Faraz Ahmad: AI automation, GoHighLevel, apps, cloud, marketing automation, ads, Shopify, SEO, WordPress and Webflow.',
+  title: withNameSuffix('All Sites: Every Specialised Portfolio', PERSON_NAME),
+  description: describeAllSites(PERSON_NAME),
 } as const;

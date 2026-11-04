@@ -9,7 +9,8 @@
 import type { GetStaticPaths } from 'astro';
 import Layout from '../../../layouts/shopify/Layout.astro';
 import FinalCta from '../../../components/shopify/FinalCta.astro';
-import { CASES, nextCase, type ShopifyCase } from '../../../data/shopify/cases';
+import { Image } from 'astro:assets';
+import { ALL_CASES, MORE_CASES, nextCase, type ShopifyCase } from '../../../data/shopify/cases';
 import { NODES } from '../../../data/shopify/sync';
 import { STEPS } from '../../../data/shopify/teardown';
 import { HERO_RECEIPT, VERDICT_LABEL } from '../../../data/shopify/content';
@@ -18,7 +19,8 @@ import { abs, caseLdGraph } from '../../../lib/shopify/jsonld';
 import { caseHref, link } from '../../../lib/shopify/paths';
 import { bookingUrl } from '../../../data/shopify/site';
 
-export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+// Hand-written and generated cases (generated = registry projects listed for 'shopify').
+export const getStaticPaths = (() => ALL_CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
 
 interface Props {
   study: ShopifyCase;
@@ -26,7 +28,9 @@ interface Props {
 const { study: c } = Astro.props;
 assertMeta(`case ${c.id}`, c.seo);
 const next = nextCase(c.id);
-const channels = (['shopify', 'ebay', 'counter', 'facebook'] as const).map((id) => ({ id, ...NODES[id] }));
+const channels = (['shopify', 'ebay', 'counter'] as const).map((id) => ({ id, ...NODES[id] }));
+/** Other generated builds, for internal links (not this case, not the next one). */
+const more = MORE_CASES.filter((m) => m.id !== c.id && m.id !== next?.id);
 const fixes = STEPS.filter((s) => s.fix);
 ---
 
@@ -36,7 +40,7 @@ const fixes = STEPS.filter((s) => s.fix);
   path={`/work/${c.id}/`}
   image={abs(`og/${c.id}.png`)}
   jsonLd={caseLdGraph(c)}
-  expect="next-title"
+  expect={next ? 'next-title' : undefined}
 >
   <section class="chero" id="top" data-hero aria-labelledby="case-title">
     <div class="container">
@@ -49,13 +53,16 @@ const fixes = STEPS.filter((s) => s.fix);
             {c.example ? <span class="tag tag--example">Example</span> : <span class="tag tag--accent">Case study</span>}
             <span class="chero__kicker mono">{c.kicker}</span>
             {c.status && <span class="chip chip--live">{c.status}</span>}
+            {c.confidential && <span class="seal mono">Confidential client</span>}
           </div>
           <h1 id="case-title" class="chero__name">{c.name}</h1>
           <p class="chero__title">{c.title}</p>
           <p class="lede chero__text">{c.text}</p>
+          {c.pending.length > 0 && (
           <div class="chero__todos">
             {c.pending.map((p) => <span class="todo">{p}</span>)}
           </div>
+          )}
         </div>
         {/* Not reveal-armed: it sits inside the box that page transitions morph. */}
         <ul class="chero__facts" role="list">
@@ -64,6 +71,17 @@ const fixes = STEPS.filter((s) => s.fix);
       </div>
     </div>
   </section>
+
+  {
+    c.screenshot && (
+      <div class="container shot">
+        <figure class="shot__frame">
+          <Image src={c.screenshot.src} alt={c.screenshot.alt} widths={[480, 800, 1200]} sizes="(min-width: 1280px) 1200px, calc(100vw - 2rem)" loading="lazy" decoding="async" class="shot__img" />
+          <figcaption class="shot__cap mono">A screenshot of {c.name}{c.confidential ? '; client details are blurred' : ''}.</figcaption>
+        </figure>
+      </div>
+    )
+  }
 
   <section class="section cblock" aria-labelledby="problem-title">
     <div class="container cblock__grid">
@@ -101,7 +119,7 @@ const fixes = STEPS.filter((s) => s.fix);
     <div class="container cblock__grid">
       <p class="eyebrow">{c.example ? 'Before and after' : 'How it runs'}</p>
       <div class="runs">
-        <h2 id="runs-title" class="cblock__h2">{c.example ? 'Six apps, one verdict each.' : 'One record, every channel.'}</h2>
+        <h2 id="runs-title" class="cblock__h2">{c.example ? 'Six apps, one verdict each.' : c.generated ? 'How it runs, step by step.' : 'One record, every channel.'}</h2>
         <div class="runs__visual">
           {
             c.example ? (
@@ -147,6 +165,19 @@ const fixes = STEPS.filter((s) => s.fix);
                     ))}
                   </ol>
                 </div>
+                {c.generated ? (
+                <div class="receipt panel">
+                  <p class="panel__label mono">Built with</p>
+                  <ul class="panel__list" role="list">
+                    {(c.stack ?? []).map((s) => (
+                      <li class="leader">
+                        <span class="panel__name">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p class="panel__foot text-3">The flow is drawn from what the build does. Not a screenshot.</p>
+                </div>
+                ) : (
                 <div class="receipt panel">
                   <p class="panel__label mono">Channels</p>
                   <ul class="panel__list" role="list">
@@ -156,14 +187,13 @@ const fixes = STEPS.filter((s) => s.fix);
                           <span class="panel__name">{ch.name}</span>
                           <span class="panel__info">{ch.sub}</span>
                         </span>
-                        <span class:list={['verdict mono', ch.id === 'facebook' ? 'verdict--soon' : 'verdict--live']}>
-                          {ch.id === 'facebook' ? 'Coming soon' : 'Live'}
-                        </span>
+                        <span class="verdict verdict--soon mono">{ch.status}</span>
                       </li>
                     ))}
                   </ul>
-                  <p class="panel__foot text-3">Amazon and Google Shopping are not connected in Yard Terminal.</p>
+                  <p class="panel__foot text-3">Amazon, Google Shopping and Facebook Marketplace are not built in {c.name}.</p>
                 </div>
+                )}
               </>
             )
           }
@@ -171,6 +201,16 @@ const fixes = STEPS.filter((s) => s.fix);
         <div class="now inverse">
           <p class="now__label mono">{c.runsNow.label}</p>
           <p class="now__text">{c.runsNow.text}</p>
+          {
+            c.notes && c.notes.length > 0 && (
+              <>
+                <p class="now__label mono now__label--notes">Good to know</p>
+                <ul class="now__notes" role="list">
+                  {c.notes.map((n) => <li>{n}</li>)}
+                </ul>
+              </>
+            )
+          }
           {
             c.link && (
               <a class="now__link link" href={c.link.href} target="_blank" rel="noopener">
@@ -185,15 +225,27 @@ const fixes = STEPS.filter((s) => s.fix);
     </div>
   </section>
 
-  <section class="section cnext" aria-labelledby="next-title">
+  <section class="section cnext" aria-labelledby={next ? 'next-title' : undefined}>
     <div class="container">
-      <p class="eyebrow">Next case</p>
+      {next && <p class="eyebrow">Next case</p>}
+      {next && (
       <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
         <span class="cnext__kicker mono">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
         <span id="next-title" class="cnext__name">{next.name}</span>
         <span class="cnext__title">{next.title}</span>
         <span class="cnext__go" aria-hidden="true">→</span>
       </a>
+      )}
+      {more.length > 0 && (
+        <nav class="cmore" aria-label="More builds">
+          <p class="cmore__k mono">More builds</p>
+          <ul class="cmore__list" role="list">
+            {more.map((m) => (
+              <li><a class="link" href={caseHref(m.id)}>{m.name}</a></li>
+            ))}
+          </ul>
+        </nav>
+      )}
       <p class="cnext__or">
         Want this for your store? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
       </p>
@@ -554,4 +606,85 @@ const fixes = STEPS.filter((s) => s.fix);
     margin-top: var(--space-5);
     color: var(--text-2);
   }
-</style>
+
+  /* ---------- generated cases ---------- */
+  .seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 1.5px var(--line-strong);
+    color: var(--text-2);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .seal::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+  .shot {
+    padding-block: var(--space-6) 0;
+  }
+  .shot__frame {
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .shot__frame :global(.shot__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .shot__cap {
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-3);
+    font-size: 0.8125rem;
+  }
+  .now__label--notes {
+    margin-top: var(--space-3);
+  }
+  .now__notes {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .now__notes li {
+    position: relative;
+    padding-left: 18px;
+  }
+  .now__notes li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-inv);
+  }
+  .cmore {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-5);
+  }
+  .cmore__k {
+    color: var(--text-3);
+  }
+  .cmore__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    font-weight: 600;
+  }</style>
