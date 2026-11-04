@@ -16,6 +16,7 @@ illustrative numbers** posing as results: missing numbers are dashed `TODO ·` c
 | `case.ai-seo-automator.time` | AI SEO Automator page › results | Time per page, before and after |
 | `case.ai-seo-automator.gsc` | AI SEO Automator page › results | Impressions/clicks growth, anonymized screenshot |
 | `case.farazahmad-dev.traffic`, `case.farazahmad-dev.gsc` | farazahmad.dev page | Indexed pages and clicks from Search Console |
+| `backlinks.result` | Home › Backlinks, link-profile caption | Referring domains earned for a client (from their link report / Search Console Links), or remove the line |
 
 All of these live in `src/data/seo/content.ts` and `src/data/seo/cases.ts` as `todo(...)`;
 replace each with a plain string once you have the real value.
@@ -30,7 +31,29 @@ set `GROWTH_DATA` in `src/data/seo/growth.ts` to `{ kind: 'real', source, range,
 
 ## 2. Please confirm (wording and facts I used)
 
-- **No link building**, said plainly in proof, FAQ, "How I keep it safe" and About (decision).
+- **Backlinks (decision 2026-11-04: "Backlink audit & strategy", no paid or spammy link
+  building).** Said in the new Backlinks section, the proof strip ("0 links bought, rented or
+  swapped"), the 6th offer, FAQ "Do you build backlinks?", "How I keep it safe" (`links: earned`),
+  About ("Doesn't do: bought links"), the meta description and JSON-LD. Confirm each claim:
+  - **Backlink audit:** quality, relevance and anchor text of every referring domain; toxic links
+    flagged. Which tool/data do you use (Search Console Links, Ahrefs, Semrush, Majestic…)?
+  - **Disavow:** you prepare a disavow file "only when it's warranted". Confirm you do this.
+  - **Competitor gap research:** "using the competitor backlink research I built into AI SEO
+    Automator". The verified fact is that it "discovers competitors, researches their backlinks and
+    alerts when they publish"; the gap (who links to them but not you) is my wording. Confirm.
+  - **Lost/broken link reclamation** with redirects or fixed URLs.
+  - **Internal linking** structure built into templates.
+  - **Pages that earn links:** data pages, tools, guides, and "the technical side of digital PR".
+    Confirm you don't do PR outreach itself (the page doesn't claim it).
+  - **Monitoring with alerts:** "lost links, new toxic links and competitor launches flagged as they
+    happen". Only the competitor-publish alert is verified (AI SEO Automator). Which tool sends
+    lost/toxic link alerts? Soften to "regular checks" if there are no automated alerts.
+  - **Won't do:** buying links, PBNs, link farms, mass guest-post schemes; "I won't promise a
+    number of links" (FAQ).
+  - **Offer 06 "Backlink audit & strategy"** includes: toxic links + disavow, lost/broken link
+    reclamation, competitor gap research and monitoring alerts. Scoped on a call, no price.
+  - The link-profile panel is an example (`yourstore.com`, made-up `.example` domains, quality as
+    a shape, no scores), labelled "Example site · illustrative".
 - **Human edit gate:** the page says the content engine *I build for clients* has a human editor
   and quality checks before publishing. AI SEO Automator itself publishes straight to the site
   (verified fact), and its case page says so; the "lesson" box says client builds add the human

@@ -1,6 +1,6 @@
 ---
 /**
- * Proof strip (brief §4 item 2): four shelf-edge labels clipped to one shelf. Three are facts
+ * Proof strip (brief §4 item 2): four admin-style metric cards. Three are facts
  * (Yard Terminal's channels and its sold-once rule, Plus in scope); the fourth, storefront
  * results, is a visible TODO slot until the owner has before/after numbers.
  */
@@ -48,33 +48,32 @@ import { PROOF, PROOF_TODO } from '../../data/shopify/content';
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
-  /* A shelf-edge label: a clay top band, a big value, small print under it. */
+  /* An admin metric card: a small clay marker, a big value, small print under it. */
   .pl {
     position: relative;
     display: grid;
     align-content: start;
     gap: var(--space-2);
-    padding: calc(var(--space-4) + 6px) var(--space-5) var(--space-5);
-    border-radius: var(--radius-s) var(--radius-s) 2px 2px;
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
     background: var(--surface-2);
-    box-shadow: inset 0 0 0 1px var(--line);
-    overflow: hidden;
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
   }
   .pl::before {
     content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 6px;
+    width: 24px;
+    height: 3px;
+    border-radius: 2px;
     background: var(--accent);
   }
   .pl__value {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.75rem, 1.5rem + 1vw, 2.5rem);
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    font-size: clamp(1.625rem, 1.4rem + 0.9vw, 2.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
   }
   .pl__label {
     color: var(--text-2);

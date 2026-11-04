@@ -32,11 +32,6 @@ const stepOf = (fix: FixId) => STEPS.findIndex((s) => s.fix === fix);
 /** Hotspots carry the visible step number (01-based, the same as the list and the counter). */
 const hsNum = (fix: FixId) => String(stepOf(fix) + 1);
 const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix' } as const;
-const TICKS = Array.from({ length: 11 }, (_, i) => i / 10);
-const tick = (t: number, r1: number, r2: number) => {
-  const a = Math.PI * (1 - t);
-  return { x1: 100 + r1 * Math.cos(a), y1: 100 - r1 * Math.sin(a), x2: 100 + r2 * Math.cos(a), y2: 100 - r2 * Math.sin(a) };
-};
 ---
 
 <section class="section tds" id="teardown" aria-labelledby="teardown-title">
@@ -46,7 +41,7 @@ const tick = (t: number, r1: number, r2: number) => {
     <p class="lede">
       An example store, one fix at a time.
       <span data-td-js-only hidden
-        >It plays on its own; step through it, or tap a numbered spot on the page to jump to that fix.</span
+        >{' '}It plays on its own; step through it, or tap a numbered spot on the page to jump to that fix.</span
       >
     </p>
   </div>
@@ -60,24 +55,8 @@ const tick = (t: number, r1: number, r2: number) => {
       style={`--step-ms:${STEP_MS}ms;--meter:${last.meter}`}
       data-pause-offscreen
     >
-      <!-- The meter: a dial on desktop, a slim sticky bar below 1100px. -->
+      <!-- The meter: one compact card, a bar with a pin (it sticks under the nav below 1100px). -->
       <div class="meter" aria-hidden="true">
-        <svg class="meter__dial" viewBox="0 0 200 118">
-          <path class="meter__track" d="M20 100A80 80 0 0 1 180 100" pathLength="1"></path>
-          <path class="meter__fill" d="M20 100A80 80 0 0 1 180 100" pathLength="1"></path>
-          {
-            TICKS.map((t) => {
-              const k = tick(t, 62, t % 0.5 === 0 ? 52 : 56);
-              return <line class="meter__tick" x1={k.x1} y1={k.y1} x2={k.x2} y2={k.y2} />;
-            })
-          }
-          <g class="meter__needle">
-            <line x1="100" y1="100" x2="100" y2="40"></line>
-            <circle cx="100" cy="100" r="7"></circle>
-          </g>
-          <text class="meter__end" x="20" y="117" text-anchor="middle">SLOW</text>
-          <text class="meter__end" x="180" y="117" text-anchor="middle">FAST</text>
-        </svg>
         <div class="meter__bar">
           <span class="meter__bar-end mono">Slow</span>
           <span class="meter__bar-track"><span class="meter__bar-fill"></span><span class="meter__bar-pin"></span></span>
@@ -113,7 +92,7 @@ const tick = (t: number, r1: number, r2: number) => {
               </div>
               <div class="pp__header">
                 <span class="pp__logo">{STORE.name}</span>
-                <span class="pp__links"><span></span><span></span><span></span></span>
+                <span class="pp__links"><span></span><span></span></span>
                 <span class="pp__cart"></span>
               </div>
               <div class="pp__main">
@@ -136,12 +115,11 @@ const tick = (t: number, r1: number, r2: number) => {
                     <span class="hs" data-hs={stepOf('img')}>{hsNum('img')}</span>
                   </div>
                   <div class="pp__thumbs">
-                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span>
                     <span class="pp__lazy mono">lazy</span>
                   </div>
                 </div>
                 <div class="pp__info">
-                  <span class="pp__crumb"></span>
                   <span class="pp__title">{STORE.product}</span>
                   <span class="pp__stars"><span>★★★★★</span><span class="pp__stars-n">reviews</span></span>
                   <span class="pp__price"></span>
@@ -152,7 +130,6 @@ const tick = (t: number, r1: number, r2: number) => {
                     Add to cart
                     <span class="hs" data-hs={stepOf('sticky')}>{hsNum('sticky')}</span>
                   </span>
-                  <span class="pp__upsell"><span></span><span></span></span>
                 </div>
               </div>
               <span class="pp__chat" data-anchor="chat">
@@ -248,20 +225,27 @@ const tick = (t: number, r1: number, r2: number) => {
 </section>
 
 <style>
+  /* The heading lines up with the 1180px player, not the wider page container. */
+  .tds .head {
+    width: min(100% - 2 * var(--margin), 1180px);
+  }
   /* =========================================================
-     Layout
+     Layout: compact. Desktop: the page mock and a narrow step column (meter on top), the
+     whole player inside ~80% of a 1440×900 screen, max 1180px wide.
      ========================================================= */
   .td {
     display: grid;
-    gap: var(--space-5);
+    gap: var(--space-4);
     grid-template-areas: 'meter' 'stage' 'side';
+    max-width: 1180px;
+    margin-inline: auto;
   }
   @media (min-width: 1100px) {
     .td {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 21rem);
       grid-template-areas: 'stage meter' 'stage side';
       grid-template-rows: auto 1fr;
-      column-gap: var(--space-6);
+      gap: var(--space-3) var(--space-5);
       align-items: start;
     }
   }
@@ -271,101 +255,51 @@ const tick = (t: number, r1: number, r2: number) => {
   .td__stage {
     grid-area: stage;
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-2);
     min-width: 0;
   }
   .td__side {
     grid-area: side;
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-3);
     align-content: start;
     min-width: 0;
   }
 
   /* =========================================================
-     Meter
+     Meter: one small card. Title + count on a row, the bar, the honesty note.
      ========================================================= */
   .meter {
     display: grid;
-    gap: var(--space-2);
-    padding: var(--space-4) var(--space-5);
+    gap: 6px;
+    padding: 10px var(--space-4) 10px;
     border-radius: var(--radius-l);
     background: var(--surface-2);
     box-shadow:
       inset 0 0 0 1px var(--line),
       var(--shadow-soft);
   }
-  .meter__dial {
-    display: none;
-    width: 100%;
-    max-width: 260px;
-    margin-inline: auto;
-    overflow: visible;
-  }
-  .meter__track,
-  .meter__fill {
-    fill: none;
-    stroke-width: 14;
-    stroke-linecap: round;
-  }
-  .meter__track {
-    stroke: var(--surface-1);
-  }
-  .meter__fill {
-    stroke: var(--accent);
-    stroke-dasharray: 1;
-    stroke-dashoffset: calc(1 - var(--meter));
-    transition: stroke-dashoffset 1100ms var(--ease-in-out-quart);
-  }
-  .meter__tick {
-    stroke: var(--line-strong);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-  }
-  .meter__needle {
-    transform-origin: 100px 100px;
-    transform: rotate(calc(-90deg + var(--meter) * 180deg));
-    transition: transform 1200ms var(--ease-spring);
-  }
-  .meter__needle line {
-    stroke: var(--text);
-    stroke-width: 3;
-    stroke-linecap: round;
-  }
-  .meter__needle circle {
-    fill: var(--text);
-    stroke: var(--surface-2);
-    stroke-width: 3;
-  }
-  .meter__end {
-    fill: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-  }
   .meter__read {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 2px var(--space-3);
+    gap: 0 var(--space-3);
+    order: -1;
   }
   .meter__title {
-    font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.375rem;
-    letter-spacing: -0.01em;
+    font-size: 0.9375rem;
   }
   .meter__fixes {
     color: var(--text);
+    font-size: 0.75rem;
   }
   .meter__note {
     flex-basis: 100%;
     color: var(--text-3);
     font-size: 0.6875rem;
-    text-transform: uppercase;
   }
-  /* Slim bar version (below 1100px). */
   .meter__bar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -375,12 +309,11 @@ const tick = (t: number, r1: number, r2: number) => {
   .meter__bar-end {
     color: var(--text-3);
     font-size: 0.6875rem;
-    text-transform: uppercase;
   }
   .meter__bar-track {
     position: relative;
-    height: 10px;
-    border-radius: 5px;
+    height: 8px;
+    border-radius: 4px;
     background: var(--surface-1);
     box-shadow: inset 0 0 0 1px var(--line);
   }
@@ -398,26 +331,12 @@ const tick = (t: number, r1: number, r2: number) => {
     top: -4px;
     left: 0;
     width: 4px;
-    height: 18px;
+    height: 16px;
     margin-left: -2px;
     border-radius: 2px;
     background: var(--text);
     translate: calc(var(--meter) * var(--track-w, 0px)) 0;
-  }
-  @media (min-width: 1100px) {
-    .meter__dial {
-      display: block;
-    }
-    .meter__bar {
-      display: none;
-    }
-    .meter__read {
-      justify-content: center;
-      text-align: center;
-    }
-    .meter__note {
-      text-align: center;
-    }
+    transition: translate 1200ms var(--ease-spring);
   }
   @media (max-width: 1099px) {
     /* Stays in view under the nav while you swipe through the fixes. */
@@ -425,19 +344,9 @@ const tick = (t: number, r1: number, r2: number) => {
       position: sticky;
       top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 8px);
       z-index: 3;
-      padding: var(--space-3) var(--space-4);
-      background: color-mix(in srgb, var(--surface-2) 92%, transparent);
+      background: color-mix(in srgb, var(--surface-2) 94%, transparent);
       -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
-    }
-    .meter__title {
-      font-size: 1.0625rem;
-    }
-    .meter__read {
-      order: -1;
-    }
-    .meter__note {
-      flex-basis: auto;
     }
   }
 
@@ -485,7 +394,7 @@ const tick = (t: number, r1: number, r2: number) => {
 
   /* =========================================================
      The example product page. Sized in container units so it keeps its layout from a phone
-     to a wide desktop (it is a picture of a page, not a page).
+     to a desktop (it is a picture of a page, not a page). Kept short on purpose.
      ========================================================= */
   .pp {
     margin: 0;
@@ -497,14 +406,14 @@ const tick = (t: number, r1: number, r2: number) => {
     background: var(--surface-2);
     box-shadow:
       inset 0 0 0 1px var(--line),
-      var(--shadow-lift);
+      var(--shadow-soft);
     overflow: hidden;
   }
   .pp__bar {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: 10px 14px;
+    padding: 6px 12px;
     border-bottom: 1px solid var(--line);
     background: var(--surface-1);
   }
@@ -513,8 +422,8 @@ const tick = (t: number, r1: number, r2: number) => {
     gap: 5px;
   }
   .pp__dots span {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--line-strong);
   }
@@ -522,30 +431,34 @@ const tick = (t: number, r1: number, r2: number) => {
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    padding: 3px 12px;
-    border-radius: var(--radius-pill);
+    padding: 2px 10px;
+    border-radius: var(--radius-s);
     background: var(--surface-2);
     color: var(--text-3);
-    font-size: clamp(0.625rem, 1.6cqi, 0.75rem);
+    font-size: 0.6875rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .pp__ex {
+    font-size: 0.6875rem;
+    padding: 1px 8px;
+  }
   .pp__page {
     position: relative;
-    padding-bottom: calc(var(--u) * 9);
-    background: var(--bg);
+    /* Room for the chat bubble under the columns, so it never sits on Add to cart. */
+    padding-bottom: max(40px, calc(var(--u) * 6));
+    background: var(--surface-2);
     overflow: hidden;
   }
   /* Badges: an "app" badge before the fix, an "ok" badge after. Only one shows. */
   .pp__badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
-    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+    border-radius: var(--radius-s);
     font-family: var(--font-mono);
-    font-size: clamp(0.5625rem, 1.5cqi, 0.6875rem);
+    font-size: 0.6875rem;
     font-weight: 500;
-    letter-spacing: 0.02em;
     white-space: nowrap;
   }
   .pp__badge--app {
@@ -554,8 +467,8 @@ const tick = (t: number, r1: number, r2: number) => {
   }
   .pp__badge--ok {
     display: none;
-    background: var(--accent-fill);
-    color: var(--on-accent);
+    background: var(--accent-soft);
+    color: var(--accent-text);
   }
 
   .pp__announce {
@@ -564,25 +477,28 @@ const tick = (t: number, r1: number, r2: number) => {
     align-items: center;
     justify-content: center;
     gap: var(--space-3);
-    min-height: calc(var(--u) * 6.4);
-    padding: 6px 12px;
+    min-height: 32px;
+    padding: 4px 44px 4px 12px;
     background: var(--btn-bg);
     color: var(--btn-fg);
-    font-size: clamp(0.6875rem, 1.8cqi, 0.875rem);
+    font-size: 0.75rem;
     font-weight: 500;
+  }
+  .pp__announce .pp__badge--ok {
+    background: var(--accent-fill);
+    color: var(--on-accent);
   }
   .pp__header {
     display: flex;
     align-items: center;
     gap: calc(var(--u) * 3);
-    padding: calc(var(--u) * 2.6) calc(var(--u) * 4);
+    padding: 8px calc(var(--u) * 4);
     border-bottom: 1px solid var(--line);
   }
   .pp__logo {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(0.875rem, 2.8cqi, 1.375rem);
-    letter-spacing: -0.01em;
+    font-family: var(--font-store);
+    font-weight: 700;
+    font-size: clamp(0.875rem, 2.2cqi, 1.125rem);
     white-space: nowrap;
   }
   .pp__links {
@@ -591,49 +507,44 @@ const tick = (t: number, r1: number, r2: number) => {
     margin-inline: auto;
   }
   .pp__links span,
-  .pp__crumb,
-  .pp__price,
-  .pp__upsell span {
+  .pp__price {
     display: block;
-    height: calc(var(--u) * 1.4);
-    min-height: 6px;
+    height: 6px;
     border-radius: 3px;
     background: var(--line);
   }
   .pp__links span {
-    width: calc(var(--u) * 7);
+    width: calc(var(--u) * 6);
   }
   .pp__cart {
-    width: calc(var(--u) * 3.4);
-    height: calc(var(--u) * 3.4);
-    min-width: 14px;
-    min-height: 14px;
+    width: 14px;
+    height: 14px;
     border: 2px solid var(--text-2);
-    border-radius: 3px 3px 6px 6px;
+    border-radius: 3px 3px 5px 5px;
   }
   .pp__main {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
     gap: calc(var(--u) * 4);
-    padding: calc(var(--u) * 3.2) calc(var(--u) * 4);
+    padding: calc(var(--u) * 3) calc(var(--u) * 4) 0;
   }
   .pp__gallery {
     display: grid;
-    gap: calc(var(--u) * 1.6);
+    gap: calc(var(--u) * 1.2);
   }
   .pp__photo {
     position: relative;
-    aspect-ratio: 1 / 0.8;
-    border-radius: calc(var(--u) * 1.6);
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-s);
     background:
-      radial-gradient(70% 60% at 50% 40%, #f3e2cf, transparent 70%),
-      linear-gradient(160deg, #ead5bd, #d9bc9c);
+      radial-gradient(70% 60% at 50% 40%, #f6ece2, transparent 70%),
+      linear-gradient(160deg, #eadfd3, #d8c6b4);
   }
   .pp__mug {
     position: absolute;
-    inset: 12%;
-    width: 76%;
-    height: 76%;
+    inset: 8% 22%;
+    width: 56%;
+    height: 84%;
     filter: blur(5px) saturate(0.7);
     opacity: 0.75;
     transition:
@@ -641,7 +552,7 @@ const tick = (t: number, r1: number, r2: number) => {
       opacity 900ms var(--ease-out-quint);
   }
   .mug__shadow {
-    fill: rgb(80 50 30 / 0.25);
+    fill: rgb(60 40 30 / 0.22);
   }
   .mug__body {
     fill: #c25a35;
@@ -681,47 +592,45 @@ const tick = (t: number, r1: number, r2: number) => {
   }
   .pp__photo-badge {
     position: absolute;
-    left: calc(var(--u) * 1.6);
-    bottom: calc(var(--u) * 1.6);
+    left: 6px;
+    bottom: 6px;
   }
   .pp__thumbs {
     position: relative;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(var(--u) * 1.6);
+    gap: calc(var(--u) * 1.2);
   }
   .pp__thumbs > span:not(.pp__lazy) {
-    aspect-ratio: 1;
-    border-radius: calc(var(--u) * 1);
-    background: linear-gradient(160deg, #ead5bd, #d9bc9c);
-    opacity: 0.8;
+    aspect-ratio: 1.4;
+    border-radius: 4px;
+    background: linear-gradient(160deg, #eadfd3, #d8c6b4);
+    opacity: 0.85;
   }
   .pp__lazy {
     position: absolute;
     right: 4px;
-    bottom: 4px;
+    top: 50%;
     display: none;
-    padding: 1px 6px;
-    border-radius: var(--radius-pill);
+    padding: 0 6px;
+    border-radius: var(--radius-s);
     background: var(--surface-2);
     color: var(--text-2);
-    font-size: clamp(0.5625rem, 1.4cqi, 0.6875rem);
+    font-size: 0.6875rem;
+    transform: translateY(-50%);
   }
   .pp__info {
     display: grid;
     align-content: start;
-    gap: calc(var(--u) * 2);
+    gap: calc(var(--u) * 1.8);
     min-width: 0;
   }
-  .pp__crumb {
-    width: 40%;
-  }
+  /* The storefront's own type: the one place a serif appears. */
   .pp__title {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(0.9375rem, 3.6cqi, 1.875rem);
-    line-height: 1.05;
-    letter-spacing: -0.015em;
+    font-family: var(--font-store);
+    font-weight: 700;
+    font-size: clamp(0.9375rem, 3cqi, 1.5rem);
+    line-height: 1.1;
   }
   .pp__stars {
     display: flex;
@@ -729,7 +638,7 @@ const tick = (t: number, r1: number, r2: number) => {
     align-items: center;
     gap: 6px;
     color: var(--accent-text);
-    font-size: clamp(0.625rem, 1.7cqi, 0.875rem);
+    font-size: 0.6875rem;
     letter-spacing: 0.08em;
   }
   .pp__stars-n {
@@ -738,25 +647,27 @@ const tick = (t: number, r1: number, r2: number) => {
   }
   .pp__price {
     width: 30%;
-    height: calc(var(--u) * 2.2);
+    height: 9px;
     background: var(--text-2);
-    opacity: 0.55;
+    opacity: 0.5;
   }
   .pp__swatches {
     display: flex;
-    gap: calc(var(--u) * 1.4);
+    gap: 8px;
   }
   .pp__sw {
-    width: calc(var(--u) * 3.6);
-    height: calc(var(--u) * 3.6);
-    min-width: 12px;
-    min-height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--line-strong);
+    box-shadow:
+      0 0 0 2px var(--surface-2),
+      0 0 0 3px var(--line-strong);
   }
   .pp__sw--0 {
     background: #c25a35;
-    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text);
+    box-shadow:
+      0 0 0 2px var(--surface-2),
+      0 0 0 3.5px var(--text);
   }
   .pp__sw--1 {
     background: #b9b2a6;
@@ -768,48 +679,36 @@ const tick = (t: number, r1: number, r2: number) => {
     position: relative;
     display: grid;
     place-items: center;
-    min-height: calc(var(--u) * 7);
-    padding: 6px;
-    border-radius: var(--radius-pill);
+    min-height: 34px;
+    padding: 4px;
+    border-radius: var(--radius-s);
     background: var(--btn-bg);
     color: var(--btn-fg);
-    font-size: clamp(0.6875rem, 2cqi, 1rem);
+    font-size: 0.8125rem;
     font-weight: 600;
-  }
-  .pp__upsell {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: calc(var(--u) * 1.6);
-    margin-top: calc(var(--u) * 1);
-  }
-  .pp__upsell span {
-    height: calc(var(--u) * 8);
-    border-radius: calc(var(--u) * 1);
-    background: var(--surface-1);
-    box-shadow: inset 0 0 0 1px var(--line);
   }
 
   /* Chat bubble, bottom right of the page. */
   .pp__chat {
     position: absolute;
     right: calc(var(--u) * 3);
-    bottom: calc(var(--u) * 2.4);
+    bottom: 8px;
     z-index: 2;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px 6px 8px;
+    padding: 4px 10px 4px 6px;
     border-radius: var(--radius-pill);
     background: var(--surface-2);
     box-shadow:
-      inset 0 0 0 1px var(--line),
+      inset 0 0 0 1px var(--line-strong),
       var(--shadow-soft);
-    font-size: clamp(0.5625rem, 1.5cqi, 0.6875rem);
+    font-size: 0.6875rem;
     transition: transform 700ms var(--ease-out-quint);
   }
   .pp__chat-dot {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     border: 2px solid var(--warn-dot);
     border-right-color: transparent;
@@ -837,21 +736,21 @@ const tick = (t: number, r1: number, r2: number) => {
     position: absolute;
     left: calc(var(--u) * 2);
     right: calc(var(--u) * 2);
-    bottom: calc(var(--u) * 1.6);
+    bottom: 6px;
     z-index: 3;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    padding: calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 3);
-    border-radius: var(--radius-pill);
+    padding: 5px 5px 5px 14px;
+    border-radius: var(--radius-m);
     background: var(--surface-2);
     box-shadow:
       inset 0 0 0 1px var(--line-strong),
       var(--shadow-lift);
-    font-size: clamp(0.625rem, 1.7cqi, 0.875rem);
+    font-size: 0.75rem;
     font-weight: 600;
-    transform: translateY(calc(100% + var(--u) * 4));
+    transform: translateY(calc(100% + 16px));
     transition: transform 760ms var(--ease-spring);
   }
   .pp__sticky-name {
@@ -862,24 +761,25 @@ const tick = (t: number, r1: number, r2: number) => {
   }
   .pp__sticky-btn {
     flex: none;
-    padding: calc(var(--u) * 1.2) calc(var(--u) * 3);
-    border-radius: var(--radius-pill);
+    padding: 5px 12px;
+    border-radius: var(--radius-s);
     background: var(--accent-fill);
     color: var(--on-accent);
   }
 
-  /* Scripts strip under the page. */
+  /* Scripts strip under the page: one row on desktop. */
   .pp__scripts {
-    display: grid;
-    gap: 8px;
-    padding: 12px 14px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 8px 12px 10px;
     border-top: 1px solid var(--line);
     background: var(--surface-1);
   }
   .pp__scripts-label {
     color: var(--text-3);
     font-size: 0.6875rem;
-    text-transform: uppercase;
   }
   .pp__chips {
     display: flex;
@@ -891,16 +791,15 @@ const tick = (t: number, r1: number, r2: number) => {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 9px;
+    padding: 2px 8px;
     border-radius: var(--radius-xs);
     background: var(--surface-2);
     color: var(--text-2);
     box-shadow: inset 0 0 0 1px var(--line);
-    font-size: clamp(0.625rem, 1.5cqi, 0.75rem);
+    font-size: 0.6875rem;
     transition:
       background-color 500ms var(--ease-out-quint),
-      color 500ms var(--ease-out-quint),
-      opacity 500ms var(--ease-out-quint);
+      color 500ms var(--ease-out-quint);
   }
   .chipjs--fix .chipjs__name::before {
     content: '';
@@ -954,7 +853,7 @@ const tick = (t: number, r1: number, r2: number) => {
     transform: none;
   }
   .td[data-fixes~='sticky'] .pp__chat {
-    transform: translateY(calc(var(--u) * -9));
+    transform: translateY(-44px);
   }
   .td[data-fixes~='dead'] .chipjs[data-fix='dead'],
   .td[data-fixes~='section'] .chipjs[data-fix='section'],
@@ -981,7 +880,7 @@ const tick = (t: number, r1: number, r2: number) => {
     transition: none !important;
   }
 
-  /* ---------- hotspots ---------- */
+  /* ---------- hotspots (28px targets) ---------- */
   .hs {
     position: absolute;
     top: -12px;
@@ -994,7 +893,7 @@ const tick = (t: number, r1: number, r2: number) => {
     border-radius: 50%;
     background: var(--accent-fill);
     color: var(--on-accent);
-    box-shadow: 0 0 0 3px var(--bg);
+    box-shadow: 0 0 0 3px var(--surface-2);
     font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 600;
@@ -1004,24 +903,29 @@ const tick = (t: number, r1: number, r2: number) => {
       background-color 300ms var(--ease-out-quint);
   }
   .pp__photo .hs {
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
   }
   .pp__announce .hs {
     top: 50%;
-    right: 10px;
+    right: 8px;
     margin-top: -14px;
     box-shadow: 0 0 0 2px var(--btn-bg);
   }
   .pp__chat .hs {
-    top: -12px;
+    top: -14px;
+    right: -8px;
+  }
+  .pp__atc .hs {
+    top: 50%;
     right: -6px;
+    margin-top: -14px;
   }
   .is-live .hs {
     cursor: pointer;
   }
   .is-live .hs.is-current {
-    transform: scale(1.18);
+    transform: scale(1.12);
   }
   .is-live .hs.is-current::after {
     content: '';
@@ -1049,36 +953,43 @@ const tick = (t: number, r1: number, r2: number) => {
     background: var(--surface-2);
     color: var(--text);
     box-shadow:
-      0 0 0 3px var(--bg),
+      0 0 0 3px var(--surface-2),
       inset 0 0 0 1.5px var(--text);
   }
   @media (hover: hover) {
     .is-live .hs:hover {
-      transform: scale(1.18);
+      transform: scale(1.12);
     }
   }
 
   /* =========================================================
-     Steps (no JS: all open, a plain list)
+     Steps (no JS: all open, a plain list), in a card
      ========================================================= */
   .td__steps {
     position: relative; /* the cards' offsetParent, for the stack's scroll maths */
     display: grid;
     margin: 0;
-    border-top: 1px dotted var(--line-strong);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    overflow: hidden;
   }
   .st {
     position: relative;
-    border-bottom: 1px dotted var(--line-strong);
+  }
+  .st + .st {
+    border-top: 1px solid var(--line);
   }
   .st::before {
     content: '';
     position: absolute;
     left: 0;
-    top: 10px;
-    bottom: 10px;
+    top: 8px;
+    bottom: 8px;
     width: 3px;
-    border-radius: 2px;
+    border-radius: 0 2px 2px 0;
     background: var(--accent);
     transform: scaleY(0);
     transform-origin: top;
@@ -1091,7 +1002,7 @@ const tick = (t: number, r1: number, r2: number) => {
     gap: var(--space-3);
     width: 100%;
     min-height: var(--tap);
-    padding: 12px 4px 12px 14px;
+    padding: 9px 12px 9px 14px;
     border: 0;
     background: none;
     color: var(--text);
@@ -1104,15 +1015,15 @@ const tick = (t: number, r1: number, r2: number) => {
   }
   .st__num {
     color: var(--text-3);
+    font-size: 0.75rem;
   }
   .st__title {
     font-weight: 600;
-    font-size: 1.0625rem;
+    font-size: 0.9375rem;
     line-height: 1.3;
   }
   .st__kind {
     font-size: 0.6875rem;
-    text-transform: uppercase;
     color: var(--text-3);
     white-space: nowrap;
   }
@@ -1120,12 +1031,14 @@ const tick = (t: number, r1: number, r2: number) => {
     color: var(--accent-text);
   }
   .st__text {
-    padding: 0 4px 16px 14px;
+    padding: 0 12px 12px 14px;
     color: var(--text-2);
-    font-size: var(--fs-small);
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
   .td__note {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
   }
 
   /* ---------- live (JS) ---------- */
@@ -1144,6 +1057,9 @@ const tick = (t: number, r1: number, r2: number) => {
   @media (hover: hover) {
     .is-live .st:not([aria-current='step']) .st__btn:hover .st__title {
       color: var(--text);
+    }
+    .is-live .st:not([aria-current='step']) .st__btn:hover {
+      background: var(--surface-1);
     }
   }
   /* Accordion on desktop: only the current step opens; height glides via grid rows. */
@@ -1180,8 +1096,10 @@ const tick = (t: number, r1: number, r2: number) => {
       display: flex;
       gap: var(--space-3);
       margin-inline: calc(-1 * var(--margin));
-      padding: 4px var(--margin) 8px;
-      border-top: 0;
+      padding: 2px var(--margin) 4px;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
       overflow-x: auto;
       overscroll-behavior-x: contain;
       scroll-snap-type: x mandatory;
@@ -1194,13 +1112,17 @@ const tick = (t: number, r1: number, r2: number) => {
     .is-live .st {
       flex: 0 0 min(86%, 30rem);
       scroll-snap-align: start;
-      border-bottom: 0;
-      border-radius: var(--radius-m);
+      border-radius: var(--radius-l);
       background: var(--surface-2);
-      box-shadow: inset 0 0 0 1px var(--line);
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
       transition:
         box-shadow 400ms var(--ease-out-quint),
         background-color 400ms var(--ease-out-quint);
+    }
+    .is-live .st + .st {
+      border-top: 0;
     }
     /* Other cards step back with a quieter surface, never with opacity: text keeps full
        contrast. */
@@ -1210,13 +1132,13 @@ const tick = (t: number, r1: number, r2: number) => {
     }
     .is-live .st[aria-current='step'] {
       box-shadow:
-        inset 0 0 0 1.5px var(--line-strong),
+        inset 0 0 0 1px var(--line-strong),
         var(--shadow-soft);
     }
     .is-live .st::before {
-      top: 14px;
+      top: 12px;
       bottom: auto;
-      height: 22px;
+      height: 20px;
     }
     .td__dots {
       display: flex;
@@ -1254,7 +1176,7 @@ const tick = (t: number, r1: number, r2: number) => {
     height: var(--tap);
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--radius-s);
     background: var(--surface-2);
     color: var(--text);
     box-shadow: inset 0 0 0 1px var(--line-strong);
@@ -1306,6 +1228,10 @@ const tick = (t: number, r1: number, r2: number) => {
   @media (max-width: 1099px) {
     .td__dots {
       display: flex;
+    }
+    /* Phones: the stack's own text is the step copy; keep the footnote to one short line. */
+    .td__note {
+      font-size: 0.6875rem;
     }
   }
 </style>

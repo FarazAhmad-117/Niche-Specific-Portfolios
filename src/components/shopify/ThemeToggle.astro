@@ -27,7 +27,7 @@ const { class: className } = Astro.props;
     height: var(--tap);
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--radius-s);
     background: transparent;
     color: var(--text);
     touch-action: manipulation;
@@ -61,7 +61,7 @@ const { class: className } = Astro.props;
   const root = document.documentElement;
   const KEY = 'theme';
   type Theme = 'light' | 'dark';
-  const COLORS: Record<Theme, string> = { light: '#f6f1e9', dark: '#17110e' };
+  const COLORS: Record<Theme, string> = { light: '#f1f1f1', dark: '#141414' };
 
   let dark: MediaQueryList | null = null;
   try {

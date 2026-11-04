@@ -47,9 +47,7 @@ import { CONTACT_EMAIL, bookingUrl } from '../../data/shopify/site';
     gap: var(--space-7);
     padding: clamp(1.5rem, 1rem + 3vw, 4rem);
     border-radius: var(--radius-xl);
-    background:
-      radial-gradient(46rem 28rem at 100% 0%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 62%),
-      var(--btn-bg);
+    background: var(--btn-bg);
     color: var(--btn-fg);
     overflow: hidden;
   }
@@ -78,11 +76,6 @@ import { CONTACT_EMAIL, bookingUrl } from '../../data/shopify/site';
   }
   .cta__copy h2 {
     max-width: 16ch;
-  }
-  /* On the ink card the pill inverts: paper plate, clay dot and fill, label flips on hover. */
-  .cta__book {
-    background: var(--btn-fg);
-    color: var(--btn-bg);
   }
   .cta__mail {
     margin: 0;
@@ -148,7 +141,7 @@ import { CONTACT_EMAIL, bookingUrl } from '../../data/shopify/site';
     min-height: 54px;
     padding: 0 26px 0 42px;
     border: 0;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-s);
     background: var(--btn-bg);
     color: var(--btn-fg);
     font-family: var(--font-body);

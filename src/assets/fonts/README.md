@@ -84,55 +84,20 @@ with fontTools against Arial) are in `src/styles/ads/tokens.css`.
 
 | File | Family / weights | Source | License |
 |---|---|---|---|
-| `Gambetta-Semibold.woff2` | Gambetta 600 | Fontshare CDN, URL from `https://api.fontshare.com/v2/css?f[]=gambetta@500,600,700&display=swap` (downloaded 2026-11-03, 20,044 bytes) | ITF Free Font License (Indian Type Foundry) |
-| `GeneralSans-Regular.woff2` | General Sans 400 | Fontshare CDN, URL from `https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap` (downloaded 2026-11-03, 23,084 bytes) | ITF Free Font License |
+| `GeneralSans-Regular.woff2` | General Sans 400 | Fontshare CDN, URL from `https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap` (downloaded 2026-11-03, 23,084 bytes) | ITF Free Font License (Indian Type Foundry) |
 | `GeneralSans-Medium.woff2` | General Sans 500 | Same CSS as above (22,904 bytes) | ITF Free Font License |
-| `GeneralSans-Semibold.woff2` | General Sans 600 | Same CSS as above (23,092 bytes) | ITF Free Font License |
-| `og/Gambetta-Semibold.ttf` | Gambetta 600 (build-only, OG images) | Fontshare CDN, the `.ttf` URL from the Gambetta CSS above | ITF Free Font License |
+| `GeneralSans-Semibold.woff2` | General Sans 600 (headings and the h1) | Same CSS as above (23,092 bytes) | ITF Free Font License |
 | `og/GeneralSans-Medium.woff` | General Sans 500 (build-only, OG images) | Fontshare CDN, the `.woff` URL from the General Sans CSS above | ITF Free Font License |
+| `og/GeneralSans-Semibold.woff` | General Sans 600 (build-only, OG headings) | Fontshare CDN, the `.woff` URL from the same CSS (downloaded 2026-11-04, 30,716 bytes) | ITF Free Font License |
 
-The shopify niche also uses `JetBrainsMono-Variable-latin.woff2` (labels, receipts) and
-`ClashDisplay-Semibold.woff2` (footer signature), plus `og/ClashDisplay-Semibold.ttf` and
-`og/JetBrainsMono-Regular.woff` for OG images. The shopify Layout preloads only Gambetta (the
-h1 / LCP). Fallback metrics (Georgia for Gambetta, Arial for General Sans, measured with
-fontTools) are in `src/styles/shopify/tokens.css`. Fontshare serves these as latin +
-latin-ext static cuts (no separate latin-only subset).
-
-### wp niche
-
-| File | Family / weights | Source | License |
-|---|---|---|---|
-| `Boska-Regular.woff2` | Boska 400 | Fontshare CDN, URL from `https://api.fontshare.com/v2/css?f[]=boska@400,500,700,400i,500i&display=swap` (downloaded 2026-11-04, 30,372 bytes) | ITF Free Font License (Indian Type Foundry) |
-| `Boska-Medium.woff2` | Boska 500 (h1 / LCP, preloaded) | Same CSS (29,916 bytes) | ITF Free Font License |
-| `Boska-Italic.woff2` | Boska 400 italic | Same CSS (33,396 bytes) | ITF Free Font License |
-| `Boska-MediumItalic.woff2` | Boska 500 italic (the accent word) | Same CSS (32,752 bytes) | ITF Free Font License |
-| `HankenGrotesk-Variable-latin.woff2` | Hanken Grotesk, variable wght 100–900 (latin subset) | Copied from npm `@fontsource-variable/hanken-grotesk@5.3.0`, `files/hanken-grotesk-latin-wght-normal.woff2` | SIL OFL 1.1 (© 2021 The Hanken Grotesk Project Authors) |
-| `og/Boska-Medium.woff` | Boska 500 (build-only, OG images) | Fontshare CDN, the `.woff` URL from the Boska CSS above | ITF Free Font License |
-| `og/Boska-MediumItalic.woff` | Boska 500 italic (build-only, OG images) | Same | ITF Free Font License |
-| `og/HankenGrotesk-Medium.woff` | Hanken Grotesk 500 (build-only, OG images) | npm `@fontsource/hanken-grotesk@5.3.0`, `files/hanken-grotesk-latin-500-normal.woff` | SIL OFL 1.1 |
-
-The wp niche also uses `JetBrainsMono-Variable-latin.woff2` (labels) and
-`ClashDisplay-Semibold.woff2` (footer signature), plus `og/ClashDisplay-Semibold.ttf` and
-`og/JetBrainsMono-Regular.woff` for OG images. The wp Layout preloads only Boska 500 (the h1 /
-LCP). Fallback metrics (Times New Roman for Boska, Arial for Hanken Grotesk, measured with
-fontTools) are in `src/styles/wp/tokens.css`. Fontshare serves Boska as static latin +
-latin-ext cuts.
-
-### webflow niche
-
-| File | Family / weights | Source | License |
-|---|---|---|---|
-| `Unbounded-Variable-latin.woff2` | Unbounded, variable wght 200–900 (latin subset) | Copied from npm `@fontsource-variable/unbounded@5.3.0`, `files/unbounded-latin-wght-normal.woff2` (50,904 bytes) | SIL Open Font License 1.1 (© The Unbounded Project Authors) |
-| `Switzer-Variable.woff2` | Switzer, variable wght 100–900 | Fontshare CDN, URL from `https://api.fontshare.com/v2/css?f[]=switzer@1&display=swap` (downloaded 2026-11-03, 43,220 bytes) | ITF Free Font License (Indian Type Foundry) |
-| `og/Unbounded-Bold.woff` | Unbounded 700 (build-only, OG images) | npm `@fontsource/unbounded@5.3.0`, `files/unbounded-latin-700-normal.woff` | SIL OFL 1.1 |
-| `og/Switzer-Medium.woff` | Switzer 500 (build-only, OG images) | Fontshare CDN, the `.woff` URL from `https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap` | ITF Free Font License |
-
-The webflow niche also uses `JetBrainsMono-Variable-latin.woff2` (class names, specs) and
-`ClashDisplay-Semibold.woff2` (footer signature), plus `og/ClashDisplay-Semibold.ttf` and
-`og/JetBrainsMono-Regular.woff` for OG images. The webflow Layout preloads only Unbounded (the
-h1 / LCP). Fallback metrics (Arial Black for Unbounded at 113%, Arial for Switzer at 101.6%,
-measured with fontTools) are in `src/styles/webflow/tokens.css`.
-
+General Sans is used for body and headings (600, tight tracking). The shopify niche also uses
+`JetBrainsMono-Variable-latin.woff2` (small code labels) and `ClashDisplay-Semibold.woff2`
+(footer signature), plus `og/ClashDisplay-Semibold.ttf` and `og/JetBrainsMono-Regular.woff`
+for OG images. The shopify Layout preloads only General Sans 600 (the h1 / LCP). The product
+name inside the teardown mock uses the system Georgia (no download). Fallback metrics (Arial
+for General Sans, measured with fontTools) are in `src/styles/shopify/tokens.css`. Fontshare
+serves these as latin + latin-ext static cuts (no separate latin-only subset). Gambetta, used in
+the first shopify build, was removed (nothing references it).
 The Fontsource files were copied out of the packages (not added as dependencies) so the
 build does not depend on them. To update: `npm pack <package>` in a temp folder and copy
 the same file names.

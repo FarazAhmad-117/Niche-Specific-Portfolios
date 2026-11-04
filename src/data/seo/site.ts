@@ -31,6 +31,7 @@ export const SECTIONS = [
   { id: 'growth', label: 'How growth looks' },
   { id: 'engine', label: 'The engine' },
   { id: 'work', label: 'Case studies' },
+  { id: 'backlinks', label: 'Backlinks' },
   { id: 'services', label: 'Services' },
   { id: 'safe', label: 'How I keep it safe' },
   { id: 'process', label: 'Process' },
@@ -44,6 +45,7 @@ export const NAV_LINKS = [
   { label: 'How it grows', id: 'growth' },
   { label: 'Engine', id: 'engine' },
   { label: 'Work', id: 'work' },
+  { label: 'Backlinks', id: 'backlinks' },
   { label: 'Services', id: 'services' },
   { label: 'FAQ', id: 'faq' },
 ] as const satisfies readonly { label: string; id: SectionId }[];

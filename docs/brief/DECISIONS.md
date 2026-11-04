@@ -456,7 +456,7 @@ Brief: `docs/brief/seo.md` · draft brief · concept: SERP
 
 ### SEO-specific
 
-- **Do you build links?** — decided: No link building; say so plainly
+- **Do you build links?** — decided: No paid or spammy link building; backlink audit & strategy offered (owner, 2026-11-04)
 - **Search Console screenshots** — decided: I will supply anonymized screenshots
 
 ### Build

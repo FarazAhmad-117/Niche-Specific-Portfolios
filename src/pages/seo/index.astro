@@ -6,6 +6,7 @@ import Problem from '../../components/seo/Problem.astro';
 import GrowthChart from '../../components/seo/GrowthChart.astro';
 import Engine from '../../components/seo/Engine.astro';
 import Cases from '../../components/seo/Cases.astro';
+import Backlinks from '../../components/seo/Backlinks.astro';
 import Offers from '../../components/seo/Offers.astro';
 import Safe from '../../components/seo/Safe.astro';
 import Process from '../../components/seo/Process.astro';
@@ -19,8 +20,8 @@ assertMeta('home', HOME_SEO);
 
 /*
  * Reading order (brief §4, no testimonials): what this is → facts → the problem → how growth
- * looks (signature) → the engine → proof → how to buy → why it is safe → how it runs → who
- * does it → questions → contact.
+ * looks (signature) → the engine → proof → backlinks (audited and earned, never bought) → how
+ * to buy → why it is safe → how it runs → who does it → questions → contact.
  */
 ---
 
@@ -31,6 +32,7 @@ assertMeta('home', HOME_SEO);
   <GrowthChart />
   <Engine />
   <Cases />
+  <Backlinks />
   <Offers />
   <Safe />
   <Process />

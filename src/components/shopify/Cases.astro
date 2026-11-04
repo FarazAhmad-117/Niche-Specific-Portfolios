@@ -2,7 +2,7 @@
 /**
  * Case studies on the home page. Yard Terminal leads (the one real case). The example speed
  * teardown and a visible placeholder slot for real store work (speed / conversion, open in
- * decisions) sit beside it on one shelf, so the row is full and nothing pretends to be what it
+ * decisions) sit beside it in one row, so the row is full and nothing pretends to be what it
  * isn't.
  *
  * Page transition: each linked card carries view-transition-name `case-<id>`; the case page
@@ -96,7 +96,7 @@ const fixes = STEPS.filter((s) => s.fix);
         <span class="case__kicker mono">Store work · speed or conversion</span>
         <p class="slot__title">A real store, before and after.</p>
         <p class="slot__text">
-          This shelf stays empty until a client clears their store and numbers for publishing. No made-up results in the
+          This slot stays empty until a client clears their store and numbers for publishing. No made-up results in the
           meantime.
         </p>
         <span class="todo">TODO · Store case: Lighthouse and load time before / after, conversion change</span>
@@ -178,7 +178,6 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .case__kicker {
     color: var(--text-3);
-    text-transform: uppercase;
   }
   .case__name {
     font-family: var(--font-display);
@@ -247,15 +246,13 @@ const fixes = STEPS.filter((s) => s.fix);
     filter: drop-shadow(0 18px 24px rgb(64 40 24 / 0.16));
   }
   .flowr {
-    transform: rotate(1.2deg);
     background: var(--bg);
   }
   .flowr__head {
     padding-bottom: var(--space-2);
     margin-bottom: var(--space-2);
-    border-bottom: 1.5px dashed var(--line-strong);
+    border-bottom: 1px solid var(--line);
     color: var(--text-3);
-    text-transform: uppercase;
     letter-spacing: 0.08em;
   }
   .flowr__rows {
@@ -294,7 +291,7 @@ const fixes = STEPS.filter((s) => s.fix);
     align-items: center;
     gap: 6px;
     padding: 4px 10px 4px 6px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-s);
     background: var(--surface-1);
     font-size: 0.875rem;
     font-weight: 500;
@@ -310,7 +307,7 @@ const fixes = STEPS.filter((s) => s.fix);
     font-size: 0.625rem;
   }
 
-  /* The store-work slot: a dashed, empty shelf space. Not a link. */
+  /* The store-work slot: a dashed, empty placeholder. Not a link. */
   .case--slot {
     gap: var(--space-3);
     padding: clamp(1.25rem, 1rem + 1vw, 2rem);

@@ -71,9 +71,18 @@ export const SITES: Readonly<Record<string, SiteCopy>> = {
     headline: 'SEO built into your code, not bolted on.',
     description: 'Technical fixes in code, programmatic pages and a human-edited content engine.',
   },
-  // Not built yet: shown in the "Coming soon" row only.
-  wp: { label: 'WordPress' },
-  webflow: { label: 'Webflow' },
+  // src/data/wp/seo.ts HOME_SEO (headline = its hero h1)
+  wp: {
+    label: 'WordPress',
+    headline: 'WordPress that’s fast, secure, and yours to edit.',
+    description: 'Site health audits, rescues and fixes, custom block-theme rebuilds, speed work and care plans.',
+  },
+  // src/data/webflow/seo.ts HOME_SEO (headline = its hero h1)
+  webflow: {
+    label: 'Webflow',
+    headline: 'Webflow sites your team can actually run.',
+    description: 'Figma to Webflow builds, design and build, WordPress migrations, CMS and API integrations.',
+  },
 };
 
 export const HERO = {
@@ -91,5 +100,5 @@ export const MAIN_SITE = {
 export const PAGE_SEO = {
   title: 'All Sites: Every Specialised Portfolio | Faraz Ahmad',
   description:
-    'Every specialised site by Faraz Ahmad in one place: AI automation, GoHighLevel, apps, cloud, marketing automation, ads, Shopify and SEO.',
+    'Every specialised site by Faraz Ahmad: AI automation, GoHighLevel, apps, cloud, marketing automation, ads, Shopify, SEO, WordPress and Webflow.',
 } as const;

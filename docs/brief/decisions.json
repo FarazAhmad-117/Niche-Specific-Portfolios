@@ -589,7 +589,8 @@
       "note": "No need to price anything at all we need to be taking the clints on the call"
     },
     "seo/links": {
-      "value": "no"
+      "value": "audit",
+      "note": "No paid or spammy link building; backlink audit & strategy offered (owner, 2026-11-04)"
     },
     "seo/gsc": {
       "value": "have"
@@ -1738,7 +1739,7 @@
       "links": {
         "question": "Do you build links?",
         "decided": true,
-        "answer": "No link building; say so plainly",
+        "answer": "No paid or spammy link building; backlink audit & strategy offered (owner, 2026-11-04)",
         "customInstructions": null
       },
       "gsc": {

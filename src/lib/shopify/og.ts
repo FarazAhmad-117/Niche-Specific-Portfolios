@@ -20,18 +20,19 @@ const H = 630;
 const M = 80;
 
 const C = {
-  paper: '#f6f1e9',
-  paper2: '#ece4d6',
-  card: '#fcfaf6',
-  line: '#e0d5c4',
-  dots: '#988470',
-  ink: '#1f1712',
-  ink2: '#4f4239',
+  paper: '#f1f1f1',
+  paper2: '#ebebeb',
+  card: '#ffffff',
+  line: '#e3e3e3',
+  dots: '#e3e3e3',
+  ink: '#1a1a1a',
+  ink2: '#4a4a4a',
   clay: '#b4441f',
   clayText: '#a83a17',
   onClay: '#fff8f2',
-  warnBg: '#f4e2bf',
-  warn: '#85500c',
+  warnBg: '#fff1c2',
+  warn: '#7d5a00',
+  claySoft: '#fbe4da',
 } as const;
 
 type Style = Record<string, string | number>;
@@ -54,7 +55,7 @@ const load = (file: string) => readFileSync(path.join(fontDir, file));
 let fontCache: Parameters<typeof satori>[1]['fonts'] | undefined;
 function fonts() {
   fontCache ??= [
-    { name: 'Gambetta', data: load('Gambetta-Semibold.ttf'), weight: 600, style: 'normal' },
+    { name: 'General Sans', data: load('GeneralSans-Semibold.woff'), weight: 600, style: 'normal' },
     { name: 'General Sans', data: load('GeneralSans-Medium.woff'), weight: 500, style: 'normal' },
     { name: 'Clash Display', data: load('ClashDisplay-Semibold.ttf'), weight: 600, style: 'normal' },
     { name: 'JetBrains Mono', data: load('JetBrainsMono-Regular.woff'), weight: 400, style: 'normal' },
@@ -69,64 +70,64 @@ const mono = (size: number, color: string, extra: Style = {}): Style => ({
   ...extra,
 });
 
-/** A torn receipt edge: a row of triangles in the receipt colour. Shapes only. */
-function tornEdge(width: number): string {
-  const zz = 14;
-  const n = Math.ceil(width / zz);
-  const pts = Array.from({ length: n }, (_, i) => `${i * zz},0 ${i * zz + zz / 2},8 ${(i + 1) * zz},0`).join(' ');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="8" viewBox="0 0 ${width} 8"><polygon points="0,0 ${pts} ${width},0" fill="${C.card}"/></svg>`;
-}
-
 const VERDICT_STYLE = {
   keep: { background: C.paper2, color: C.ink2 },
-  replace: { background: C.clay, color: C.onClay },
-  remove: { background: C.ink, color: C.paper },
+  replace: { background: C.claySoft, color: C.clayText },
+  remove: { background: C.ink, color: C.card },
   defer: { background: C.warnBg, color: C.warn },
 } as const;
 
-/** A receipt: a title row, then rows with a dotted leader and a right-hand value. */
+/** An admin panel: a title row, then rows separated by hairlines with a right-hand value. */
 function receipt(title: string, rows: readonly { label: string; right: El | string }[], width: number, rowH = 54): El {
-  return h({ flexDirection: 'column', width }, [
-    h(
-      {
-        flexDirection: 'column',
-        width,
-        boxSizing: 'border-box',
-        padding: '24px 28px 14px',
-        background: C.card,
-        borderRadius: '16px 16px 0 0',
-      },
-      [
-        h({ justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: `2px dashed ${C.line}` }, [
-          h(mono(17, C.ink2, { letterSpacing: '0.08em' }), title),
-          h({ width: 12, height: 12, borderRadius: 6, background: '#d9532b' }),
-        ]),
-        ...rows.map((r) =>
-          h({ height: rowH, alignItems: 'center', gap: 12 }, [
-            h({ fontFamily: 'General Sans', fontSize: 22, color: C.ink, flexShrink: 0 }, r.label),
-            h({ flex: 1, height: 2, marginTop: 10, borderBottom: `3px dotted ${C.dots}` }),
+  return h(
+    {
+      flexDirection: 'column',
+      width,
+      boxSizing: 'border-box',
+      background: C.card,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      boxShadow: '0 10px 30px -12px rgba(26,26,26,0.18)',
+    },
+    [
+      h({ justifyContent: 'space-between', alignItems: 'center', padding: '20px 26px', borderBottom: `1px solid ${C.line}` }, [
+        h({ fontFamily: 'General Sans', fontWeight: 600, fontSize: 22, color: C.ink }, title),
+        h({ width: 12, height: 12, borderRadius: 6, background: '#d9532b' }),
+      ]),
+      ...rows.map((r, i) =>
+        h(
+          {
+            height: rowH,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '0 26px',
+            borderBottom: i < rows.length - 1 ? `1px solid ${C.line}` : 'none',
+          },
+          [
+            h({ fontFamily: 'General Sans', fontSize: 21, color: C.ink, flexShrink: 0 }, r.label),
             typeof r.right === 'string' ? h(mono(17, C.ink2, { flexShrink: 0 }), r.right) : r.right,
-          ]),
+          ],
         ),
-      ],
-    ),
-    img(tornEdge(width), width, 8),
-  ]);
+      ),
+    ],
+  );
 }
 
 const verdictTag = (v: keyof typeof VERDICT_STYLE): El =>
   h(
-    mono(15, VERDICT_STYLE[v].color, {
+    {
       flexShrink: 0,
-      padding: '4px 12px',
-      borderRadius: 4,
+      padding: '4px 14px',
+      borderRadius: 8,
       background: VERDICT_STYLE[v].background,
-      letterSpacing: '0.08em',
-      textTransform: 'uppercase',
-    }),
+      color: VERDICT_STYLE[v].color,
+      fontFamily: 'General Sans',
+      fontWeight: 600,
+      fontSize: 17,
+    },
     VERDICT_LABEL[v],
   );
-
 const topBar = (left: string, leftColor: string = C.ink2): El =>
   h({ position: 'absolute', left: M, right: M, top: M - 26, justifyContent: 'space-between', alignItems: 'center' }, [
     h({ alignItems: 'center', gap: 16 }, [img(markSvg(44), 44, 44), h(mono(20, leftColor, { letterSpacing: '0.06em' }), left)]),
@@ -149,18 +150,18 @@ function homeTree(): El {
         top: 150,
         width: 600,
         flexDirection: 'column',
-        fontFamily: 'Gambetta',
+        fontFamily: 'General Sans',
         fontWeight: 600,
         fontSize: 80,
         lineHeight: 1,
-        letterSpacing: '-0.025em',
+        letterSpacing: '-0.04em',
         color: C.ink,
       },
       [h({}, 'A faster'), h({}, 'Shopify store'), h({}, 'with'), h({ color: C.clayText }, 'fewer apps.')],
     ),
     h({ position: 'absolute', right: M - 10, top: 128 }, [
       receipt(
-        'EXAMPLE APP AUDIT',
+        'Apps · example audit',
         HERO_RECEIPT.map((r) => ({ label: r.app, right: verdictTag(r.verdict) })),
         450,
         52,
@@ -178,18 +179,18 @@ function caseTree(c: ShopifyCase): El {
     h({ position: 'absolute', left: M, top: 160, width: 560, flexDirection: 'column', gap: 26 }, [
       h(
         {
-          fontFamily: 'Gambetta',
+          fontFamily: 'General Sans',
           fontWeight: 600,
           fontSize: c.name.length > 22 ? 58 : 72,
           lineHeight: 1.02,
-          letterSpacing: '-0.025em',
+          letterSpacing: '-0.04em',
           color: C.ink,
         },
         c.name,
       ),
       h({ fontFamily: 'General Sans', fontSize: 28, lineHeight: 1.3, color: C.ink2 }, c.title),
     ]),
-    h({ position: 'absolute', right: M - 10, top: 128 }, [receipt(c.example ? 'THE METHOD' : 'THE FLOW', rows, 460, rows.length > 5 ? 50 : 58)]),
+    h({ position: 'absolute', right: M - 10, top: 128 }, [receipt(c.example ? 'The method' : 'The flow', rows, 460, rows.length > 5 ? 50 : 58)]),
     footer(),
   ]);
 }

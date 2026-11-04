@@ -72,9 +72,8 @@ import { bookingUrl } from '../../data/shopify/site';
     grid-template-columns: 4rem minmax(0, 1fr) auto;
     gap: var(--space-5);
     padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--text);
+    border-bottom: 1px solid var(--line);
     color: var(--text-3);
-    text-transform: uppercase;
   }
   @media (min-width: 900px) {
     .menu__head {
@@ -90,7 +89,7 @@ import { bookingUrl } from '../../data/shopify/site';
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     padding: var(--space-6) 0;
-    border-bottom: 1.5px dotted var(--line-strong);
+    border-bottom: 1px solid var(--line);
     scroll-margin-top: var(--space-4);
   }
   @media (min-width: 900px) {
@@ -127,7 +126,6 @@ import { bookingUrl } from '../../data/shopify/site';
     font-size: 0.8125rem;
     font-weight: 500;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
     white-space: nowrap;
   }
   .off__pick {
@@ -146,7 +144,7 @@ import { bookingUrl } from '../../data/shopify/site';
   }
   .off__gets li {
     padding: 4px 12px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-s);
     background: var(--surface-1);
     font-size: 0.875rem;
     font-weight: 500;
@@ -158,7 +156,7 @@ import { bookingUrl } from '../../data/shopify/site';
     justify-self: start;
     min-height: var(--tap);
     padding: 0 18px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-s);
     box-shadow: inset 0 0 0 1.5px var(--line-strong);
     color: var(--text);
     font-weight: 600;
