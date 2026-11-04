@@ -1,6 +1,7 @@
 ---
 /**
- * Case studies on the home page. Yard Terminal leads (the one real case). The example speed
+ * Case studies on the home page. The registry project leads (the one real case; a dashed
+ * OWN_PROJECT_SLOT in Example mode). The example speed
  * teardown and a visible placeholder slot for real store work (speed / conversion, open in
  * decisions) sit beside it in one row, so the row is full and nothing pretends to be what it
  * isn't.
@@ -9,12 +10,17 @@
  * hero box uses the same name, so on navigation the card morphs into the hero while the rest
  * of the page slides in behind it (base.css). Only the box morphs, never the title.
  */
-import { CASES } from '../../data/shopify/cases';
+import { CASES, OWN_PROJECT_SLOT } from '../../data/shopify/cases';
 import { STEPS } from '../../data/shopify/teardown';
 import { caseHref } from '../../lib/shopify/paths';
 
-const [main, teardown] = CASES;
-if (!main || !teardown) throw new Error('[shopify] expected two cases');
+// Picked by role, not position. The real case is absent in Example mode (no yard-terminal
+// project in src/person/projects.ts): its card becomes OWN_PROJECT_SLOT. The teardown is niche
+// content; if it were ever removed its card would become a second dashed slot.
+const main = CASES.find((c) => !c.example);
+const teardown = CASES.find((c) => c.example);
+// The fallback slots reuse the existing classes (a stylesheet change would alter the built CSS);
+// the gap under the main slot comes from an inline margin.
 const vt = (id: string) => `view-transition-name: case-${id}`;
 const fixes = STEPS.filter((s) => s.fix);
 ---
@@ -24,14 +30,23 @@ const fixes = STEPS.filter((s) => s.fix);
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
       <h2 id="work-title">Proof I can show you today.</h2>
+      {
+        main ? (
       <p class="lede">
-        The marketplace sync I built and run as my own product, a teardown of the store I’m usually asked to speed up, and a
+        The marketplace sync my team builds as our own product, a teardown of the store I’m usually asked to speed up, and a
         slot for client store work once it’s cleared to publish.
       </p>
+        ) : (
+          <p class="lede">
+            A teardown of the store I’m usually asked to speed up, and slots for real work once it’s added and cleared to publish.
+          </p>
+        )
+      }
     </div>
 
     {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
         armed card is invisible at that moment. */}
+    {main ? (
     <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
       <div class="case__copy">
         <div class="case__top">
@@ -66,8 +81,19 @@ const fixes = STEPS.filter((s) => s.fix);
         </div>
       </div>
     </article>
+    ) : (
+      <aside class="case case--slot" style="margin-bottom: var(--space-4)" aria-label="Own project placeholder">
+        <span class="case__kicker mono">{OWN_PROJECT_SLOT.kicker}</span>
+        <p class="slot__title">{OWN_PROJECT_SLOT.title}</p>
+        <p class="slot__text">{OWN_PROJECT_SLOT.text}</p>
+        <div class="case__todos">
+          {OWN_PROJECT_SLOT.chips.map((t) => <span class="todo">{t}</span>)}
+        </div>
+      </aside>
+    )}
 
     <div class="cases__pair">
+      {teardown ? (
       <article class="case case--small" id={`card-${teardown.id}`} style={vt(teardown.id)}>
         <div class="case__top">
           <span class="tag tag--example">Example</span>
@@ -91,6 +117,13 @@ const fixes = STEPS.filter((s) => s.fix);
           Read the teardown <span class="case__arrow">→</span>
         </span>
       </article>
+      ) : (
+        <aside class="case case--slot" aria-label="Teardown placeholder">
+          <span class="case__kicker mono">Example teardown · illustrative</span>
+          <p class="slot__title">A labelled example teardown.</p>
+          <span class="todo">TODO · Add an illustrative teardown to src/data/shopify/cases.ts</span>
+        </aside>
+      )}
 
       <aside class="case case--slot" aria-label="Store case study placeholder">
         <span class="case__kicker mono">Store work · speed or conversion</span>

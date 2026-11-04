@@ -2,19 +2,33 @@
 /**
  * Case studies (home). One spec row per build, from src/data/ai/cases.ts. If any value shown
  * here is an illustrative sample, the honest note appears under the list (and only then).
+ *
+ * One card per PRESENT case (one per row, so no slot is needed to fill a row). The heading
+ * counts the real cases; with none, the list is a single dashed TODO chip.
  */
 import Section from './Section.astro';
 import CaseCard from './CaseCard.astro';
 import SampleNote from './SampleNote.astro';
+import Todo from './Todo.astro';
 import { CASES } from '../../data/ai/cases';
 
 /** Exactly what the cards print, so the note tracks what a visitor actually sees. */
 const shown = CASES.map((c) => [c.headlineMetric, c.diagram]);
+
+const COUNT_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] as const;
+const count = CASES.length;
+const countLabel = `${COUNT_WORDS[count] ?? String(count)} ${count === 1 ? 'system' : 'systems'}`;
 ---
 
 <Section id="work">
   <div class="sec-head sec-head--split" data-reveal>
-    <h2 id="work-title">Four systems I've built, and what they do.</h2>
+    {
+      count > 0 ? (
+        <h2 id="work-title">{countLabel} I've built, and what they do.</h2>
+      ) : (
+        <h2 id="work-title">Systems I've built, and what they do.</h2>
+      )
+    }
     <p class="lede">
       Real builds, written up the same way: the problem, what I built, how it runs and what changed.
     </p>
@@ -22,6 +36,7 @@ const shown = CASES.map((c) => [c.headlineMetric, c.diagram]);
 
   <ul class="cases plain-list" data-reveal-stagger>
     {CASES.map((study) => <li><CaseCard study={study} /></li>)}
+    {count === 0 && <li><Todo label="Add your own projects to src/person/projects.ts" id="cases.none" /></li>}
   </ul>
   <SampleNote data={shown} class="cases__note" />
 </Section>

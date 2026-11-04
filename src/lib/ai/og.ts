@@ -11,8 +11,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { CASES, type CaseStudy } from '../../data/ai/cases';
+import { ALL_CASES, type AnyCase } from '../../data/ai/cases';
+import type { ProjectId } from '../../person/projects';
 import { PERSON_NAME } from '../../data/ai/site';
+import { fitSignatureRow } from '../shared/og-fit';
+import { nicheHost } from '../../niches';
 import { fanOutOf } from '../../data/ai/content';
 import { textOf } from '../../data/ai/todo';
 
@@ -84,11 +87,23 @@ function frameGrid(): El[] {
   ];
 }
 
-const signature = (): El =>
-  h({ position: 'absolute', left: MARGIN, bottom: MARGIN, alignItems: 'baseline', gap: 20 }, [
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(22, C.text2), 'Book a scoping call'),
+/** This niche's own host, printed in the corner ("ai.<root domain>"). */
+const HOST = nicheHost('ai');
+
+const SIGNATURE_TAGLINE = 'Book a scoping call';
+/**
+ * Room from the name's left edge to the schematic's left edge (300px wide at the right margin; its
+ * last node reaches the signature's row), less a 16px gap. A long name drops the tagline first and
+ * shrinks only if needed (see ../shared/og-fit).
+ */
+const SIGNATURE_BUDGET = W - 2 * MARGIN - 300 - 16;
+const signature = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: SIGNATURE_TAGLINE, taglinePx: 22, gap: 20, budget: SIGNATURE_BUDGET });
+  return h({ position: 'absolute', left: MARGIN, bottom: MARGIN, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.text, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(22, C.text2), SIGNATURE_TAGLINE)] : []),
   ]);
+};
 
 /** Vertical five-step schematic. Lime marks only the last node and one packet. */
 function homeSchematic(): El {
@@ -131,7 +146,7 @@ function homeSchematic(): El {
  * (textOf drops samples and TODOs). Trailing fan-out nodes sit side by side. No numbering.
  * Lime appears only on a confirmed-live case: the last node's dot.
  */
-function caseSchematic(c: CaseStudy): El {
+function caseSchematic(c: AnyCase): El {
   const labels = c.diagram.nodes.map((n) => textOf(n.label)).filter((t): t is string => Boolean(t));
   const fan = Math.min(fanOutOf(c), labels.length - 1);
   const chain = fan > 1 ? labels.slice(0, labels.length - fan) : labels;
@@ -175,7 +190,7 @@ function caseSchematic(c: CaseStudy): El {
 function homeTree(): El {
   return h({ width: W, height: H, background: C.ink, position: 'relative' }, [
     ...frameGrid(),
-    h(mono(22, C.text3, { position: 'absolute', left: MARGIN, top: MARGIN - 4 }), 'ai.farazahmad.dev'),
+    h(mono(22, C.text3, { position: 'absolute', left: MARGIN, top: MARGIN - 4 }), HOST),
     h(
       {
         position: 'absolute',
@@ -196,33 +211,35 @@ function homeTree(): El {
   ]);
 }
 
-function caseTree(c: CaseStudy): El {
+function caseTree(c: AnyCase): El {
   return h({ width: W, height: H, background: C.ink, position: 'relative' }, [
     ...frameGrid(),
     h(mono(22, C.text3, { position: 'absolute', left: MARGIN, top: MARGIN - 4, letterSpacing: '0.06em' }), c.og.eyebrow),
-    h(mono(22, C.text3, { position: 'absolute', right: MARGIN, top: MARGIN - 4 }), 'ai.farazahmad.dev'),
+    h(mono(22, C.text3, { position: 'absolute', right: MARGIN, top: MARGIN - 4 }), HOST),
     h({ position: 'absolute', left: MARGIN, top: 140, width: 660, flexDirection: 'column', gap: 28 }, [
       h(
         {
           fontFamily: 'Clash Display',
           fontWeight: 600,
-          fontSize: 96,
+          // Long names (generated cases) would wrap to three lines and run into the signature row.
+          fontSize: c.name.length > 20 ? 68 : 96,
           lineHeight: 0.98,
           letterSpacing: '-0.03em',
           color: C.text,
         },
         c.name,
       ),
-      h({ fontFamily: 'Geist', fontWeight: 400, fontSize: 32, lineHeight: 1.3, color: C.text2 }, c.og.line),
+      h({ fontFamily: 'Geist', fontWeight: 400, fontSize: c.og.line.length > 70 ? 28 : 32, lineHeight: 1.3, color: C.text2 }, c.og.line),
     ]),
     caseSchematic(c),
     signature(),
   ]);
 }
 
-export type OgTarget = 'home' | (typeof CASES)[number]['slug'];
+/** 'home' plus one image per PRESENT case, hand-written or generated (an omitted project has no OG image). */
+export type OgTarget = 'home' | ProjectId;
 
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.slug)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.slug)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
   const tree = target === 'home' ? homeTree() : caseTree(requireCase(target));
@@ -230,8 +247,8 @@ export async function renderOg(target: OgTarget): Promise<Uint8Array> {
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();
 }
 
-function requireCase(slug: string): CaseStudy {
-  const c = CASES.find((x) => x.slug === slug);
+function requireCase(slug: string): AnyCase {
+  const c = ALL_CASES.find((x) => x.slug === slug);
   if (!c) throw new Error(`[og] unknown case: ${slug}`);
   return c;
 }

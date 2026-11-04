@@ -2,21 +2,38 @@
  * Copy for the webflow home page. Kept as data so the same text feeds the markup and the
  * JSON-LD (FAQPage, Service) and cannot drift.
  *
- * Rules (docs/brief/DECISIONS.md › webflow, CLAUDE.local.md §2):
+ * Rules (docs/brief/DECISIONS.md › webflow, docs/TEMPLATE.md › honesty rules):
  *  - no prices anywhere: "Scoped on a call"
  *  - both Figma builds and design + build
  *  - not Webflow-certified: no certification, partner or "Expert" claims, no Webflow logo
  *  - no calculators or estimators (removed from the Custom integrations offer)
  *  - every missing number is a visible TODO chip; no testimonials
  * Case studies live in ./cases.ts, the signature player's model in ./build.ts.
+ *
+ * The owner's name, company, profession and Webflow partner status come from src/person/config.ts
+ * (via src/person/claims.ts). 
+pm run review:copy lists the first-person claims still literal here.
  */
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, PROFESSION, ROLE_IN_SENTENCE, credential, credentialAnswer, withArticle } from '../../person/claims';
+
+/**
+ * "Are you a certified Webflow partner?" from config.ts › credentials.webflowCertifiedPartner:
+ * false = the current "No" answer, true = a plain "Yes", unknown = no FAQ (and no JSON-LD) entry.
+ */
+const PARTNER_ANSWER = credentialAnswer(credential('webflowCertifiedPartner'), {
+  denied:
+    'No. I am not in Webflow’s certified partner programme, and I won’t claim otherwise. What I can show you is the work: the build system above, the motion on this site, and a scoping call where you can ask me anything.',
+  confirmed:
+    'Yes, I am in Webflow’s certified partner programme. Beyond the status, what I can show you is the work: the build system above, the motion on this site, and a scoping call where you can ask me anything.',
+});
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE =
   "You'll leave the call knowing what to build, how your team will edit it, and what it involves";
 
 export const HERO = {
-  eyebrow: 'Webflow developer · Faraz Ahmad',
+  eyebrow: `Webflow developer · ${PERSON.name}`,
   /** decisions.md › webflow › Hero headline. The last line is "selected" on the canvas. */
   headline: ['Webflow sites', 'your team can', 'actually run.'],
   lede: 'I build Webflow sites from your Figma file, or design them with you first: a clean class system, a CMS your marketing team fills on its own, and motion that stays fast. When Webflow runs out, I write the code.',
@@ -245,7 +262,8 @@ export const GALLERY = [
 export const ABOUT = {
   title: 'A developer behind the Designer.',
   paragraphs: [
-    'I’m Faraz, a full-stack engineer and founder of Indepth Solution. I build Webflow sites from a Figma file, or design them with you first.',
+    // "a full-stack engineer and" from config.ts › profession; left out when unset.
+    `I’m ${FIRST_NAME}, ${PROFESSION ? `${withArticle(PROFESSION)} and ` : ''}${ROLE_IN_SENTENCE} of ${PERSON.company}. I build Webflow sites from a Figma file, or design them with you first.`,
     'Being a developer changes what “Webflow can’t do” means. Custom code, the CMS API, forms into your CRM: I write those parts instead of working around them.',
     'Motion is the part I enjoy most. The page transitions and scroll effects on these niche sites are mine, built with GSAP and Lenis in Astro, and they are the craft I bring to Webflow interactions.',
   ],
@@ -276,10 +294,7 @@ export const FAQ = [
     q: 'Localization and memberships?',
     a: 'Webflow has its own localization for translated sites, and I can set it up. For memberships and gated content, Webflow’s native options have changed over time, so I check what fits your case on the call; a dedicated membership tool or a custom integration is often the cleaner route.',
   },
-  {
-    q: 'Are you a certified Webflow partner?',
-    a: 'No. I am not in Webflow’s certified partner programme, and I won’t claim otherwise. What I can show you is the work: the build system above, the motion on this site, and a scoping call where you can ask me anything.',
-  },
+  ...(PARTNER_ANSWER ? [{ q: 'Are you a certified Webflow partner?', a: PARTNER_ANSWER }] : []),
   {
     q: 'What does it cost?',
     a: 'It depends on the pages, the CMS, any integrations and whether design is included, so I scope it on a free 30-minute call. You know what is involved before anything is agreed.',

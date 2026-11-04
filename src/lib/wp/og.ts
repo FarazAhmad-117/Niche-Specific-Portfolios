@@ -10,7 +10,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { nicheHost } from '../../niches';
 import { PERSON_NAME } from '../../data/wp/site';
+import { fitSignatureRow } from '../shared/og-fit';
 import { CASES, type CaseSlug, type WpCase } from '../../data/wp/cases';
 import { HERO_BLOCKS } from '../../data/wp/content';
 import { markOnPaperSvg } from './brand-mark';
@@ -76,14 +78,19 @@ const masthead = (left: string, right: string): El =>
     h({ justifyContent: 'space-between', marginTop: 12 }, [h(mono(18, C.ink2), left), h(mono(18, C.ink2), right)]),
   ]);
 
-const footer = (): El =>
-  h({ position: 'absolute', left: M, right: M, bottom: M - 22, alignItems: 'center', justifyContent: 'space-between' }, [
+const FOOTER_TAGLINE = 'WordPress developer';
+/** Room for the name: the content width, less the 34px mark and its 16px gap. A long name drops the tagline first (see ../shared/og-fit). */
+const FOOTER_BUDGET = W - 2 * M - 34 - 16;
+const footer = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 38, tagline: FOOTER_TAGLINE, taglinePx: 18, gap: 20, budget: FOOTER_BUDGET });
+  return h({ position: 'absolute', left: M, right: M, bottom: M - 22, alignItems: 'center', justifyContent: 'space-between' }, [
     h({ alignItems: 'center', gap: 16 }, [
       img(markOnPaperSvg(34), 34, 37),
-      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 38, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+      h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
     ]),
-    h(mono(18, C.ink2), 'WordPress developer'),
+    ...(fit.showTagline ? [h(mono(18, C.ink2), FOOTER_TAGLINE)] : []),
   ]);
+};
 
 /** A list down a ruled column: a number or mark on the left, the line beside it. */
 function column(title: string, rows: readonly { mark: string; text: string }[], width: number, rowH = 56, italicMarks = false): El {
@@ -116,7 +123,7 @@ function column(title: string, rows: readonly { mark: string; text: string }[], 
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    masthead('wp.farazahmad.dev', 'WordPress · Faraz Ahmad'),
+    masthead(nicheHost('wp'), `WordPress · ${PERSON_NAME}`),
     h(
       {
         position: 'absolute',
@@ -154,7 +161,7 @@ function homeTree(): El {
 function caseTree(c: WpCase): El {
   const rows = c.flow.map((s, i) => ({ mark: String(i + 1).padStart(2, '0'), text: s }));
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    masthead(c.example ? 'Example teardown · illustrative' : 'Case study', 'wp.farazahmad.dev'),
+    masthead(c.example ? 'Example teardown · illustrative' : 'Case study', nicheHost('wp')),
     h({ position: 'absolute', left: M, top: 140, width: 600, flexDirection: 'column', gap: 22 }, [
       c.example
         ? h(

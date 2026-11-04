@@ -6,14 +6,21 @@
  * Page transition: each card carries view-transition-name `case-<id>` and its title
  * `case-name-<id>`; the case page hero uses the same names, so on navigation the card
  * morphs into the hero while the rest of the page is wiped in behind it (base.css).
+ *
+ * Example mode (a project missing from src/person/projects.ts): cases are picked by id, never
+ * by position. Without Lead Drift the main card becomes the dashed OWN_PROJECT_SLOT; the row of
+ * two beside it is completed with dashed CASE_SLOTs. The fallbacks reuse existing classes and
+ * inline styles only, so the built CSS is unchanged.
  */
 import Flow from './Flow.astro';
 import AttributionRecord from './AttributionRecord.astro';
-import { CASES } from '../../data/funnels/cases';
+import { CASE_SLOT, HAS_OWN_PIPELINE, MAIN_CASE, OWN_PROJECT_SLOT, SIDE_CASES } from '../../data/funnels/cases';
+import { slotsToFill } from '../../person/case-helpers';
 import { caseHref } from '../../lib/funnels/paths';
 
-const [main, ...rest] = CASES;
-if (!main) throw new Error('[funnels] no cases');
+const main = MAIN_CASE;
+const rest = SIDE_CASES;
+const slots = Array.from({ length: slotsToFill(rest.length, 2) }, (_, i) => i);
 // Only the card box morphs. The title is not a separate shared element: it wraps differently
 // on the card and on the page, so morphing it would stretch the text.
 const vt = (id: string) => `view-transition-name: case-${id}`;
@@ -23,12 +30,21 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
   <div class="container">
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
+      {HAS_OWN_PIPELINE ? (
       <h2 id="work-title">Built for my own pipeline first.</h2>
+      ) : (
+        <h2 id="work-title">What I’ve built so far.</h2>
+      )}
+      {HAS_OWN_PIPELINE ? (
       <p class="lede">The systems behind my own lead flow. Numbers are published once they’re cleared; until then, what each one does.</p>
+      ) : (
+        <p class="lede">Real projects appear here once they’re added and cleared to publish; until then, each slot says what it needs.</p>
+      )}
     </div>
 
     {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
         armed card is invisible at that moment. */}
+    {main ? (
     <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
       <div class="case__copy">
         <div class="case__top">
@@ -55,6 +71,18 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
         <Flow steps={main.flow} label={`${main.name}, how it runs`} compact />
       </div>
     </article>
+    ) : (
+      <aside class="case case--main" style="box-shadow: inset 0 0 0 1.5px var(--line-strong)" aria-label="Own project placeholder">
+        <div class="case__copy">
+          <span class="case__kicker mono">{OWN_PROJECT_SLOT.kicker}</span>
+          <p class="case__title">{OWN_PROJECT_SLOT.title}</p>
+          <p class="case__text">{OWN_PROJECT_SLOT.text}</p>
+          <div class="case__end">
+            {OWN_PROJECT_SLOT.chips.map((t) => <span class="todo">{t}</span>)}
+          </div>
+        </div>
+      </aside>
+    )}
 
     <div class="cases__pair">
       {
@@ -77,6 +105,15 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
               Read the case study <span class="case__arrow">→</span>
             </span>
           </article>
+        ))
+      }
+      {
+        slots.map(() => (
+          <aside class="case case--small" style="box-shadow: inset 0 0 0 1.5px var(--line-strong)" aria-label="Case study placeholder">
+            <span class="case__kicker mono">{CASE_SLOT.kicker}</span>
+            <p class="case__title">{CASE_SLOT.title}</p>
+            <span class="todo">{CASE_SLOT.chip}</span>
+          </aside>
         ))
       }
     </div>

@@ -6,9 +6,10 @@
  * Phone: brand, theme switch, and a menu button that drops a panel with the links and the CTA.
  */
 import ThemeToggle from './ThemeToggle.astro';
-import { NAV_LINKS, PERSON_NAME, bookingUrl } from '../../data/shopify/site';
+import { PERSON_NAME, bookingUrl } from '../../data/shopify/site';
 import { HOLE, ROTATE, STRING_D, TAG_D } from '../../lib/shopify/brand-mark';
 import { isHome, link, sectionHref } from '../../lib/shopify/paths';
+import { SHOWN_NAV_LINKS as NAV_LINKS } from '../../lib/shopify/sections';
 
 const href = (id: string) => sectionHref(Astro.url, id);
 const brandHref = isHome(Astro.url) ? '#top' : link('/');

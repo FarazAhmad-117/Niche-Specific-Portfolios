@@ -1,7 +1,7 @@
 /**
  * Copy-link buttons ([data-copy]). Each button's data-copy holds the href its card opens
  * (relative in dev, absolute in production); it is resolved against the current page, so dev
- * copies http://localhost:<port>/<slug>/ and production copies https://<slug>.farazahmad.dev/.
+ * copies http://localhost:<port>/<slug>/ and production copies https://<slug>.<rootDomain>/.
  *
  * Clipboard API first, hidden-textarea + execCommand fallback. The button shows "Copied" for
  * RESET_MS; one polite live region (#copy-status) announces each copy once.

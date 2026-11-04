@@ -51,7 +51,7 @@ const brandHref = isHome(Astro.url) ? '#top' : link('/');
     </nav>
 
     <div class="nav__end">
-      <span class="nav__hours status">Support {SUPPORT_HOURS} · not on-call</span>
+      {SUPPORT_HOURS && <span class="nav__hours status">Support {SUPPORT_HOURS} · not on-call</span>}
       <ThemeToggle />
       <a class="btn nav__cta" href={bookingUrl('nav')}>
         <span class="btn__led" aria-hidden="true"></span>
@@ -79,7 +79,7 @@ const brandHref = isHome(Astro.url) ? '#top' : link('/');
         ))
       }
     </ul>
-    <p class="nav__sheet-hours mono">Support {SUPPORT_HOURS} · not on-call</p>
+    {SUPPORT_HOURS && <p class="nav__sheet-hours mono">Support {SUPPORT_HOURS} · not on-call</p>}
     <a class="btn nav__sheet-cta" href={bookingUrl('menu')}>
       <span class="btn__led" aria-hidden="true"></span>
       <span>Book a scoping call</span>

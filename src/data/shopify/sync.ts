@@ -2,27 +2,38 @@
  * The marketplace sync map (decisions.md › shopify › Marketplace sync map: Include, Yard
  * Terminal).
  *
- * Drawn the way Yard Terminal really works (docs/research/ai-web.md, from yardterminal.com):
- * the Part record is the hub and owns the count; each channel connects to Yard Terminal
- * directly and only holds a listing. The brief asked for "Shopify in the centre"; accuracy wins
- * (noted in docs/todo/shopify.md), so Shopify is the emphasised spoke instead.
- *  - Shopify storefront: live. eBay Motors: live. Counter sale: Yard Terminal's own point of
- *    sale (not Shopify POS), live, ends the online listings the same way.
- *  - Facebook Marketplace: "Coming soon" on the home page, "not supported" on /limits. Drawn
- *    dashed, never animated, labelled "Coming soon · not live".
- *  - Amazon, Google Shopping: not supported. Not drawn.
+ * Drawn the way Yard Terminal is designed to work (docs/research/ai-web.md, from yardterminal.com,
+ * checked against the code scan in project-handoff/projects.json): the Part record is the hub and
+ * owns the count; each channel connects to Yard Terminal directly and only holds a listing. The
+ * brief asked for "Shopify in the centre"; accuracy wins (noted in docs/todo/shopify.md), so
+ * Shopify is the emphasised spoke instead.
+ *  - Status today (code scan): the eBay channel runs against eBay's SANDBOX, and the Shopify
+ *    channel is built as a library that does NOT run yet. So the map is labelled a simulation of
+ *    the designed flow, and each tile says where the channel really is.
+ *  - Counter sale: Yard Terminal's own point of sale (not Shopify POS), shown as product design.
+ *  - Approval: the AI drafts each listing and a person approves it before anything lists (the
+ *    top tile; it is a gate, not a channel).
+ *  - Amazon, Google Shopping, Facebook Marketplace: not built. Not drawn.
  * The part is an EXAMPLE (the same illustrative alternator Yard Terminal's own site uses);
- * the events are the real flow. Counts and sync times are open: TODO chips, never numbers.
+ * the events are the designed flow. Counts and sync times are open: TODO chips, never numbers.
+ *
+ * The whole model is the `yard-terminal` project's. SYNC_PROJECT is undefined when the person
+ * does not have it; the home page then omits the sync map (lib/shopify/sections.ts) and no case
+ * page uses NODES, so nothing below is shown for someone else.
  */
+import { getProject } from '../../person/case-helpers';
 
-export type NodeId = 'record' | 'shopify' | 'ebay' | 'counter' | 'facebook';
+/** The project the sync map is drawn from; undefined in Example mode. */
+export const SYNC_PROJECT = getProject('yard-terminal');
+
+export type NodeId = 'record' | 'shopify' | 'ebay' | 'counter' | 'approve';
 
 export const NODES = {
   record: { name: 'Part record', sub: 'Owns the count · qty 1', status: 'Qty 1' },
-  shopify: { name: 'Shopify', sub: 'The yard’s own storefront', status: 'Live' },
-  ebay: { name: 'eBay Motors', sub: 'The yard’s own account', status: 'Live' },
-  counter: { name: 'Counter sale', sub: 'Yard Terminal’s own point of sale', status: 'Live' },
-  facebook: { name: 'Facebook Marketplace', sub: 'Coming soon · not live', status: 'Soon' },
+  shopify: { name: 'Shopify', sub: 'The yard’s own storefront · channel built, not live yet', status: 'Not live yet' },
+  ebay: { name: 'eBay Motors', sub: 'The yard’s own account · eBay sandbox today', status: 'Sandbox' },
+  counter: { name: 'Counter sale', sub: SYNC_PROJECT ? `${SYNC_PROJECT.name}’s own point of sale` : 'Own point of sale', status: 'By design' },
+  approve: { name: 'Approval', sub: 'AI drafts, a person approves', status: 'Every listing' },
 } as const satisfies Record<NodeId, { name: string; sub: string; status: string }>;
 
 export const EXAMPLE_PART = '2018 Silverado 1500 alternator';
@@ -43,12 +54,14 @@ export interface SyncBeat {
 }
 
 /**
- * One loop, one event per beat. Two stories: a part sells on eBay Motors (the record marks it
+ * One loop, one event per beat (a simulation of the designed flow). A person approves the draft,
+ * then two stories: a part sells on eBay Motors (the record marks it
  * sold, the Shopify listing is ended and checked), then a second part sells at the counter
  * (both online listings end).
  */
 export const BEATS: readonly SyncBeat[] = [
-  { log: 'Part approved: listed on Shopify', packet: ['record', 'shopify'], record: 'available', shopify: 'listed', ebay: 'none' },
+  { log: 'AI draft approved by a person', packet: ['approve', 'record'], record: 'available', shopify: 'none', ebay: 'none' },
+  { log: 'Listed on Shopify', packet: ['record', 'shopify'], record: 'available', shopify: 'listed', ebay: 'none' },
   { log: 'Listed on eBay Motors', packet: ['record', 'ebay'], record: 'available', shopify: 'listed', ebay: 'listed' },
   { log: 'Sold on eBay Motors: the record marks it sold', packet: ['ebay', 'record'], record: 'sold', shopify: 'listed', ebay: 'sold' },
   { log: 'Shopify listing ended', packet: ['record', 'shopify'], record: 'sold', shopify: 'ended', ebay: 'sold' },

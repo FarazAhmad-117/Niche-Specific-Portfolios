@@ -12,9 +12,13 @@
  * No props.
  */
 import { WORKFLOW_STEPS } from '../../data/ai/workflow';
-import { bookingUrl } from '../../data/ai/site';
+import { PERSON_NAME, bookingUrl } from '../../data/ai/site';
 import Button from './Button.astro';
 import GridLines from './GridLines.astro';
+import { seniorNoun, withArticle } from '../../person/claims';
+
+/** "I’m a senior engineer" from src/person/config.ts › seniority; without it "I’m an engineer". */
+const heroIntro = `I’m ${withArticle(seniorNoun('engineer'))}, not an agency.`;
 
 const FACTS = ['Fixed scope, agreed up front', 'Free 30-minute scoping call', 'You own the code and accounts'];
 ---
@@ -25,11 +29,11 @@ const FACTS = ['Fixed scope, agreed up front', 'Free 30-minute scoping call', 'Y
     <div class="hero__copy">
       <p class="hero__eyebrow">
         <span class="hero__eyebrow-mark" aria-hidden="true"></span>
-        Faraz Ahmad · AI &amp; automation engineer
+        {PERSON_NAME} · AI &amp; automation engineer
       </p>
       <h1 id="hero-title" class="hero__title">AI automations that survive production.</h1>
       <p class="hero__lede lede">
-        I’m a senior engineer, not an agency. I build AI and automation systems for founders and ops teams: the
+        {heroIntro} I build AI and automation systems for founders and ops teams: the
         workflows that move leads, content and data between your tools, monitored in production and owned by you.
       </p>
       <div class="hero__ctas">

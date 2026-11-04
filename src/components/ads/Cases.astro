@@ -9,10 +9,15 @@
  * hero box uses the same name, so on navigation the card morphs into the hero while the page
  * rises in behind it (base.css). Only the box morphs, never the title. Cards are never
  * reveal-armed: a transition may morph into one at load.
+ *
+ * Example mode: without a `lead-pipeline` project the offline-conversions case is absent (data/ads/
+ * cases.ts), so the lede drops its mention and HOME_SLOTS adds a dashed own-build slot: the grid
+ * stays in complete rows of two.
  */
-import { CASES, PLACEHOLDERS } from '../../data/ads/cases';
+import { CASES, HOME_SLOTS } from '../../data/ads/cases';
 import { caseHref } from '../../lib/ads/paths';
 
+const hasOwnCase = CASES.some((c) => !c.example);
 const vt = (id: string) => `view-transition-name: case-${id}`;
 ---
 
@@ -21,10 +26,19 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
       <h2 id="work-title">What I can show you today.</h2>
-      <p class="lede">
-        The lead pipeline my own site runs on, a teardown of the rules I set up first, and two slots for client work that stay
-        empty until a client clears them. No made-up results in the meantime.
-      </p>
+      {
+        hasOwnCase ? (
+          <p class="lede">
+            The lead pipeline my own site runs on, a teardown of the rules I set up first, and two slots for client work that stay
+            empty until a client clears them. No made-up results in the meantime.
+          </p>
+        ) : (
+          <p class="lede">
+            A teardown of the rules I set up first, and slots for real work that stay empty until it is added and cleared to
+            publish. No made-up results in the meantime.
+          </p>
+        )
+      }
     </div>
 
     <div class="grid">
@@ -85,7 +99,7 @@ const vt = (id: string) => `view-transition-name: case-${id}`;
       }
 
       {
-        PLACEHOLDERS.map((p) => (
+        HOME_SLOTS.map((p) => (
           <aside class="case case--slot" aria-label={`${p.title}: placeholder`}>
             <span class="case__kicker mono">{p.kicker}</span>
             <p class="slot__title">{p.title}</p>

@@ -3,13 +3,15 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/{{slug}}/Layout.astro';
 import ContactForm from '../../components/shared/ContactForm.astro';
 import { getNiche } from '../../niches';
+import { PERSON } from '../../person/person';
+import { withNameSuffix } from '../../lib/shared/seo-title';
 import hero from '../../assets/{{slug}}/hero.svg';
 
 const { name } = getNiche('{{slug}}');
 ---
 
 <Layout
-  title={`${name} | Faraz Ahmad`}
+  title={withNameSuffix(name, PERSON.name)}
   description={`Placeholder page for the ${name} portfolio. Real design coming soon.`}
 >
   <section class="hero">

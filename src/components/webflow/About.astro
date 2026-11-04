@@ -6,13 +6,14 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/webflow/content';
-import { PROFILE, yearsBuilding } from '../../data/webflow/profile';
+import { PROFILE } from '../../data/webflow/profile';
+import { yearsSuffix } from '../../person/person';
 import { STACK } from '../../data/webflow/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
 ];
 ---

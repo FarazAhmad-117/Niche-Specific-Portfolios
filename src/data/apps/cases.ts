@@ -11,18 +11,30 @@
  * `TODO ·` chip and is listed in docs/todo/apps.md. SolidMake and Yard Terminal have no
  * verified usage numbers, so their results are product facts plus visible TODO chips.
  * Diagrams are simplified and say where they were drawn from.
+ *
+ * Project-owned values (name, status, link, stack, canonical modules, keyed facts) come from
+ * src/person/projects.ts; every apps-specific string (the angle) stays verbatim here. A project
+ * that is absent from the registry drops its case (page, OG image, sitemap entry) and its
+ * supporting call-out; the home row fills up with CASE_SLOT / DETAIL_SLOT (dashed TODO chips).
  */
 import type { ImageMetadata } from 'astro';
 import yardTerminalShot from '../../assets/apps/yard-terminal-site.png';
-import { AI_SITE_URL } from './site';
+import type { Project, ProjectId } from '../../person/projects';
+import { autoCases, fact, fromProject, modules, present, type ResolvedAngle } from '../../person/case-helpers';
+import { SEO_DESCRIPTION_MAX, SEO_TITLE_MAX, fitDescription, withNameSuffix } from '../../lib/shared/seo-title';
+import { AI_SITE_URL, BRAND_COMPANY, PERSON_NAME } from './site';
 
 export type Todo = { readonly todo: string };
 export type Field = string | Todo;
 export const todo = (text: string): Todo => ({ todo: text });
 export const isTodo = (f: Field): f is Todo => typeof f !== 'string';
 
-export const CASE_SLUGS = ['solidmake', 'yard-terminal', 'farazahmad-dev'] as const;
-export type CaseSlug = (typeof CASE_SLUGS)[number];
+/** The registry projects this niche shows as cases, in card order. */
+export const NICHE_PROJECTS = ['solidmake', 'yard-terminal', 'farazahmad-dev'] as const satisfies readonly ProjectId[];
+/** Projects shown as supporting call-outs (linking to their ai write-ups). */
+export const SUPPORTING_PROJECTS = ['ai-seo-automator', 'lead-drift'] as const satisfies readonly ProjectId[];
+/** Every possible case slug (generated cases use their project id). The slugs actually built are CASE_SLUGS. */
+export type CaseSlug = 'solidmake' | 'yard-terminal' | 'farazahmad-dev' | ProjectId;
 
 /** A node sits in a column (stage, left to right) and a row. */
 export interface DiagramNode {
@@ -84,16 +96,35 @@ export interface AppCase {
   readonly screenshot?: { readonly src: ImageMetadata; readonly alt: string; readonly caption: string };
   readonly link?: { readonly label: string; readonly href: string };
   readonly seo: { readonly title: string; readonly description: string };
+  /**
+   * Generated from the registry (a project whose `niches` lists apps with no hand-written angle
+   * here): shown in "More builds", and its page leaves out the timeline and result table (nothing
+   * dated or measured is in the registry) and prints the notes instead.
+   */
+  readonly generated?: true;
+  /** Client work: the client stays confidential. */
+  readonly confidential?: boolean;
+  /** Registry caveats, printed on the case page. */
+  readonly notes?: readonly string[];
+  /** Public source repository (registry `repo`). */
+  readonly repo?: { readonly label: string; readonly href: string };
+  /** The registry project behind the case (shared screenshot lookup). */
+  readonly project?: Project;
 }
 
-export const CASES: readonly AppCase[] = [
-  {
+/** A project's verified status; unknown (absent in the registry) reads as still to confirm. */
+const statusOf = (p: { readonly status?: string; readonly live: boolean }) => ({ label: p.status ?? 'Status to confirm', live: p.live });
+/** The registry stack as this niche's stack list (names only). */
+const stackOf = (p: { readonly stack?: { readonly items: readonly string[] } }) => (p.stack?.items ?? []).map((name) => ({ name }));
+const caseTitle = (core: string) => withNameSuffix(core, PERSON_NAME);
+
+const solidmake = fromProject('solidmake', (p): AppCase => ({
     id: 'solidmake',
-    name: 'SolidMake',
+    name: p.name,
     kicker: 'Deep tech · text to CAD',
     title: 'Describe the part. Get the STEP file.',
-    text: 'SolidMake turns a plain-language description of a part into a production-ready STEP file for cutting, bending and welding. It is built on the DeepCAD and Text2CAD research models with prompt normalisation in front, not a thin wrapper around a chat model.',
-    status: { label: 'Final-year project', live: false },
+    text: `${p.name} turns a plain-language description of a part into a production-ready STEP file for cutting, bending and welding. It is built on the DeepCAD and Text2CAD research models with prompt normalisation in front, not a thin wrapper around a chat model.`,
+    status: statusOf(p),
     facts: [
       'Plain language in, a STEP file out',
       'Built on the DeepCAD and Text2CAD models',
@@ -104,18 +135,13 @@ export const CASES: readonly AppCase[] = [
       title: 'Modelling a simple part from scratch in a CAD tool',
       text: 'A mechanical engineer who needs a bracket or a plate has to model it from scratch in SolidWorks or AutoCAD before it can be cut, bent or welded, however simple the part is.',
     },
-    built: [
-      { title: 'Say it in words', text: 'The engineer describes the part in natural language, with no modelling steps.' },
-      {
-        title: 'Normalise the prompt',
-        text: 'The description is cleaned and structured before it reaches the model.',
-      },
-      {
-        title: 'Custom models, not an API call',
-        text: 'Built on DeepCAD and Text2CAD, with pre-designed training and an optimised process flow, in Python.',
-      },
-      { title: 'A file you can cut', text: 'The output is a STEP file, ready for cutting, bending and welding.' },
-    ],
+    built: modules(p, [
+      'words',
+      // apps words these two its own way (shorter; comma before "ready").
+      { id: 'normalise', text: 'The description is cleaned and structured before it reaches the model.' },
+      'models',
+      { id: 'step', text: 'The output is a STEP file, ready for cutting, bending and welding.' },
+    ]),
     diagram: {
       cols: 4,
       rows: 2,
@@ -137,7 +163,7 @@ export const CASES: readonly AppCase[] = [
         { from: 'train', to: 'model', dashed: true, label: 'offline' },
       ],
     },
-    stack: [{ name: 'Python' }, { name: 'DeepCAD' }, { name: 'Text2CAD' }],
+    stack: stackOf(p),
     stackTodo: 'Front end and hosting: to confirm',
     timeline: [
       { when: todo('Start date'), what: 'Research and model selection' },
@@ -151,42 +177,46 @@ export const CASES: readonly AppCase[] = [
     ],
     pending: ['Time to model, before → after', 'Accuracy'],
     seo: {
-      title: 'SolidMake: Text to CAD, Built End to End | Faraz Ahmad',
-      description:
-        'Case study: SolidMake turns a plain-language part description into a STEP file, on DeepCAD and Text2CAD models. Architecture, stack and build.',
+      title: caseTitle(fitDescription(SEO_TITLE_MAX, `${p.name}: Text to CAD, Built End to End`, `${p.name}: Case Study`)),
+      description: fitDescription(
+        SEO_DESCRIPTION_MAX,
+        `Case study: ${p.name} turns a plain-language part description into a STEP file, on DeepCAD and Text2CAD models. Architecture, stack and build.`,
+        `Case study: ${p.name} turns a plain-language part description into a STEP file, on DeepCAD and Text2CAD models.`,
+      ),
     },
-  },
-  {
+}));
+
+const yardTerminal = fromProject('yard-terminal', (p): AppCase => ({
     id: 'yard-terminal',
-    name: 'Yard Terminal',
+    name: p.name,
     kicker: 'Complex SaaS · multi-channel commerce',
-    title: 'One record per part. Listed on each channel, sold once.',
-    text: 'Yard Terminal is browser-based inventory and listing software for auto salvage yards. It keeps one record per used part, lists it on eBay Motors and a Shopify storefront, and ends the other listings when it sells. An AI agent drafts each listing; a person approves it before it publishes.',
-    status: { label: 'Opening to founding yards', live: false },
+    title: 'One record per part. Built to list on each channel and sell once.',
+    text: `${p.name} is browser-based inventory and listing software for auto salvage yards. It keeps one record per used part and is built to list it on eBay Motors and a Shopify storefront, ending the other listings when it sells; today the eBay channel runs against eBay’s sandbox and the Shopify channel is not live yet. An AI agent drafts each listing; a person approves it before it publishes. A team build, and a product of ${p.madeBy ?? BRAND_COMPANY}.`,
+    status: statusOf(p),
     facts: [
-      'eBay Motors, Shopify and a counter POS: all live',
+      'Built for eBay Motors and Shopify; eBay runs in its sandbox today',
       'A VIN decoded once; every part inherits its fitment',
       'No auto-publish: every AI draft is approved by a person',
     ],
     sheet: 'Listing pipeline',
     problem: {
-      title: 'Salvage parts, listed twice and sold twice',
+      title: fact(p, 'problemTitle'),
       text: 'A yard sells one-off parts on more than one marketplace. Typing each part into each channel is slow, and a part sold on one channel can still be for sale on the other.',
     },
     built: [
-      { title: 'One record per part', text: 'Every part is a single record with a quantity of one, so the same part cannot be sold twice.' },
-      {
-        title: 'Decode the VIN once',
-        text: 'A VIN is decoded once and every part from that donor vehicle inherits its year, make, model and engine.',
-      },
-      {
-        title: 'AI drafts, a person approves',
-        text: 'An AI agent drafts the title, category, condition, photo order and a suggested price. Nothing publishes until a person approves it.',
-      },
-      {
-        title: 'Sold once, ended everywhere',
-        text: 'When a part sells, online or at the counter, its other listings end. Each end is verified against its channel and retried until it is confirmed.',
-      },
+      ...modules(p, [
+        // apps words three of these its own way: kept verbatim as overrides.
+        { id: 'record', text: 'Every part is a single record with a quantity of one, so the same part cannot be sold twice.' },
+        'vin',
+        {
+          id: 'approve',
+          text: 'An AI agent drafts the title, category, condition, photo order and a suggested price. Nothing publishes until a person approves it.',
+        },
+        {
+          id: 'delist',
+          text: 'Built so that when a part sells, online or at the counter, its other listings end, each end verified against its channel and retried until it is confirmed.',
+        },
+      ]),
       {
         title: 'Every yard kept apart',
         text: 'Every record carries its yard and every query is filtered by it; a query without a yard is refused. An append-only trail records who approved what.',
@@ -202,8 +232,8 @@ export const CASES: readonly AppCase[] = [
         { id: 'part', label: 'Part record', sub: 'quantity one', col: 1, row: 1, tone: 'core' },
         { id: 'ai', label: 'AI draft', sub: 'title, photos, price', col: 2, row: 1, tone: 'core' },
         { id: 'ok', label: 'Human approval', sub: 'no auto-publish', col: 3, row: 1, tone: 'gate' },
-        { id: 'ebay', label: 'eBay Motors', sub: 'live', col: 4, row: 0, tone: 'ext' },
-        { id: 'shop', label: 'Shopify', sub: 'live', col: 4, row: 1, tone: 'ext' },
+        { id: 'ebay', label: 'eBay Motors', sub: 'sandbox today', col: 4, row: 0, tone: 'ext' },
+        { id: 'shop', label: 'Shopify', sub: 'not live yet', col: 4, row: 1, tone: 'ext' },
         { id: 'pos', label: 'Counter POS', sub: 'a sale ends listings', col: 4, row: 2, tone: 'ext' },
         { id: 'audit', label: 'Audit trail', sub: 'append-only', col: 2, row: 2, tone: 'core' },
       ],
@@ -217,46 +247,50 @@ export const CASES: readonly AppCase[] = [
         { from: 'pos', to: 'shop', dashed: true, label: 'ends listings' },
       ],
     },
-    stack: [
-      { name: 'MongoDB', note: 'named as the data layer on farazahmad.dev' },
-      { name: 'Next.js on Vercel', note: 'the public website, a separate app' },
-    ],
-    stackTodo: 'Product app stack: not public yet, to confirm',
+    // The registry stack is read from the code now (provisional: false), so it replaces the
+    // public-site notes and the "to confirm" chip.
+    stack: stackOf(p),
     timeline: [
-      { when: todo('Start date'), what: 'First built as software for a client, then rebuilt as Yard Terminal' },
+      { when: todo('Start date'), what: `First built as software for a client, then rebuilt as ${p.name}` },
       { when: 'Oct 2026', what: 'Opens to founding yards, in waves (per yardterminal.com)' },
     ],
     results: [
       { label: 'Records per part', value: 'One, whatever the channel' },
-      { label: 'Channels live', value: 'eBay Motors, Shopify, counter POS' },
+      { label: 'Channels', value: 'eBay Motors, in eBay’s sandbox; Shopify, built, not live yet' },
       { label: 'Listings published without approval', value: 'None: there is no auto-publish mode' },
       { label: 'Yards, listings synced, measured delist time', value: todo('Supply after the founding beta') },
     ],
     pending: ['Yards using it', 'Listings synced'],
-    screenshot: {
+    // The image file is this niche's own import (src/assets/apps/); the registry holds its alt.
+    screenshot: p.screenshot && {
       src: yardTerminalShot,
-      alt: 'Yard Terminal home page: a decoded VIN with parts inheriting fitment, listed on eBay and Shopify.',
+      alt: p.screenshot.alt,
       caption: 'The public site, yardterminal.com. Parts, prices and counts in its hero graphic are the site’s demo values.',
     },
-    link: { label: 'yardterminal.com', href: 'https://yardterminal.com' },
+    link: p.link,
     seo: {
-      title: 'Yard Terminal: Multi-Channel Listing SaaS | Faraz Ahmad',
-      description:
-        'Case study: Yard Terminal keeps one record per salvage part, lists it on eBay Motors and Shopify, and ends every other listing when it sells.',
+      title: caseTitle(fitDescription(SEO_TITLE_MAX, `${p.name}: Multi-Channel Listing SaaS`, `${p.name}: Case Study`)),
+      description: fitDescription(
+        SEO_DESCRIPTION_MAX,
+        `Case study: ${p.name} keeps one record per salvage part, has AI draft each listing for a person to approve, and is built for eBay Motors and Shopify.`,
+        `Case study: ${p.name} keeps one record per salvage part and is built to list it on eBay Motors and Shopify.`,
+      ),
     },
-  },
-  {
+}));
+
+/**
+ * The person's own site as a case. Kept as a registry project (kind 'own-site') rather than
+ * derived from config.ts: everything this case says (stack, admin, tests, Lighthouse, timeline)
+ * is a fact about that one codebase, not about the person. Absent = no case.
+ */
+const ownSiteCase = fromProject('farazahmad-dev', (p): AppCase => ({
     id: 'farazahmad-dev',
-    name: 'farazahmad.dev',
+    name: p.name,
     kicker: 'Production Next.js app · my own',
     title: 'My own site, run like a product.',
-    text: 'farazahmad.dev is a Next.js 16 app with its own admin CMS, authentication, a lead pipeline into GoHighLevel and a test suite. It is the codebase I hold to the same checks as client work, and the contact form on these niche sites sends into it.',
-    status: { label: 'Live', live: true },
-    facts: [
-      '257 tests passing (6 Oct 2026)',
-      'Lighthouse 100: Accessibility, Best Practices, SEO, Agentic browsing',
-      'Every lead saved to MongoDB first, then sent to GoHighLevel',
-    ],
+    text: `${p.name} is a Next.js 16 app with its own admin CMS, authentication, a lead pipeline into GoHighLevel and a test suite. It is the codebase I hold to the same checks as client work, and the contact form on these niche sites sends into it.`,
+    status: statusOf(p),
+    facts: [fact(p, 'tests'), fact(p, 'lighthouse'), fact(p, 'leadsFirst')],
     sheet: 'App and lead pipeline',
     problem: {
       title: 'A portfolio that has to work like a product',
@@ -305,20 +339,7 @@ export const CASES: readonly AppCase[] = [
       ],
     },
     ogPath: ['visit', 'next', 'lead', 'ghl'],
-    stack: [
-      { name: 'Next.js 16' },
-      { name: 'React 19' },
-      { name: 'TypeScript' },
-      { name: 'Tailwind CSS 4' },
-      { name: 'MongoDB · Mongoose' },
-      { name: 'Better Auth' },
-      { name: 'zod' },
-      { name: 'Tiptap' },
-      { name: 'GSAP · Lenis' },
-      { name: 'three.js' },
-      { name: 'Sentry' },
-      { name: 'PostHog' },
-    ],
+    stack: stackOf(p),
     timeline: [
       { when: '28 Jun 2024', what: 'First commit' },
       { when: '1 Oct 2026', what: 'Performance and SEO overhaul' },
@@ -336,43 +357,164 @@ export const CASES: readonly AppCase[] = [
       { label: 'Tests', value: '257 passing', note: 'node:test, as of 6 Oct 2026' },
     ],
     pending: [],
-    link: { label: 'farazahmad.dev', href: 'https://farazahmad.dev' },
+    link: p.link,
     seo: {
-      title: 'farazahmad.dev: A Production Next.js App | Faraz Ahmad',
+      title: caseTitle(fitDescription(SEO_TITLE_MAX, `${p.name}: A Production Next.js App`, `${p.name}: Case Study`)),
       description:
         'Case study: a Next.js 16 app with an admin CMS, auth, a lead pipeline into GoHighLevel, 257 passing tests and Lighthouse 100 in four categories.',
     },
-  },
-];
+}));
+
+/** The hand-written cases: the home row of drawing sheets, in card order. */
+export const CASES: readonly AppCase[] = present([solidmake, yardTerminal, ownSiteCase]);
+
+/**
+ * The drawing for a generated case, from registry values only. A project with a `flow` gets its
+ * main path left to right (in and out heavier, the parts in between as what was built). One with
+ * no flow gets its modules laid out as a parts map with no wires, since the registry does not say
+ * how they connect. Both are labelled as illustrative.
+ */
+function drawFromRegistry(p: Project, a: ResolvedAngle): Diagram {
+  if (p.flow?.length) {
+    const n = p.flow.length;
+    return {
+      cols: n,
+      rows: 1,
+      stages: p.flow.map((_, i) => (i === 0 ? 'In' : i === n - 1 ? 'Out' : `Step ${i}`)),
+      source: 'Illustrative, drawn from the build’s main flow; not a screenshot',
+      nodes: p.flow.map((label, i) => ({ id: `n${i}`, label, col: i, row: 0, tone: i === 0 || i === n - 1 ? 'io' : 'core' })),
+      edges: p.flow.slice(1).map((_, i) => ({ from: `n${i}`, to: `n${i + 1}` })),
+    };
+  }
+  const parts = a.built.slice(0, 6);
+  const cols = Math.ceil(parts.length / 2);
+  return {
+    cols,
+    rows: parts.length > 1 ? 2 : 1,
+    stages: Array.from({ length: cols }, (_, i) => `Parts ${String.fromCharCode(65 + i)}`),
+    source: 'Illustrative, a map of the build’s parts; not a screenshot',
+    nodes: parts.map((b, i) => ({ id: `m${i}`, label: b.title, col: i % cols, row: Math.floor(i / cols), tone: 'core' })),
+    edges: [],
+  };
+}
+
+/** The adapter: one registry project → an apps case sheet, from registry values only. */
+const fromRegistry = (p: Project, a: ResolvedAngle): AppCase => {
+  const facts = a.built.map((b) => b.title);
+  return {
+    id: p.id,
+    name: p.name,
+    kicker: a.kicker,
+    title: a.line,
+    text: p.summary ?? a.line,
+    status: { label: p.status ?? (a.confidential ? 'Client build' : 'Built'), live: p.live },
+    facts: [facts[0] ?? a.title, facts[1] ?? a.line, facts[2] ?? a.title],
+    sheet: p.flow?.length ? 'Main flow' : 'Parts map',
+    problem: a.problem ?? { title: a.title, text: a.line },
+    built: a.built,
+    diagram: drawFromRegistry(p, a),
+    stack: stackOf(p),
+    timeline: [],
+    results: [],
+    pending: [],
+    ...(p.link ? { link: p.link } : {}),
+    seo: {
+      title: caseTitle(fitDescription(SEO_TITLE_MAX, a.seoTitle, `${p.name}: Case Study`)),
+      description: fitDescription(SEO_DESCRIPTION_MAX, a.seoDescription, `Case study: ${p.name}. ${a.line}`, `Case study: ${p.name}.`),
+    },
+    generated: true,
+    confidential: a.confidential,
+    notes: p.notes ?? [],
+    ...(p.repo ? { repo: p.repo } : {}),
+    project: p,
+  };
+};
+
+/** The generated cases ("More builds" on the home page), in registry order. */
+export const MORE_CASES: readonly AppCase[] = autoCases(
+  'apps',
+  [...CASES.map((c) => c.id), ...SUPPORTING_PROJECTS],
+  fromRegistry,
+);
+
+/** Every case with a page, OG image and sitemap entry: the hand-written sheets, then the generated ones. */
+export const ALL_CASES: readonly AppCase[] = [...CASES, ...MORE_CASES];
+export const CASE_SLUGS: readonly CaseSlug[] = ALL_CASES.map((c) => c.id);
+
+/** Sheets per row on the home page (Cases.astro, ≥1024px). */
+export const SHEETS_PER_ROW = 3;
+
+/**
+ * Placeholder sheet that completes the home row when the person has fewer cases than a full
+ * row (or none). Rendered with dashed TODO chips; its drawing is the labelled example
+ * architecture from the Spec → shipped player, never another person's project.
+ */
+export const CASE_SLOT = {
+  sheet: 'Sheet to come',
+  name: 'Your next case study',
+  title: 'A product you built or led, with its architecture drawn out.',
+  chips: ['Add the project to src/person/projects.ts', 'Write its apps angle in src/data/apps/cases.ts'],
+} as const;
+
+/** A supporting call-out: no page here, it links to the engineering write-up on the ai niche. */
+export interface AppDetail {
+  readonly id: (typeof SUPPORTING_PROJECTS)[number];
+  readonly name: string;
+  readonly kicker: string;
+  readonly title: string;
+  readonly text: string;
+  readonly pending: string;
+  readonly href: string;
+  /** Alt of the niche's own thumbnail of the tool, when it shows one. */
+  readonly thumbAlt?: string;
+}
 
 /** Small supporting cards: no page here, they link to the engineering write-ups on the ai niche. */
-export const SUPPORTING = [
-  {
+export const SUPPORTING: readonly AppDetail[] = present([
+  fromProject('ai-seo-automator', (p): AppDetail => ({
     id: 'ai-seo-automator',
-    name: 'AI SEO Automator',
-    kicker: 'Self-serve SaaS',
-    title: 'SEO that runs itself.',
-    text: 'Audits a site, researches competitors and keywords, then writes and publishes content, on the owner’s own AI key.',
+    name: p.name,
+    kicker: 'Multi-tenant SaaS',
+    title: fact(p, 'oneLiner'),
+    text: 'Audits a site, plans the content, then writes it and publishes it to WordPress behind approval gates, on each organisation’s own AI provider.',
     pending: 'Key metric: to supply',
     href: `${AI_SITE_URL}/work/ai-seo-automator/`,
-  },
-  {
+  })),
+  fromProject('lead-drift', (p): AppDetail => ({
     id: 'lead-drift',
-    name: 'Lead Drift',
+    name: p.name,
     kicker: 'Internal product · in production',
     title: 'The growth engine for my own company.',
-    text: 'A browser extension collects leads; automated outreach and email sequences follow up. Indepth Solution’s own growth engine, running in production.',
+    text: `A browser extension pulls leads from Google Maps and Apollo into one pipeline, with reminders and a site crawler. ${p.madeBy ?? BRAND_COMPANY}’s own growth engine, running in production.`,
     pending: 'Key metric: not cleared yet',
     href: `${AI_SITE_URL}/work/lead-drift/`,
-  },
-] as const;
+    // apps words the alt its own way (the registry's alt describes the whole sign-in page).
+    thumbAlt: `${p.toolName ?? p.name}, ${p.madeBy ?? BRAND_COMPANY}'s internal sales tool: its sign-in page.`,
+  })),
+]);
 
-export const getCase = (slug: string): AppCase | undefined => CASES.find((c) => c.id === slug);
+/** Call-outs per row (Cases.astro, ≥760px). */
+export const DETAILS_PER_ROW = 2;
 
-/** Next case in a fixed ring. */
-export function nextCase(slug: CaseSlug): AppCase {
-  const i = CASES.findIndex((c) => c.id === slug);
-  const next = CASES[(i + 1) % CASES.length];
-  if (!next) throw new Error(`[apps] no case after ${slug}`);
-  return next;
+/** Placeholder call-out that completes the row of supporting details. */
+export const DETAIL_SLOT = {
+  kicker: 'Open slot',
+  title: 'Another product worth a closer look.',
+  chips: ['Add a supporting project and its write-up'],
+} as const;
+
+export const getCase = (slug: string): AppCase | undefined => ALL_CASES.find((c) => c.id === slug);
+
+/** Next case in a fixed ring through every case; undefined when the case is the only one (no self-link). */
+export function nextCase(slug: CaseSlug): AppCase | undefined {
+  const i = ALL_CASES.findIndex((c) => c.id === slug);
+  const next = ALL_CASES[(i + 1) % ALL_CASES.length];
+  return next && next.id !== slug ? next : undefined;
 }
+
+/** Up to `n` other generated cases after this one (related-build links on a generated case page). */
+export const relatedCases = (slug: CaseSlug, n = 2): readonly AppCase[] => {
+  const i = MORE_CASES.findIndex((c) => c.id === slug);
+  const ring = [...MORE_CASES.slice(i + 1), ...MORE_CASES.slice(0, Math.max(0, i))];
+  return ring.slice(0, n);
+};

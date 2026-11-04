@@ -2,6 +2,7 @@
 import SEO from '../../components/shared/SEO.astro';
 import { createLink } from '../../lib/link';
 import { getNiche } from '../../niches';
+import { PERSON } from '../../person/person';
 
 interface Props {
   title: string;
@@ -34,7 +35,7 @@ const { name } = getNiche(niche);
       <main>
         <slot />
       </main>
-      <footer class="foot">© {new Date().getFullYear()} Faraz Ahmad</footer>
+      <footer class="foot">© {new Date().getFullYear()} {PERSON.name}</footer>
     </div>
     
   </body>

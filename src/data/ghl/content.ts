@@ -11,13 +11,26 @@
  *  - client stories and screenshots are open: TODO placeholders, never invented
  *  - no testimonials
  * Case studies live in ./cases.ts, the signature section's model in ./switchboard.ts.
+ *
+ * Owner identity comes from src/person (via ./site.ts) and the pipeline copy from the project
+ * registry: when the person has no `lead-pipeline` project, the proof cells and the About
+ * paragraph that describe it drop out (the proof strip gets TODO cells instead, so it keeps
+ * four), and the hero rack is labelled as an example pipeline instead of "the real pipeline".
  */
+import { getProject, slotsToFill } from '../../person/case-helpers';
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, PROFESSION, ROLE_IN_SENTENCE, originStory, sentences, withArticle } from '../../person/claims';
+import { pipelineSite } from './cases';
+import { PERSON_NAME } from './site';
+
+/** The real pipeline this page's proof copy is about; undefined in Example mode. */
+const pipeline = getProject('lead-pipeline');
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = "You'll leave the call knowing what's wrong or what to build, and what it involves";
 
 export const HERO = {
-  eyebrow: 'GoHighLevel · Faraz Ahmad',
+  eyebrow: `GoHighLevel · ${PERSON_NAME}`,
   /** decisions.md › ghl › Hero headline. The last word is set in teal. */
   headline: ['GoHighLevel,', 'built by a', 'developer.'],
   lede: 'I audit, build and extend GoHighLevel for agencies and businesses: pipelines that make sense, workflows that fire once, snapshots that install clean, and real code through the API when the builder runs out.',
@@ -29,23 +42,45 @@ export const HERO = {
 /**
  * The hero panel: the real pipeline behind this site's own form, one port per beat.
  * Every label is a fact from decisions.md › ghl; only the contact is an example.
+ * Example mode (no `lead-pipeline` project): the same generic mechanism, labelled as an example
+ * (HERO_RACK), with the one first-person detail made neutral.
  */
 export const HERO_PORTS = [
-  { label: 'Saved first', value: 'MongoDB', detail: 'Stored on my side first' },
+  { label: 'Saved first', value: 'MongoDB', detail: pipeline ? 'Stored on my side first' : 'Stored before the send' },
   { label: 'Contact', value: 'Upsert by email', detail: 'sam@northwind.example' },
   { label: 'Tags', value: 'niche:ghl', detail: 'Which site it came from' },
   { label: 'Note', value: 'Message attached', detail: 'On the contact record' },
   { label: 'Opportunity', value: 'Open', detail: 'Ready to work' },
 ] as const;
 
-export const PROOF = [
-  { value: 'API', label: 'GoHighLevel API and webhooks, not only the builder' },
-  { value: 'MongoDB → GHL', label: 'My own site stores every lead first, then sends it to GoHighLevel' },
-  { value: 'Upsert', label: 'Contacts matched by email, so a repeat visitor stays one contact' },
-  { value: 'Retry', label: 'A failed send waits in my admin to be retried, not lost' },
-] as const;
+/** How the hero rack is labelled: the real pipeline, or (Example mode) an illustrative one. */
+export const HERO_RACK: { readonly example: boolean; readonly caption: string } = pipeline
+  ? { example: false, caption: 'The real pipeline behind this site’s form. The contact is an example.' }
+  : { example: true, caption: 'An example pipeline, website form to GoHighLevel. Illustrative, not a live system.' };
 
-export const PROOF_TODO = 'TODO · Leads delivered and send success rate from farazahmad.dev';
+export const PROOF: readonly { readonly value: string; readonly label: string }[] = [
+  { value: 'API', label: 'GoHighLevel API and webhooks, not only the builder' },
+  ...(pipeline
+    ? [
+        { value: 'MongoDB → GHL', label: 'My own site stores every lead first, then sends it to GoHighLevel' },
+        { value: 'Upsert', label: 'Contacts matched by email, so a repeat visitor stays one contact' },
+        { value: 'Retry', label: 'A failed send waits in my admin to be retried, not lost' },
+      ]
+    : []),
+];
+
+/** Extra TODO cells so the rail keeps complete rows of four (none for the current owner). */
+export const PROOF_TODO_EXTRA: readonly { readonly title: string; readonly chip: string }[] = Array.from(
+  { length: slotsToFill(PROOF.length, 4) },
+  (_, i) =>
+    i === 0
+      ? { title: 'Integration proof', chip: 'TODO · A GoHighLevel integration you built, and what it sends' }
+      : { title: 'Another fact', chip: 'TODO · A verified fact about your GoHighLevel work' },
+);
+
+export const PROOF_TODO = pipeline
+  ? `TODO · Leads delivered and send success rate from ${pipelineSite(pipeline)}`
+  : 'TODO · Real GoHighLevel results: accounts cleaned up, leads delivered';
 
 /**
  * The problem. An example workflow list (labelled as such) built from the fears in the brief:
@@ -211,7 +246,7 @@ export const PROCESS = [
 ] as const;
 
 /**
- * Faraz vs a typical GHL VA vs a typical agency (brief §4 item 9). Generalisations, and the
+ * The owner vs a typical GHL VA vs a typical agency (brief §4 item 9). Generalisations, and the
  * section says so. `mark`: yes / some / no.
  */
 export const COMPARE = {
@@ -228,7 +263,8 @@ export const COMPARE = {
     {
       label: 'Custom code, the API and webhooks',
       cells: [
-        { mark: 'yes', text: 'Yes, it’s my background' },
+        // "it’s my background" only with config.ts › profession.
+        { mark: 'yes', text: PROFESSION ? 'Yes, it’s my background' : 'Yes' },
         { mark: 'no', text: 'Rarely' },
         { mark: 'some', text: 'Sometimes, often outsourced' },
       ],
@@ -261,12 +297,20 @@ export const COMPARE = {
   note: 'Generalisations, not a dig at anyone: plenty of VAs and agencies do good work. This is where a developer is different.',
 } as const;
 
+/** config.ts › originStories.ghl: the About title and its first story sentence. */
+const story = originStory('ghl');
 export const ABOUT = {
-  title: 'A developer who found automation through GoHighLevel.',
+  // Without an origin story (or one with no title) the title makes no biographical claim.
+  title: story?.title ?? 'A developer who builds past the GoHighLevel builder.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution. A friend showed me GoHighLevel, and it’s where I found the thing I’d been circling for years: connecting platforms so nobody has to copy data between them.',
-    'I’m a full-stack engineer, so when the builder runs out I don’t stop at a workaround. I write against the GoHighLevel API, wire the webhooks, and build the small app or sync that does the job.',
-    'My own site is the proof I can show today: every lead stored in MongoDB first, then sent to GoHighLevel through its API, tagged by the site it came from. The form at the bottom of this page runs through it.',
+    sentences(`I’m ${FIRST_NAME}, ${ROLE_IN_SENTENCE} of ${PERSON.company}.`, story?.text),
+    // "I’m a full-stack engineer, so" from config.ts › profession; without it the sentence starts at "When".
+    `${PROFESSION ? `I’m ${withArticle(PROFESSION)}, so when` : 'When'} the builder runs out I don’t stop at a workaround. I write against the GoHighLevel API, wire the webhooks, and build the small app or sync that does the job.`,
+    ...(pipeline
+      ? [
+          'My own site is the proof I can show today: every lead stored in MongoDB first, then sent to GoHighLevel through its API, tagged by the site it came from. The form at the bottom of this page runs through it.',
+        ]
+      : []),
   ],
 } as const;
 

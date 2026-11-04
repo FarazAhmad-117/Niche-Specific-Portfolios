@@ -9,18 +9,31 @@
  *  - never invent numbers, rankings or client names; missing numbers are todo() chips,
  *    shape-only visuals carry an "Illustration" / "Example" label
  *  - no "rank #1", no guarantees, no black-hat language
+ *
+ * Owner identity comes from src/person (via ./site). Copy that names one of the person's
+ * projects (proof strip, the backlink gap service, About) goes through getProject(): without
+ * that project the line drops the name, or the proof cell becomes a TODO chip.
  */
 import { todo, type Field } from './todo';
+import { PERSON_NAME } from './site';
+import { getProject } from '../../person/case-helpers';
+import { FIRST_NAME, PROFESSION, andList, originStory, sentences, stackFor, withArticle } from '../../person/claims';
+
+/** Frameworks the FAQ calls "home ground": only those in src/person/config.ts › stack. */
+const HOME_FRAMEWORKS = stackFor(['Next.js', 'React']);
+const AUTOMATOR = getProject('ai-seo-automator');
+const OWN_SITE = getProject('farazahmad-dev');
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE =
   "You'll leave the call knowing what's blocking your site in search, and what fixing it involves";
 
 export const HERO = {
-  eyebrow: 'Technical SEO · Faraz Ahmad',
+  eyebrow: `Technical SEO · ${PERSON_NAME}`,
   /** decisions.md › seo › Hero headline. The middle phrase gets the marker. */
   headline: { before: 'SEO', marked: 'built into your code,', after: 'not bolted on.' },
-  lede: 'I’m a full-stack engineer who does SEO from inside the codebase: technical fixes shipped as real changes, programmatic pages built on real data, and an AI content engine where a person edits every page.',
+  // "I’m a full-stack engineer who does SEO" from config.ts › profession; else "I do SEO".
+  lede: `${PROFESSION ? `I’m ${withArticle(PROFESSION)} who does` : 'I do'} SEO from inside the codebase: technical fixes shipped as real changes, programmatic pages built on real data, and an AI content engine where a person edits every page.`,
   primary: 'Book a scoping call',
   secondary: 'Get a technical audit',
   note: 'Free 30-minute call. No packages to decode: scope and cost are agreed on the call.',
@@ -63,11 +76,21 @@ export interface ProofItem {
   readonly label: string;
 }
 export const PROOF: readonly ProofItem[] = [
-  {
-    value: '100',
-    label: 'Lighthouse SEO score on five pages of farazahmad.dev (Lighthouse 13.5, local production build, 2026-10-02)',
-  },
-  { value: '6', label: 'Automated modules in AI SEO Automator, from site audit to publishing' },
+  OWN_SITE
+    ? {
+        value: '100',
+        label: `Lighthouse SEO score on five pages of ${OWN_SITE.name} (Lighthouse 13.5, local production build, 2026-10-02)`,
+      }
+    : {
+        value: todo('proof.own-site', 'A measured score from your own site'),
+        label: 'A measured SEO result from your own site, shown once it is added',
+      },
+  AUTOMATOR
+    ? { value: '6', label: `Steps in the loop ${AUTOMATOR.name} runs: audit, plan, write, publish, track, repeat` }
+    : {
+        value: todo('proof.product', 'A fact from your own SEO product or tool'),
+        label: 'A verified fact from a product or tool you built, shown once it is added',
+      },
   { value: '0', label: 'Links bought, rented or swapped. Backlinks get audited and earned, never bought' },
   {
     value: todo('proof.clicks', 'Clicks gained: from Search Console screenshots'),
@@ -260,8 +283,8 @@ export const OFFERS: readonly Offer[] = [
  * Backlinks (owner decision 2026-11-04: "Backlink audit & strategy", no paid or spammy link
  * building). The link-profile panel is an EXAMPLE: made-up `.example` domains, quality as a
  * shape-only bar (no scores), labelled "Example site · illustrative".
- * The one verified backlink capability: AI SEO Automator "discovers competitors, researches
- * their backlinks and alerts when they publish" (src/data/ai/cases.ts, src/data/seo/cases.ts).
+ * No project of the person's is cited here: the 2026-11-05 code scan of AI SEO Automator found
+ * competitors in its dashboard but no backlink research or publish alerts, so none is claimed.
  */
 export interface LinkRow {
   readonly domain: string;
@@ -338,7 +361,7 @@ export const BACKLINKS = {
     {
       code: 'gap: rivals',
       title: 'Competitor gap research',
-      text: 'Who links to your competitors but not to you, using the competitor backlink research I built into AI SEO Automator.',
+      text: 'Who links to your competitors but not to you.',
     },
     {
       code: '301: reclaim',
@@ -416,8 +439,23 @@ export const PROCESS = [
 export const ABOUT = {
   title: 'An engineer who does SEO, not the other way round.',
   paragraphs: [
-    'I’m Faraz. I build software for a living, and I came to SEO from the code side: most of what holds a site back in search lives in its templates, its rendering and its URLs.',
-    'I built AI SEO Automator, a platform that audits a site, researches keywords and competitors, writes content and publishes it. I overhauled my own site, farazahmad.dev, so it ships canonical URLs, JSON-LD, a sitemap, llms.txt and an AI catalog, and scores 100 for SEO in Lighthouse on its main pages.',
+    // The second sentence is config.ts › originStories.seo, left out when unset.
+    sentences(`I’m ${FIRST_NAME}.`, originStory('seo')?.text),
+    // Names only the projects the person has; dropped entirely when they have neither.
+    ...(AUTOMATOR || OWN_SITE
+      ? [
+          [
+            AUTOMATOR
+              ? `I built ${AUTOMATOR.name}, a platform that audits a site, plans content, writes it with AI and publishes it after a human approves.`
+              : '',
+            OWN_SITE
+              ? `I overhauled my own site, ${OWN_SITE.name}, so it ships canonical URLs, JSON-LD, a sitemap, llms.txt and an AI catalog, and scores 100 for SEO in Lighthouse on its main pages.`
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' '),
+        ]
+      : []),
     'I don’t buy links, and I don’t promise rankings. I fix what’s in the code, protect and earn the links a site deserves, build systems that publish pages worth reading, and report what Search Console shows.',
   ],
 } as const;
@@ -438,7 +476,7 @@ export const FAQ = [
   },
   {
     q: 'Can you work in my CMS or framework?',
-    a: 'Most likely. Next.js and React apps are home ground, and most technical fixes live in templates, routing and data, which every stack has. Tell me what you run on the call and I’ll say plainly if it’s a fit.',
+    a: `Most likely. ${HOME_FRAMEWORKS.length ? `${andList(HOME_FRAMEWORKS)} apps are home ground, and most` : 'Most'} technical fixes live in templates, routing and data, which every stack has. Tell me what you run on the call and I’ll say plainly if it’s a fit.`,
   },
   {
     q: 'What do monthly reports show?',

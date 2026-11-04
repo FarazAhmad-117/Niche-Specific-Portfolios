@@ -9,13 +9,26 @@
  *  - tools: GoHighLevel, n8n, Make, Zapier
  *  - never invent figures; the leak calculator is labelled as an estimate and shows its assumptions
  * Case studies live in ./cases.ts, the calculator model in ./leak.ts.
+ *
+ * Owner identity comes from src/person (via ./site.ts) and the Lead Drift copy from the project
+ * registry: when the person has no `lead-drift` project, the two proof cells, the About paragraph
+ * and the offer sentence that name it drop out (the proof strip gets TODO cells instead, so it
+ * keeps its five cells).
  */
+import { getProject } from '../../person/case-helpers';
+import { PERSON } from '../../person/person';
+import { FIRST_NAME, ROLE_IN_SENTENCE, originStory, pronoun, sentences } from '../../person/claims';
+import { HAS_OWN_PIPELINE } from './cases';
+import { BRAND_COMPANY, PERSON_NAME } from './site';
+
+/** The real outbound project this page's copy refers to; undefined in Example mode. */
+const leadDrift = getProject('lead-drift');
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = "You'll leave the call knowing where your leads go quiet, and what fixing it involves";
 
 export const HERO = {
-  eyebrow: 'Marketing automation · Faraz Ahmad',
+  eyebrow: `Marketing automation · ${PERSON_NAME}`,
   /** decisions.md › funnels › Hero headline. The last word gets the rose swash. */
   headline: ['Follow-up that', 'never forgets', 'a lead.'],
   lede: 'I build the email, SMS and CRM follow-up that turns the leads you already have into booked calls, in GoHighLevel, n8n, Make or Zapier, and track where every one came from.',
@@ -59,15 +72,27 @@ export const HERO_STAGES = [
   },
 ] as const;
 
-export const PROOF = [
-  {
-    value: 'Lead Drift',
-    label: 'My own outbound engine, running in production for Indepth Solution',
-  },
-  { value: '4', label: 'Lead sources it pulls from: Google Maps, Yellow Pages, eBay and Apollo' },
+export const PROOF: readonly { readonly value: string; readonly label: string }[] = [
+  ...(leadDrift
+    ? [
+        {
+          value: leadDrift.name,
+          label: `My own outbound engine, running in production for ${leadDrift.madeBy ?? BRAND_COMPANY}`,
+        },
+        { value: '2', label: 'Lead sources its browser extension pulls from: Google Maps and Apollo' },
+      ]
+    : []),
   { value: 'Every lead', label: 'Landing page, referrer and UTMs captured at first touch, then mapped into the CRM' },
   { value: '4 tools', label: 'GoHighLevel, n8n, Make and Zapier, built in your accounts' },
-] as const;
+];
+
+/** Example mode: dashed TODO cells in place of the Lead Drift cells, so the strip keeps five (none for the current owner). */
+export const PROOF_TODO: readonly { readonly title: string; readonly chip: string }[] = leadDrift
+  ? []
+  : [
+      { title: 'Own system', chip: 'TODO · An outbound or follow-up system you run, and its status' },
+      { title: 'Another fact', chip: 'TODO · A verified fact about your automation work' },
+    ];
 
 export const PROBLEM = {
   title: 'Most leads die in the inbox, not the ad.',
@@ -212,7 +237,9 @@ export const OFFERS: readonly Offer[] = [
     id: 'outbound',
     name: 'Outbound engine',
     bestFor: 'You need more conversations, not just better follow-up.',
-    description: 'Lead sourcing, enrichment, personalised outreach and reply handling: the approach behind Lead Drift.',
+    description: leadDrift
+      ? `Lead sourcing, enrichment, personalised outreach and reply handling, built on the lead-sourcing approach behind ${leadDrift.name}.`
+      : 'Lead sourcing, enrichment, personalised outreach and reply handling.',
     serviceType: 'Outbound outreach automation',
     gets: ['Lead sourcing and enrichment', 'Outreach sequences', 'Reply detection and routing'],
     priceLine: PRICE_LINE,
@@ -299,10 +326,17 @@ export const PROCESS = [
 ] as const;
 
 export const ABOUT = {
-  title: 'An engineer who runs his own funnel.',
+  // "runs his own funnel" is true only with an own lead system on the page (Lead Drift or the pipeline).
+  // The pronoun is config.ts › pronouns (default "their").
+  title: HAS_OWN_PIPELINE ? `An engineer who runs ${pronoun('possessive')} own funnel.` : 'An engineer who builds the whole funnel.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution. I came to automation through GoHighLevel and have been connecting platforms ever since: forms to CRMs, CRMs to inboxes, inboxes to calendars.',
-    'Lead Drift, the outbound system on this page, is the one I use to find work for my own company, so I build follow-up the way I need it to behave: fast, polite, and measured from first click to booked call.',
+    // The second sentence is config.ts › originStories.funnels, left out when unset.
+    sentences(`I’m ${FIRST_NAME}, ${ROLE_IN_SENTENCE} of ${PERSON.company}.`, originStory('funnels')?.text),
+    ...(leadDrift
+      ? [
+          `${leadDrift.name}, the outbound system on this page, is the one I use to find work for my own company, so I build follow-up the way I need it to behave: fast, polite, and measured from first click to booked call.`,
+        ]
+      : []),
     'I build the system; you supply the words. I don’t write sales copy, but I will tell you where a message is missing.',
   ],
 } as const;

@@ -1,9 +1,11 @@
 ---
 /**
  * Proof strip (brief §4 item 2): developer-level facts, each true of the owner's own pipeline.
- * No numbers we don't have: lead-delivery figures are a visible TODO chip.
+ * No numbers we don't have: lead-delivery figures are a visible TODO chip. Without the
+ * `lead-pipeline` project (Example mode) its three cells become TODO cells (PROOF_TODO_EXTRA),
+ * so the rail stays at four.
  */
-import { PROOF, PROOF_TODO } from '../../data/ghl/content';
+import { PROOF, PROOF_TODO, PROOF_TODO_EXTRA } from '../../data/ghl/content';
 ---
 
 <section class="proof" id="proof" aria-labelledby="proof-title">
@@ -16,6 +18,15 @@ import { PROOF, PROOF_TODO } from '../../data/ghl/content';
             <span class="proof__num mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
             <span class="proof__value">{p.value}</span>
             <span class="proof__label">{p.label}</span>
+          </li>
+        ))
+      }
+      {
+        PROOF_TODO_EXTRA.map((t, i) => (
+          <li class="proof__item">
+            <span class="proof__num mono" aria-hidden="true">{String(PROOF.length + i + 1).padStart(2, '0')}</span>
+            <span class="proof__value">{t.title}</span>
+            <span class="todo">{t.chip}</span>
           </li>
         ))
       }

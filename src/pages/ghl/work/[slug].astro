@@ -8,17 +8,21 @@
  * → contact.
  */
 import type { GetStaticPaths } from 'astro';
+import { Picture } from 'astro:assets';
 import Layout from '../../../layouts/ghl/Layout.astro';
 import PortList from '../../../components/ghl/PortList.astro';
 import FinalCta from '../../../components/ghl/FinalCta.astro';
-import { CASES, GHL_RECORD, nextCase, type GhlCase } from '../../../data/ghl/cases';
+import { ALL_CASES, GHL_RECORD, nextCase, relatedCases, type GhlCase } from '../../../data/ghl/cases';
+import { getProject } from '../../../person/case-helpers';
+import type { ProjectId } from '../../../person/projects';
+import { projectShot } from '../../../person/shots';
 import { LIST_AFTER, LIST_BEFORE } from '../../../data/ghl/switchboard';
 import { assertMeta } from '../../../data/ghl/seo';
 import { abs, caseLdGraph } from '../../../lib/ghl/jsonld';
 import { caseHref, link } from '../../../lib/ghl/paths';
 import { bookingUrl } from '../../../data/ghl/site';
 
-export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+export const getStaticPaths = (() => ALL_CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
 
 interface Props {
   study: GhlCase;
@@ -26,6 +30,13 @@ interface Props {
 const { study: c } = Astro.props;
 assertMeta(`case ${c.id}`, c.seo);
 const next = nextCase(c.id);
+/** Generated cases: the shared screenshot (redacted before it entered the repo), related builds. */
+const project = c.generated ? getProject(c.id as ProjectId) : undefined;
+const shot = project ? projectShot(project) : undefined;
+const related = c.generated ? relatedCases(c.id, next?.id) : [];
+/** Generated cases carry the box class so they get the tuned card-to-hero morph (base.css). */
+const vtStyle = (id: string, generated?: boolean) =>
+  `view-transition-name: case-${id}` + (generated ? '; view-transition-class: case-box' : '');
 const faults = LIST_BEFORE.filter((w) => w.fault);
 const rewired = LIST_AFTER.slice(0, 4);
 ---
@@ -36,24 +47,39 @@ const rewired = LIST_AFTER.slice(0, 4);
   path={`/work/${c.id}/`}
   image={abs(`og/${c.id}.png`)}
   jsonLd={caseLdGraph(c)}
-  expect="next-title"
+  expect={next ? 'next-title' : undefined}
 >
   <section class="chero" id="top" data-hero aria-labelledby="case-title">
     <div class="container">
       <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
         <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
       </a>
-      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+      <div class:list={['chero__panel', { 'chero__panel--gen': c.generated }]} style={vtStyle(c.id, c.generated)}>
         <div class="chero__main">
           <div class="chero__top">
             {c.example && <span class="tape">Example</span>}
+            {c.confidential && (
+              <span class="tape tape--sealed">
+                <span class="led led--off" aria-hidden="true" />
+                Confidential client
+              </span>
+            )}
             <span class="chero__kicker mono">{c.kicker}</span>
             {c.status && <span class="chip chip--live">{c.status}</span>}
           </div>
-          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <h1 id="case-title" class:list={['chero__name', { 'chero__name--long': c.generated }]}>{c.name}</h1>
           <p class="chero__title">{c.title}</p>
           <p class="lede chero__text">{c.text}</p>
           {c.pending && <span class="todo">{c.pending}</span>}
+          {
+            c.link && (
+              <a class="btn btn--ghost btn--side" href={c.link.href} target="_blank" rel="noopener">
+                <span>Visit {c.link.label}</span>
+                <span class="btn__arrow" aria-hidden="true">↗</span>
+                <span class="visually-hidden">(opens in a new tab)</span>
+              </a>
+            )
+          }
         </div>
         <ul class="chero__facts" role="list" data-reveal-stagger>
           {
@@ -69,15 +95,19 @@ const rewired = LIST_AFTER.slice(0, 4);
     </div>
   </section>
 
-  <section class="section cblock" aria-labelledby="problem-title">
-    <div class="container cblock__grid">
-      <p class="eyebrow">The problem</p>
-      <div>
-        <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
-        <p class="lede">{c.problem.text}</p>
-      </div>
-    </div>
-  </section>
+  {
+    c.problem && (
+      <section class="section cblock" aria-labelledby="problem-title">
+        <div class="container cblock__grid">
+          <p class="eyebrow">The problem</p>
+          <div>
+            <h2 id="problem-title" class="cblock__h2">{c.problem.title}</h2>
+            <p class="lede">{c.problem.text}</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section class="section cblock" aria-labelledby="built-title">
     <div class="container cblock__grid">
@@ -101,6 +131,78 @@ const rewired = LIST_AFTER.slice(0, 4);
     </div>
   </section>
 
+  {c.generated ? (
+  <section class="section cblock cblock--tint" aria-labelledby="runs-title">
+    <div class="container cblock__grid">
+      <p class="eyebrow">How it runs</p>
+      <div class="runs">
+        <h2 id="runs-title" class="cblock__h2">The flow, port by port.</h2>
+        <div class:list={['runs__visual', { 'runs__visual--shot': shot }]}>
+          <div class="runs__diagram">
+            <PortList steps={c.flow} label={`${c.name}, the flow in order`} />
+            <p class="panel__foot text-3">Illustrative diagram of the flow, not a screenshot.</p>
+          </div>
+          {
+            shot ? (
+              <figure class="shot">
+                <div class="shot__bar mono" aria-hidden="true">
+                  <span class="led" />
+                  <span>{c.confidential ? 'Client workspace · redacted' : c.name}</span>
+                </div>
+                <Picture
+                  src={shot.src}
+                  formats={['avif', 'webp']}
+                  fallbackFormat="png"
+                  quality={82}
+                  widths={[480, 768, 1080, 1400]}
+                  sizes="(min-width: 1440px) 900px, (min-width: 1024px) 60vw, calc(100vw - 2rem)"
+                  alt={shot.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption class="shot__cap text-3">
+                  A real screenshot of the build{c.confidential ? ', with anything that names the client blurred' : ''}. Figures in it are not results.
+                </figcaption>
+              </figure>
+            ) : (
+              c.stack &&
+              c.stack.length > 0 && (
+                <div class="panel">
+                  <p class="panel__label mono">Built with</p>
+                  <ul class="stack" role="list">
+                    {c.stack.map((s) => (
+                      <li class="tape">{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            )
+          }
+        </div>
+        {
+          shot && c.stack && c.stack.length > 0 && (
+            <div class="panel">
+              <p class="panel__label mono">Built with</p>
+              <ul class="stack" role="list">
+                {c.stack.map((s) => (
+                  <li class="tape">{s}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+        <div class="now inverse">
+          <p class="now__label mono">Good to know</p>
+          <ul class="now__list" role="list">
+            {c.confidential && <li>A client build, shown anonymised: no client names, accounts or figures.</li>}
+            {(c.notes ?? []).map((n) => <li>{n}</li>)}
+            {!c.confidential && (c.notes ?? []).length === 0 && <li>{c.status ?? 'Details on a call.'}</li>}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  ) : (
   <section class="section cblock cblock--tint" aria-labelledby="runs-title">
     <div class="container cblock__grid">
       <p class="eyebrow">{c.example ? 'Before and after' : 'How it runs'}</p>
@@ -157,23 +259,46 @@ const rewired = LIST_AFTER.slice(0, 4);
             )
           }
         </div>
+        {c.runsNow && (
         <div class="now inverse">
           <p class="now__label mono">{c.runsNow.label}</p>
           <p class="now__text">{c.runsNow.text}</p>
         </div>
+        )}
       </div>
     </div>
   </section>
+  )}
 
-  <section class="section cnext" aria-labelledby="next-title">
+  <section class="section cnext" aria-labelledby={next ? 'next-title' : undefined}>
     <div class="container">
-      <p class="eyebrow">Next case</p>
-      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+      {next && <p class="eyebrow">Next case</p>}
+      {next && (
+      <a class="cnext__card" href={caseHref(next.id)} style={vtStyle(next.id, next.generated)}>
         <span class="cnext__kicker mono">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
         <span id="next-title" class="cnext__name">{next.name}</span>
         <span class="cnext__title">{next.title}</span>
         <span class="cnext__go" aria-hidden="true">→</span>
       </a>
+      )}
+      {
+        related.length > 0 && (
+          <nav class="related" aria-label="More GoHighLevel builds">
+            <p class="related__k mono">More builds on this board</p>
+            <ul class="related__list" role="list">
+              {related.map((r) => (
+                <li>
+                  <a class="related__link" href={caseHref(r.id)}>
+                    <span class="related__jack" aria-hidden="true" />
+                    <span class="related__name">{r.name}</span>
+                    <span class="related__go" aria-hidden="true">→</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
       <p class="cnext__or">
         Want this for your account? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
       </p>
@@ -502,5 +627,151 @@ const rewired = LIST_AFTER.slice(0, 4);
   .cnext__or {
     margin-top: var(--space-5);
     color: var(--text-2);
+  }
+
+  /* ---------- generated cases (registry builds) ---------- */
+  /* Long generated headings ("A CRM reporting dashboard over GoHighLevel") need a smaller wide face. */
+  .chero__name--long {
+    font-size: clamp(1.875rem, 1.2rem + 2.6vw, 3.75rem);
+    line-height: 1.02;
+    max-width: 22ch;
+  }
+  /* Confidential client: a dark label-maker tape with an unlit LED (the account is sealed). */
+  .tape--sealed {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .tape--sealed .led--off {
+    background: color-mix(in srgb, var(--btn-fg) 45%, transparent);
+  }
+  .runs__diagram {
+    display: grid;
+    gap: var(--space-2);
+  }
+  @media (min-width: 900px) {
+    .runs__visual--shot {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+  }
+  .shot {
+    display: grid;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-l);
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .shot__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    color: var(--text-3);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+  .shot :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    background: #fff;
+  }
+  .shot__cap {
+    padding: 10px 14px 14px;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    border-top: 1px solid var(--line);
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+  }
+  .now__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .now__list li {
+    position: relative;
+    padding-left: 20px;
+    font-size: var(--fs-lede);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .now__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-inv);
+  }
+  .related {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+  .related__k {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .related__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  @media (min-width: 720px) {
+    .related__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .related__link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--tap);
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+    transition: box-shadow 520ms var(--ease-out-expo);
+  }
+  .related__jack {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      inset 0 0 0 4px var(--bg),
+      inset 0 0 0 8px var(--accent);
+  }
+  .related__go {
+    color: var(--accent-text);
+    transition: transform 520ms var(--ease-out-expo);
+  }
+  .related__link:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) {
+    .related__link:hover {
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+    .related__link:hover .related__go {
+      transform: translateX(4px);
+    }
   }
 </style>

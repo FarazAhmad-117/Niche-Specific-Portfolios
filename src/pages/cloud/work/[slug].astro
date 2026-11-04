@@ -4,20 +4,23 @@
  *
  * Reading order: what it is (the hero panel, which the home card morphs into) → the brief →
  * what it guarantees → the architecture → the metrics (all baseline TODOs) → where it is now →
- * the next case (which morphs too) → contact.
+ * the next case (which morphs too) → contact. Pages exist only for the cases present (see
+ * data/cloud/cases.ts); with a single case there is no "next case" card (no self-link).
  */
 import type { GetStaticPaths } from 'astro';
 import Layout from '../../../layouts/cloud/Layout.astro';
 import FinalCta from '../../../components/cloud/FinalCta.astro';
 import Todo from '../../../components/cloud/Todo.astro';
-import { CASES, nextCase, type CloudCase } from '../../../data/cloud/cases';
+import { Image } from 'astro:assets';
+import { ALL_CASES, nextCase, relatedCases, type CloudCase } from '../../../data/cloud/cases';
+import { projectShot } from '../../../person/shots';
 import { assertMeta } from '../../../data/cloud/seo';
 import { isTodo } from '../../../data/cloud/todo';
 import { abs, caseLdGraph } from '../../../lib/cloud/jsonld';
 import { caseHref, link } from '../../../lib/cloud/paths';
 import { bookingUrl } from '../../../data/cloud/site';
 
-export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.slug }, props: { study: c } }))) satisfies GetStaticPaths;
+export const getStaticPaths = (() => ALL_CASES.map((c) => ({ params: { slug: c.slug }, props: { study: c } }))) satisfies GetStaticPaths;
 
 interface Props {
   study: CloudCase;
@@ -25,6 +28,9 @@ interface Props {
 const { study: c } = Astro.props;
 assertMeta(`case ${c.slug}`, c.seo);
 const next = nextCase(c.slug);
+/** Generated cases (registry, no hand-written angle): their shared screenshot and sibling builds. */
+const shot = c.project ? projectShot(c.project) : undefined;
+const related = c.generated ? relatedCases(c.slug).filter((r) => r.slug !== next?.slug) : [];
 ---
 
 <Layout
@@ -33,7 +39,7 @@ const next = nextCase(c.slug);
   path={`/work/${c.slug}/`}
   image={abs(`og/${c.slug}.png`)}
   jsonLd={caseLdGraph(c)}
-  expect="next-title"
+  expect={next ? 'next-title' : undefined}
 >
   <section class="chero" id="top" data-hero aria-labelledby="case-title">
     <div class="container">
@@ -45,14 +51,20 @@ const next = nextCase(c.slug);
           <div class="chero__top">
             <span class="chero__kicker mono">{c.kicker}</span>
             <span class:list={['status', `status--${c.status.tone}`]}>{c.status.label}</span>
+            {c.confidential && <span class="stamp chero__conf">Confidential client</span>}
           </div>
           <h1 id="case-title" class="chero__name">{c.name}</h1>
           <p class="chero__title">{c.title}</p>
           <p class="lede chero__text">{c.summary}</p>
           <p class="chero__client">
-            <span class="mono">Client</span>
+            <span class="mono">{c.generated ? 'Built for' : 'Client'}</span>
             <Todo value={c.client} />
           </p>
+          {
+            c.confidential && (
+              <p class="chero__conf-note text-3">The client’s name, systems and data stay private. What is described here is the build.</p>
+            )
+          }
         </div>
         <ul class="chero__facts" role="list">
           {
@@ -68,6 +80,33 @@ const next = nextCase(c.slug);
     </div>
   </section>
 
+  {
+    shot && (
+      <section class="cshot" aria-label={`${c.name}: screenshot`}>
+        <div class="container">
+          <figure class="cshot__frame panel" data-reveal>
+            <div class="cshot__bar mono" aria-hidden="true">
+              <span class="cshot__led" />
+              <span>{c.name} · screenshot</span>
+            </div>
+            <Image
+              src={shot.src}
+              alt={shot.alt}
+              widths={[480, 800, 1200, 1440]}
+              sizes="(min-width: 1440px) 1300px, calc(100vw - 2 * var(--margin, 1rem))"
+              loading="lazy"
+              decoding="async"
+              class="cshot__img"
+            />
+            <figcaption class="cshot__cap mono">
+              A real screenshot of the app{c.confidential ? ', with anything that names the client blurred' : ''}. Figures on screen are not results.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+    )
+  }
+
   <section class="section cblock" aria-labelledby="brief-title">
     <div class="container cblock__grid">
       <p class="eyebrow">The brief</p>
@@ -80,15 +119,15 @@ const next = nextCase(c.slug);
 
   <section class="section cblock" aria-labelledby="guarantees-title">
     <div class="container cblock__grid">
-      <p class="eyebrow">What it guarantees</p>
+      <p class="eyebrow">{c.generated ? 'What I built' : 'What it guarantees'}</p>
       <div>
-        <h2 id="guarantees-title" class="cblock__h2">The promises the system keeps.</h2>
-        <ul class="guar" role="list" data-reveal-stagger>
+        <h2 id="guarantees-title" class="cblock__h2">{c.generated ? 'The parts that keep it running.' : 'The promises the system keeps.'}</h2>
+        <ul class:list={['guar', { 'guar--odd': c.guarantees.length % 2 === 1 }]} role="list" data-reveal-stagger>
           {
             c.guarantees.map((g) => (
               <li class="guar__item panel">
                 <span class:list={['status', isTodo(g.text) ? '' : 'status--ok', 'guar__state']}>
-                  {isTodo(g.text) ? 'Pending' : 'Holds'}
+                  {isTodo(g.text) ? 'Pending' : c.generated ? 'Built' : 'Holds'}
                 </span>
                 <h3 class="guar__title">{g.title}</h3>
                 <p class="guar__text">
@@ -107,7 +146,15 @@ const next = nextCase(c.slug);
       <p class="eyebrow">Architecture</p>
       <div>
         <h2 id="arch-title" class="cblock__h2">How it fits together.</h2>
-        <p class="text-2 arch__note">Only what is confirmed is drawn. Dashed boxes are still to be confirmed.</p>
+        {
+          c.generated ? (
+            <p class="text-2 arch__note">
+              <span class="stamp">Illustrative</span> A diagram of the flow, drawn from the build. Not a screenshot.
+            </p>
+          ) : (
+            <p class="text-2 arch__note">Only what is confirmed is drawn. Dashed boxes are still to be confirmed.</p>
+          )
+        }
         <div class="lanes">
           {
             c.arch.map((lane) => (
@@ -135,6 +182,41 @@ const next = nextCase(c.slug);
     </div>
   </section>
 
+  {
+    c.generated && (
+      <section class="section cblock" aria-labelledby="stack-title">
+        <div class="container cblock__grid">
+          <p class="eyebrow">Stack</p>
+          <div>
+            <h2 id="stack-title" class="cblock__h2">What it runs on.</h2>
+            <ul class="gstack" role="list" aria-label={`${c.name} stack`}>
+              {(c.stack ?? []).map((s) => (
+                <li class="gstack__item mono">{s}</li>
+              ))}
+            </ul>
+            <p class="text-3 gstack__src">Read from the code, not from a slide.</p>
+            {(c.notes?.length || c.link) && (
+              <div class="now inverse">
+                <p class="now__label mono">Good to know</p>
+                {(c.notes ?? []).map((n) => (
+                  <p class="now__text">{n}</p>
+                ))}
+                {c.link && (
+                  <a class="btn btn--inv now__link" href={c.link.href} target="_blank" rel="noopener">
+                    <span>{c.link.label}</span>
+                    <span aria-hidden="true">↗</span>
+                    <span class="visually-hidden">(opens in a new tab)</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {!c.generated && (
   <section class="section cblock" aria-labelledby="metrics-title">
     <div class="container cblock__grid">
       <p class="eyebrow">Metrics</p>
@@ -187,16 +269,37 @@ const next = nextCase(c.slug);
       </div>
     </div>
   </section>
+  )}
 
-  <section class="section cnext" aria-labelledby="next-title">
+  <section class="section cnext" aria-labelledby={next ? 'next-title' : undefined}>
     <div class="container">
-      <h2 id="next-title" class="eyebrow cnext__h">Next case</h2>
+      {next && <h2 id="next-title" class="eyebrow cnext__h">Next case</h2>}
+      {next && (
       <a class="cnext__card panel" href={caseHref(next.slug)} data-vt-case={next.slug}>
         <span class="cnext__kicker mono">{next.kicker}</span>
         <span class="cnext__name">{next.name}</span>
         <span class="cnext__title">{next.title}</span>
         <span class="cnext__go" aria-hidden="true">→</span>
       </a>
+      )}
+      {
+        related.length > 0 && (
+          <nav class="crel" aria-label="Related builds">
+            <p class="crel__k mono">Related builds</p>
+            <ul class="crel__list" role="list">
+              {related.map((r) => (
+                <li>
+                  <a class="crel__link" href={caseHref(r.slug)}>
+                    <span class="crel__led" aria-hidden="true" />
+                    <span class="crel__name">{r.name}</span>
+                    <span class="crel__line text-2">{r.line ?? r.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
       <p class="cnext__or">
         Want this for your stack? <a class="link" href={bookingUrl(`case-${c.slug}`)}>Book a scoping call</a>.
       </p>
@@ -601,5 +704,130 @@ const next = nextCase(c.slug);
   .cnext__or {
     margin-top: var(--space-5);
     color: var(--text-2);
+  }
+
+  /* ---------- generated cases: confidential note, screenshot, stack, related ---------- */
+  .chero__conf {
+    color: var(--text-2);
+  }
+  .chero__conf-note {
+    max-width: 52ch;
+    font-size: var(--fs-small);
+  }
+  /* An odd count of parts: the last card spans the row so the 2-up grid stays complete. */
+  @media (min-width: 720px) {
+    .guar--odd > :last-child {
+      grid-column: 1 / -1;
+    }
+  }
+  .cshot {
+    padding-bottom: var(--space-6);
+  }
+  .cshot__frame {
+    margin: 0;
+    overflow: hidden;
+  }
+  .cshot__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .cshot__led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+  .cshot__frame :global(.cshot__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+  }
+  .cshot__cap {
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    color: var(--text-3);
+    line-height: 1.5;
+  }
+  .gstack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+  }
+  .gstack__item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 4px 12px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text);
+    text-transform: none;
+  }
+  .gstack__src {
+    font-size: var(--fs-small);
+  }
+  .now .now__text + .now__text {
+    margin-top: var(--space-2);
+  }
+  .crel {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+  .crel__k {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .crel__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  @media (min-width: 900px) {
+    .crel__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .crel__link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 12px;
+    align-items: baseline;
+    min-height: var(--tap);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text);
+    text-decoration: none;
+    transition: box-shadow 520ms var(--ease-out-expo);
+  }
+  .crel__led {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+  .crel__name {
+    font-family: var(--font-display);
+    font-stretch: 106%;
+    font-weight: 700;
+  }
+  .crel__line {
+    grid-column: 2;
+    font-size: var(--fs-small);
+  }
+  @media (hover: hover) {
+    .crel__link:hover {
+      box-shadow: inset 0 0 0 1.5px var(--text);
+    }
   }
 </style>

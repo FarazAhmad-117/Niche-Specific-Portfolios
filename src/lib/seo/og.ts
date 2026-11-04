@@ -10,7 +10,8 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/seo/site';
-import { CASES, CASE_SLUGS, type CaseSlug } from '../../data/seo/cases';
+import { fitSignatureRow } from '../shared/og-fit';
+import { CASE_SLUGS, SEO_HOST, getCase, type CaseStudy } from '../../data/seo/cases';
 import { MARK_SHAPES } from './brand-mark';
 
 const W = 1200;
@@ -70,12 +71,16 @@ function mark(size: number): El {
   ]);
 }
 
-const signature = (tag: string): El =>
-  h({ position: 'absolute', left: M, bottom: M - 14, alignItems: 'center', gap: 20 }, [
+/** Room from the name's left edge to the right margin, less the 44px mark and its 20px gap. A long name drops the tag first (see ../shared/og-fit). */
+const SIGNATURE_BUDGET = W - 2 * M - 44 - 20;
+const signature = (tag: string): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: tag, taglinePx: 21, gap: 20, budget: SIGNATURE_BUDGET });
+  return h({ position: 'absolute', left: M, bottom: M - 14, alignItems: 'center', gap: 20 }, [
     mark(44),
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(21, C.ink2), tag),
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(21, C.ink2), tag)] : []),
   ]);
+};
 
 function serpCard(): El {
   return h(
@@ -113,7 +118,7 @@ function serpCard(): El {
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 8 }), 'seo.farazahmad.dev'),
+    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 8 }), SEO_HOST),
     h(
       {
         position: 'absolute',
@@ -140,10 +145,9 @@ function homeTree(): El {
   ]);
 }
 
-function caseTree(slug: CaseSlug): El {
-  const study = CASES.find((c) => c.slug === slug)!;
+function caseTree(study: CaseStudy): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 8 }), `seo.farazahmad.dev › work › ${slug}`),
+    h(mono(22, C.ink2, { position: 'absolute', left: M, top: M - 8 }), `${SEO_HOST} › work › ${study.slug}`),
     h({ position: 'absolute', left: M, top: 150, flexDirection: 'column', width: W - M * 2, gap: 28 }, [
       h(
         { padding: '6px 14px', borderRadius: 4, background: C.yellow, alignSelf: 'flex-start', ...mono(20, C.ink, { letterSpacing: '0.08em' }) },
@@ -166,11 +170,19 @@ function caseTree(slug: CaseSlug): El {
   ]);
 }
 
+/** home plus one image per PRESENT case, so an omitted case gets no OG image either. */
 export const OG_TARGETS = ['home', ...CASE_SLUGS] as const;
 export type OgTarget = (typeof OG_TARGETS)[number];
 
+function treeFor(target: OgTarget): El {
+  if (target === 'home') return homeTree();
+  const study = getCase(target);
+  if (!study) throw new Error(`[seo] og: no case "${target}"`);
+  return caseTree(study);
+}
+
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const tree = target === 'home' ? homeTree() : caseTree(target);
+  const tree = treeFor(target);
   const svg = await satori(tree as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();
 }

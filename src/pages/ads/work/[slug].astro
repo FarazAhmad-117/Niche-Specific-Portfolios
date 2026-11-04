@@ -22,6 +22,7 @@ interface Props {
 }
 const { study: c } = Astro.props;
 assertMeta(`case ${c.id}`, c.seo);
+// Undefined when this is the only case (Example mode): the "Next case" card would point at itself.
 const next = nextCase(c.id);
 const rules = c.built.filter((b) => b.rule);
 ---
@@ -32,7 +33,7 @@ const rules = c.built.filter((b) => b.rule);
   path={`/work/${c.id}/`}
   image={abs(`og/${c.id}.png`)}
   jsonLd={caseLdGraph(c)}
-  expect="next-title"
+  expect={next ? 'next-title' : undefined}
 >
   <section class="chero" id="top" data-hero aria-labelledby="case-title">
     <div class="container">
@@ -197,15 +198,21 @@ const rules = c.built.filter((b) => b.rule);
     </div>
   </section>
 
-  <section class="section cnext" aria-labelledby="next-title">
+  <section class="section cnext" aria-labelledby={next ? 'next-title' : undefined}>
     <div class="container">
-      <p class="eyebrow">Next case</p>
-      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
-        <span class="cnext__kicker mono">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
-        <span id="next-title" class="cnext__name">{next.name}</span>
-        <span class="cnext__title">{next.title}</span>
-        <span class="cnext__go" aria-hidden="true">→</span>
-      </a>
+      {
+        next && (
+          <>
+            <p class="eyebrow">Next case</p>
+            <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+              <span class="cnext__kicker mono">{next.example ? `Example · ${next.kicker}` : next.kicker}</span>
+              <span id="next-title" class="cnext__name">{next.name}</span>
+              <span class="cnext__title">{next.title}</span>
+              <span class="cnext__go" aria-hidden="true">→</span>
+            </a>
+          </>
+        )
+      }
       <p class="cnext__or">
         Want this on your account? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
       </p>

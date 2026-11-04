@@ -11,13 +11,38 @@
  * the one being navigated `case-<id>`, and the case page hero panel uses the same name, so
  * on navigation the sheet box morphs into the hero. Sheets are never reveal-armed: a page
  * transition may morph into one at load.
+ *
+ * Example mode (a project missing from src/person/projects.ts): its sheet or call-out is
+ * omitted and the row is completed with dashed TODO slots (CASE_SLOT / DETAIL_SLOT), so rows
+ * stay full and nothing shows another person's project. The lede counts the real cases.
  */
 import { Picture } from 'astro:assets';
 import leadrift from '../../assets/apps/leadrift.png';
 import SheetPlot from './SheetPlot.astro';
 import Arrow from './Arrow.astro';
-import { CASES, SUPPORTING } from '../../data/apps/cases';
+import {
+  CASES,
+  CASE_SLOT,
+  DETAIL_SLOT,
+  DETAILS_PER_ROW,
+  SHEETS_PER_ROW,
+  SUPPORTING,
+} from '../../data/apps/cases';
+import { SPEC_ARCH } from '../../data/apps/content';
+import { slotsToFill } from '../../person/case-helpers';
+import { nicheHost } from '../../niches';
 import { caseHref } from '../../lib/apps/paths';
+
+const aiHost = nicheHost('ai');
+// A full row of placeholders when there is no case at all, so the section is never empty.
+const sheetSlots = CASES.length === 0 ? SHEETS_PER_ROW : slotsToFill(CASES.length, SHEETS_PER_ROW);
+const detailSlots = SUPPORTING.length === 0 ? 0 : slotsToFill(SUPPORTING.length, DETAILS_PER_ROW);
+const COUNT_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+const count = COUNT_WORDS[CASES.length] ?? String(CASES.length);
+const lede =
+  CASES.length > 0
+    ? `${count} product${CASES.length === 1 ? '' : 's'} I built or led, each with its architecture drawn out. Where a number isn’t measured yet, it says so.`
+    : 'Products I built or led, each with its architecture drawn out. Where a number isn’t measured yet, it says so.';
 ---
 
 <section class="section cases print paper" id="work" aria-labelledby="work-title">
@@ -26,7 +51,7 @@ import { caseHref } from '../../lib/apps/paths';
       <p class="eyebrow"><span class="eyebrow__no">03</span>Case studies</p>
       <h2 id="work-title">Hard products, built end to end.</h2>
       <p class="lede">
-        Three products I built or led, each with its architecture drawn out. Where a number isn’t measured yet, it says so.
+        {lede}
       </p>
     </div>
 
@@ -94,10 +119,35 @@ import { caseHref } from '../../lib/apps/paths';
             </li>
           );
         })
+      }{
+        Array.from({ length: sheetSlots }, () => (
+          <li class="cases__cell">
+            <aside class="case-sheet" aria-label="Case study placeholder">
+              <div class="case-sheet__plot paper">
+                <span class="case-sheet__corner mono" aria-hidden="true">
+                  {CASE_SLOT.sheet}
+                </span>
+                <span class="case-sheet__corner case-sheet__corner--r mono" aria-hidden="true">
+                  Example
+                </span>
+                <SheetPlot diagram={SPEC_ARCH} />
+              </div>
+              <div class="case-sheet__body">
+                <p class="case-sheet__name">{CASE_SLOT.name}</p>
+                <p class="case-sheet__title">{CASE_SLOT.title}</p>
+                <p class="case-sheet__pending">
+                  {CASE_SLOT.chips.map((t) => (
+                    <span class="todo case-sheet__todo">{t}</span>
+                  ))}
+                </p>
+              </div>
+            </aside>
+          </li>
+        ))
       }
     </ul>
 
-    <ul class="cases__details" role="list">
+    {SUPPORTING.length > 0 && (<ul class="cases__details" role="list">
       {
         SUPPORTING.map((s, i) => (
           <li class:list={['detail', s.id === 'lead-drift' && 'detail--thumb']}>
@@ -114,12 +164,12 @@ import { caseHref } from '../../lib/apps/paths';
                 </a>
               </h3>
               <span class="visually-hidden" id={`mini-note-${s.id}`}>
-                Engineering write-up on ai.farazahmad.dev, opens in a new tab
+                Engineering write-up on {aiHost}, opens in a new tab
               </span>
               <p class="detail__title">{s.title}</p>
               <div class="detail__end">
                 <span class="detail__more" aria-hidden="true">
-                  Write-up on ai.farazahmad.dev <Arrow dir="up-right" />
+                  Write-up on {aiHost} <Arrow dir="up-right" />
                 </span>
                 <span class="todo case-sheet__todo">{s.pending}</span>
               </div>
@@ -135,7 +185,7 @@ import { caseHref } from '../../lib/apps/paths';
                   sizes="104px"
                   width={1352}
                   height={888}
-                  alt="Leadrift, Indepth Solution's internal sales tool: its sign-in page."
+                  alt={s.thumbAlt ?? ''}
                   loading="lazy"
                   decoding="async"
                 />
@@ -143,8 +193,27 @@ import { caseHref } from '../../lib/apps/paths';
             )}
           </li>
         ))
+      }{
+        Array.from({ length: detailSlots }, (_, k) => (
+          <li class="detail">
+            <span class="detail__callout mono" aria-hidden="true">
+              {String.fromCharCode(65 + SUPPORTING.length + k)}
+            </span>
+            <div class="detail__body">
+              <span class="detail__kicker label">
+                Detail {String.fromCharCode(65 + SUPPORTING.length + k)} · {DETAIL_SLOT.kicker}
+              </span>
+              <p class="detail__title">{DETAIL_SLOT.title}</p>
+              <div class="detail__end">
+                {DETAIL_SLOT.chips.map((t) => (
+                  <span class="todo case-sheet__todo">{t}</span>
+                ))}
+              </div>
+            </div>
+          </li>
+        ))
       }
-    </ul>
+    </ul>)}
   </div>
 </section>
 

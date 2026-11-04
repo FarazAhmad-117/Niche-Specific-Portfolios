@@ -5,11 +5,14 @@
  * Here it sits under a strip of uptime bars, the end of the status page.
  */
 import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, SUPPORT_HOURS, bookingUrl } from '../../data/cloud/site';
+import { signatureStyle } from '../../lib/shared/signature';
 import { CALL_PROMISE } from '../../data/cloud/content';
 import { nicheHost } from '../../niches';
 import { sectionHref } from '../../lib/cloud/paths';
 
 const year = new Date().getFullYear();
+// Shrinks the signature for names longer than 11 characters (no style attribute otherwise).
+const sigStyle = signatureStyle(PERSON_NAME);
 const host = (u: string) => new URL(u).host;
 const BARS = 60;
 ---
@@ -50,7 +53,7 @@ const BARS = 60;
           <ul role="list">
             <li><a class="foot__link" href={bookingUrl('footer-contact')}>{host(BOOKING_URL)}</a></li>
             <li><a class="foot__link foot__email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></li>
-            <li class="foot__hours mono">Support {SUPPORT_HOURS} · not on-call</li>
+            {SUPPORT_HOURS && <li class="foot__hours mono">Support {SUPPORT_HOURS} · not on-call</li>}
           </ul>
         </div>
 
@@ -73,7 +76,7 @@ const BARS = 60;
       </div>
 
       <div class="foot__sig-wrap" data-reveal>
-        <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+        <p class="foot__signature" style={sigStyle} aria-hidden="true">{PERSON_NAME}</p>
       </div>
 
       <div class="foot__legal">

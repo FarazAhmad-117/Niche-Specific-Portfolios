@@ -4,20 +4,21 @@
  * Keep free of Astro-only imports: it is also used by build-time endpoints.
  */
 
-export const SITE_ORIGIN = 'https://wp.farazahmad.dev';
-export const MAIN_SITE_URL = 'https://farazahmad.dev';
-export const PERSON_NAME = 'Faraz Ahmad';
+import { nicheOrigin } from '../../niches';
+import { PERSON, bookingUrlFor } from '../../person/person';
+// Owner identity comes from src/person/config.ts; edit it there, not here.
+
+export const SITE_ORIGIN = nicheOrigin('wp');
+export const MAIN_SITE_URL = PERSON.mainSiteUrl;
+export const PERSON_NAME = PERSON.name;
 
 /** decisions.md › global › Contact & booking. */
-export const BOOKING_URL = 'https://calendly.com/farazahmad1/30min';
-export const CONTACT_EMAIL = 'farazahmad31048@gmail.com';
+export const BOOKING_URL = PERSON.bookingUrl;
+export const CONTACT_EMAIL = PERSON.email;
 
 /** Booking link with the placement recorded as a UTM, e.g. bookingUrl('hero'). */
 export function bookingUrl(content?: string): string {
-  const url = new URL(BOOKING_URL);
-  url.searchParams.set('utm_source', 'wp');
-  if (content) url.searchParams.set('utm_content', content);
-  return url.toString();
+  return bookingUrlFor('wp', content);
 }
 
 /**

@@ -11,7 +11,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { NICHES } from '../src/niches.ts';
+import { NICHES, nicheHost } from '../src/niches.ts';
 
 const root = new URL('../', import.meta.url);
 const path = (rel: string) => fileURLToPath(new URL(rel, root));
@@ -67,5 +67,5 @@ console.log(Object.keys(targets).map((r) => `  + ${r}`).join('\n'));
 console.log(`
 Next:
   1. npm run build            (regenerates vercel.json)
-  2. Vercel: add domain ${slug}.farazahmad.dev, then a CNAME for "${slug}" at Spaceship
+  2. Vercel: add domain ${nicheHost(slug)}, then a CNAME for "${slug}" at your DNS provider
   3. When the niche goes live, set noindex: false for it in src/niches.ts`);

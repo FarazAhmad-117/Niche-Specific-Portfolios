@@ -193,9 +193,10 @@ const uid = `cf-${niche}-${Math.random().toString(36).slice(2, 8)}`;
 <script>
   import { captureAttribution, readAttribution } from '../../lib/attribution';
 
-  const ENDPOINT =
-    import.meta.env.PUBLIC_CONTACT_ENDPOINT || 'https://www.farazahmad.dev/api/contact';
-  const EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || 'hello@farazahmad.dev';
+  // Env vars (see .env.example) win; the defaults live in src/person/config.ts
+  // (injected as plain strings by vite.define in astro.config.mjs).
+  const ENDPOINT = import.meta.env.PUBLIC_CONTACT_ENDPOINT || __CONTACT_ENDPOINT__;
+  const EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || __CONTACT_FALLBACK_EMAIL__;
 
   interface Config {
     sending: string;

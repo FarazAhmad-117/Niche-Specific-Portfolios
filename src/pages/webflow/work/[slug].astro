@@ -50,7 +50,7 @@ const PLAN = [
   path={`/work/${c.id}/`}
   image={abs(`og/${c.id}.png`)}
   jsonLd={caseLdGraph(c)}
-  expect="next-title"
+  expect={next ? 'next-title' : undefined}
 >
   <section class="chero" id="top" data-hero aria-labelledby="case-title">
     <div class="container">
@@ -195,15 +195,17 @@ const PLAN = [
     </div>
   </section>
 
-  <section class="section cnext" aria-labelledby="next-title">
+  <section class="section cnext" aria-labelledby={next ? 'next-title' : undefined}>
     <div class="container">
-      <p class="eyebrow">Next case</p>
+      {next && <p class="eyebrow">Next case</p>}
+      {next && (
       <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
         <span class="cnext__kicker mono">{next.kicker}</span>
         <span id="next-title" class="cnext__name">{next.name}</span>
         <span class="cnext__title">{next.title}</span>
         <span class="cnext__go" aria-hidden="true">→</span>
       </a>
+      )}
       <p class="cnext__or">
         Want this for your site? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
       </p>

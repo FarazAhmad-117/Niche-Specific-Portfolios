@@ -1,10 +1,11 @@
 ---
 /**
  * Proof strip (brief §4 item 2): four admin-style metric cards. Three are facts
- * (Yard Terminal's channels and its sold-once rule, Plus in scope); the fourth, storefront
- * results, is a visible TODO slot until the owner has before/after numbers.
+ * (the registry project's channels and its sold-once rule, Plus in scope); the fourth, storefront
+ * results, is a visible TODO slot until the owner has before/after numbers. Without the project
+ * (Example mode) its two cells become TODO cells (PROOF_TODO_EXTRA), so the row stays at four.
  */
-import { PROOF, PROOF_TODO } from '../../data/shopify/content';
+import { PROOF, PROOF_TODO, PROOF_TODO_EXTRA } from '../../data/shopify/content';
 ---
 
 <section class="proof" id="proof" aria-labelledby="proof-title">
@@ -23,6 +24,14 @@ import { PROOF, PROOF_TODO } from '../../data/shopify/content';
         <span class="pl__value pl__value--todo">{PROOF_TODO.title}</span>
         <span class="todo">{PROOF_TODO.chip}</span>
       </li>
+      {
+        PROOF_TODO_EXTRA.map((t) => (
+          <li class="pl pl--todo">
+            <span class="pl__value pl__value--todo">{t.title}</span>
+            <span class="todo">{t.chip}</span>
+          </li>
+        ))
+      }
     </ul>
     <div class="shelf proof__shelf" aria-hidden="true"></div>
   </div>

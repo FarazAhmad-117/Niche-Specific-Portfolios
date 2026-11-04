@@ -3,7 +3,7 @@
  * Proof strip (brief §4 item 2), set as a newspaper index line: four cells between rules. The
  * brief asks for sites, speed gains and plugins removed; those numbers are open
  * (decisions.md › wp › Real numbers per case), so they are dashed TODO slots, never a guess.
- * The filled cell is a verified fact about AI SEO Automator.
+ * The filled cell is a verified fact about the person's own project (absent in Example mode).
  */
 import { PROOF } from '../../data/wp/content';
 ---
@@ -11,10 +11,14 @@ import { PROOF } from '../../data/wp/content';
 <section class="proof" id="proof" aria-label="Proof">
   <div class="container">
     <ul class="proof__row" role="list">
-      <li class="proof__cell proof__cell--fact">
-        <span class="proof__value">{PROOF.filled.value}</span>
-        <span class="proof__label">{PROOF.filled.label}</span>
-      </li>
+      {
+        PROOF.filled && (
+          <li class="proof__cell proof__cell--fact">
+            <span class="proof__value">{PROOF.filled.value}</span>
+            <span class="proof__label">{PROOF.filled.label}</span>
+          </li>
+        )
+      }
       {
         PROOF.todo.map((t) => (
           <li class="proof__cell">

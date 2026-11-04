@@ -1,19 +1,31 @@
 ---
 /**
  * Minimal footer with the brand thread shared by every niche: the Clash Display
- * "Faraz Ahmad" signature, sized in container units so it spans the content width.
+ * name signature (src/person/config.ts › footerSignature), sized in container units so it
+ * spans the content width.
  */
 import { MAIN_SITE_URL, PERSON_NAME } from '../../data/all/sites';
 import { nicheHost } from '../../niches';
+import { FOOTER_SIGNATURE } from '../../person/person';
 
 const year = new Date().getFullYear();
 const mainHost = new URL(MAIN_SITE_URL).host;
+
+// The CSS below sizes the signature so an 11-character name ("Faraz Ahmad") spans the width. A
+// longer name would overflow the nowrap line, so it shrinks in proportion (+10% margin for wide
+// letters). Names up to 11 characters emit no inline style, so their output is unchanged.
+const SIG_REFERENCE_CHARS = 11;
+const sigChars = FOOTER_SIGNATURE.trim().length;
+const sigStyle =
+  sigChars > SIG_REFERENCE_CHARS
+    ? `font-size:calc(100cqi / ${(6.29 * (sigChars / SIG_REFERENCE_CHARS) * 1.1).toFixed(2)})`
+    : undefined;
 ---
 
 <footer class="foot">
   <div class="container">
     <div class="foot__sig-wrap">
-      <p class="foot__signature" aria-hidden="true">{PERSON_NAME}</p>
+      <p class="foot__signature" style={sigStyle} aria-hidden="true">{FOOTER_SIGNATURE}</p>
     </div>
     <div class="foot__legal">
       <p class="foot__copy">© {year} {PERSON_NAME} · {nicheHost('all')}</p>

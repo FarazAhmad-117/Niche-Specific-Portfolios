@@ -3,8 +3,11 @@
  * edit that overruns fails the build instead of shipping a truncated snippet.
  * No numbers we have not measured, no ranking promises.
  */
+import { PERSON_NAME } from './site';
+import { withNameSuffix } from '../../lib/shared/seo-title';
+
 export const HOME_SEO = {
-  title: 'Technical SEO Engineer: Fixes in Code | Faraz Ahmad',
+  title: withNameSuffix('Technical SEO Engineer: Fixes in Code', PERSON_NAME),
   description:
     'Technical SEO audits and fixes in your code, programmatic pages, a human-edited content engine and backlink audits. No bought links. Book a free call.',
 } as const;

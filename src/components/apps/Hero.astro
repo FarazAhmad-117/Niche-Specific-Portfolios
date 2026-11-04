@@ -44,7 +44,7 @@ const rows = [
             <span>{HERO.primary}</span>
             <Arrow />
           </a>
-          <a class="btn btn--ghost" href={caseHref('solidmake')}>
+          <a class="btn btn--ghost" href={HERO.secondaryCase ? caseHref(HERO.secondaryCase) : '#work'}>
             <span>{HERO.secondary}</span>
             <Arrow />
           </a>

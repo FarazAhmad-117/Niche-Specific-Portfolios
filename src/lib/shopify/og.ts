@@ -11,9 +11,11 @@ import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { PERSON_NAME } from '../../data/shopify/site';
-import { CASES, type CaseSlug, type ShopifyCase } from '../../data/shopify/cases';
+import { fitSignatureRow } from '../shared/og-fit';
+import { ALL_CASES, type CaseSlug, type ShopifyCase } from '../../data/shopify/cases';
 import { HERO_RECEIPT, VERDICT_LABEL } from '../../data/shopify/content';
 import { markSvg } from './brand-mark';
+import { nicheHost } from '../../niches';
 
 const W = 1200;
 const H = 630;
@@ -131,14 +133,19 @@ const verdictTag = (v: keyof typeof VERDICT_STYLE): El =>
 const topBar = (left: string, leftColor: string = C.ink2): El =>
   h({ position: 'absolute', left: M, right: M, top: M - 26, justifyContent: 'space-between', alignItems: 'center' }, [
     h({ alignItems: 'center', gap: 16 }, [img(markSvg(44), 44, 44), h(mono(20, leftColor, { letterSpacing: '0.06em' }), left)]),
-    h(mono(20, C.ink2), 'shopify.farazahmad.dev'),
+    h(mono(20, C.ink2), nicheHost('shopify')),
   ]);
 
-const footer = (): El =>
-  h({ position: 'absolute', left: M, bottom: M - 20, alignItems: 'baseline', gap: 20 }, [
-    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
-    h(mono(22, C.ink2), 'Shopify developer'),
+const FOOTER_TAGLINE = 'Shopify developer';
+/** Room from the name's left edge to the right margin. A long name drops the tagline first (see ../shared/og-fit). */
+const FOOTER_BUDGET = W - 2 * M;
+const footer = (): El => {
+  const fit = fitSignatureRow({ name: PERSON_NAME, namePx: 40, tagline: FOOTER_TAGLINE, taglinePx: 22, gap: 20, budget: FOOTER_BUDGET });
+  return h({ position: 'absolute', left: M, bottom: M - 20, alignItems: 'baseline', gap: 20 }, [
+    h({ fontFamily: 'Clash Display', fontWeight: 600, fontSize: fit.namePx, color: C.ink, letterSpacing: '-0.02em' }, PERSON_NAME),
+    ...(fit.showTagline ? [h(mono(22, C.ink2), FOOTER_TAGLINE)] : []),
   ]);
+};
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
@@ -175,7 +182,7 @@ function homeTree(): El {
 function caseTree(c: ShopifyCase): El {
   const rows = c.flow.map((s, i) => ({ label: s, right: String(i + 1).padStart(2, '0') }));
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    topBar(c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : 'CASE STUDY', c.example ? C.ink2 : C.clayText),
+    topBar(c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : c.confidential ? 'CLIENT BUILD · CASE STUDY' : 'CASE STUDY', c.example ? C.ink2 : C.clayText),
     h({ position: 'absolute', left: M, top: 160, width: 560, flexDirection: 'column', gap: 26 }, [
       h(
         {
@@ -196,10 +203,10 @@ function caseTree(c: ShopifyCase): El {
 }
 
 export type OgTarget = 'home' | CaseSlug;
-export const OG_TARGETS: readonly OgTarget[] = ['home', ...CASES.map((c) => c.id)];
+export const OG_TARGETS: readonly OgTarget[] = ['home', ...ALL_CASES.map((c) => c.id)];
 
 export async function renderOg(target: OgTarget): Promise<Uint8Array> {
-  const c = target === 'home' ? undefined : CASES.find((x) => x.id === target);
+  const c = target === 'home' ? undefined : ALL_CASES.find((x) => x.id === target);
   if (target !== 'home' && !c) throw new Error(`[og] unknown shopify case: ${target}`);
   const svg = await satori((c ? caseTree(c) : homeTree()) as never, { width: W, height: H, fonts: fonts() });
   return new Resvg(svg, { fitTo: { mode: 'width', value: W } }).render().asPng();

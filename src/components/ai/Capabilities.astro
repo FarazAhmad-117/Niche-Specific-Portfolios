@@ -3,45 +3,61 @@
  * "What I build, and who it's for": the plain-language answer to "what does this person
  * actually do?". Four kinds of system, each with who it is for and a link to the real build
  * that proves it. Copy: CAPABILITIES in src/data/ai/content.ts. Section id "build".
+ *
+ * Example mode: a capability whose case is absent (the person does not have that project) keeps
+ * its place, so the grid stays four wide, and shows a dashed TODO chip instead of a link. The
+ * lede only claims "each one links to something I built" while every link is real. The TODO id
+ * is the capability's position, not the missing case slug (that slug is another person's project).
  */
 import Section from './Section.astro';
+import Todo from './Todo.astro';
 import { CAPABILITIES } from '../../data/ai/content';
-import { CASES } from '../../data/ai/cases';
+import { getCase } from '../../data/ai/cases';
 import { createLink } from '../../lib/link';
 
 const link = createLink('ai');
-const items = CAPABILITIES.map((c) => {
-  const study = CASES.find((s) => s.slug === c.example);
-  if (!study) throw new Error(`Capabilities: unknown case "${c.example}"`);
-  return { ...c, study };
-});
+const items = CAPABILITIES.map((c) => ({ ...c, study: getCase(c.example) }));
+const allLinked = items.every((c) => c.study);
 ---
 
 <Section id="build">
   <div class="sec-head sec-head--split" data-reveal>
     <h2 id="build-title">What I build, and who it's for.</h2>
-    <p class="lede">
-      Four kinds of system. Each one links to something I built myself, so you can see it, not take my word for it.
-    </p>
+    {
+      allLinked ? (
+        <p class="lede">
+          Four kinds of system. Each one links to something I built myself, so you can see it, not take my word for it.
+        </p>
+      ) : (
+        <p class="lede">Four kinds of system, and who each one is for.</p>
+      )
+    }
   </div>
 
   <ul class="caps plain-list" data-reveal-stagger>
     {
-      items.map((c) => (
+      items.map((c, i) => (
         <li class="cap">
           <p class="cap__for">
             <span class="cap__for-k">For</span> {c.forWhom}
           </p>
           <h3 class="cap__title">{c.title}</h3>
           <p class="cap__text">{c.text}</p>
-          <p class="cap__proof">
-            <span class="cap__link-k">Built</span>
-            <a class="cap__link" href={link(`/work/${c.study.slug}/`)}>
-              {c.study.name}
-              <span class="visually-hidden"> case study</span>
-              <span class="cap__arrow" aria-hidden="true">→</span>
-            </a>
-          </p>
+          {c.study ? (
+            <p class="cap__proof">
+              <span class="cap__link-k">Built</span>
+              <a class="cap__link" href={link(`/work/${c.study.slug}/`)}>
+                {c.study.name}
+                <span class="visually-hidden"> case study</span>
+                <span class="cap__arrow" aria-hidden="true">→</span>
+              </a>
+            </p>
+          ) : (
+            <p class="cap__proof">
+              <span class="cap__link-k">Built</span>
+              <Todo label="Link a build of yours that shows this" id={`capability.${i + 1}.build`} />
+            </p>
+          )}
         </li>
       ))
     }

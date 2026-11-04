@@ -1,7 +1,7 @@
 ---
 /**
- * Footer with the brand thread shared by every niche: the Clash Display "Faraz Ahmad"
- * signature, sized in container units so it spans the content width at every breakpoint.
+ * Footer with the brand thread shared by every niche: the Clash Display person-name
+ * (PERSON_NAME, src/person/config.ts) signature, sized in container units so it spans the content width at every breakpoint.
  * Here it reads like the bottom of a results page: an "end of results" rule, then the name
  * with a marker stroke drawn under it.
  *
@@ -9,6 +9,7 @@
  *   home?: boolean   true on the home page (links are #hash)
  */
 import { NAV_LINKS, CONTACT_EMAIL, BOOKING_URL, MAIN_SITE_URL, PERSON_NAME, bookingUrl } from '../../data/seo/site';
+import { signatureStyle } from '../../lib/shared/signature';
 import { CALL_PROMISE } from '../../data/seo/content';
 import { nicheHost } from '../../niches';
 import { createLink } from '../../lib/link';
@@ -20,6 +21,8 @@ const { home = false } = Astro.props;
 const link = createLink('seo');
 const href = (id: string) => (home ? `#${id}` : `${link('/')}#${id}`);
 const year = new Date().getFullYear();
+// Shrinks the signature for names longer than 11 characters (no style attribute otherwise).
+const sigStyle = signatureStyle(PERSON_NAME, 6.5);
 const host = (u: string) => new URL(u).host;
 ---
 
@@ -77,7 +80,7 @@ const host = (u: string) => new URL(u).host;
     </div>
 
     <div class="foot__sig-wrap">
-      <p class="foot__signature" aria-hidden="true">
+      <p class="foot__signature" style={sigStyle} aria-hidden="true">
         <span class="foot__sig-mark mark" data-mark data-mark-delay="120">{PERSON_NAME}</span>
       </p>
     </div>

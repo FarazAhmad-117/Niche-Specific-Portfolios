@@ -7,6 +7,7 @@ import { PROFILE } from '../../data/webflow/profile';
 import { FAQ, OFFERS, type Offer } from '../../data/webflow/content';
 import type { WebflowCase } from '../../data/webflow/cases';
 import { CONTACT_EMAIL, MAIN_SITE_URL, PERSON_NAME, SITE_ORIGIN } from '../../data/webflow/site';
+import { stackFor } from '../../person/claims';
 
 type Ld = Record<string, unknown>;
 
@@ -29,7 +30,8 @@ export function personLd(): Ld {
     email: CONTACT_EMAIL,
     address: address(),
     worksFor: { '@type': 'Organization', name: PROFILE.company },
-    knowsAbout: ['Webflow', 'Webflow CMS', 'Figma', 'GSAP', 'Lenis', 'Astro', 'Web animation', 'WordPress migration'],
+    // Tools only where they are in src/person/config.ts › stack; the platform and topics always.
+    knowsAbout: ['Webflow', 'Webflow CMS', ...stackFor(['Figma', 'GSAP', 'Lenis', 'Astro']), 'Web animation', 'WordPress migration'],
   };
 }
 
@@ -96,7 +98,7 @@ export function caseLdGraph(c: WebflowCase): Ld[] {
       inLanguage: 'en',
       creator: { '@id': PERSON_ID },
       author: { '@id': PERSON_ID },
-      isPartOf: { '@type': 'WebSite', name: 'Faraz Ahmad: Webflow', url: SITE_ORIGIN + '/' },
+      isPartOf: { '@type': 'WebSite', name: `${PERSON_NAME}: Webflow`, url: SITE_ORIGIN + '/' },
       image: abs(`og/${c.id}.png`),
       ...(c.example ? { genre: 'Illustrative example' } : { genre: 'Case study' }),
     },

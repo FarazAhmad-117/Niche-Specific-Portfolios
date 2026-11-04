@@ -13,13 +13,16 @@ import Layout from '../../../layouts/funnels/Layout.astro';
 import Flow from '../../../components/funnels/Flow.astro';
 import AttributionRecord from '../../../components/funnels/AttributionRecord.astro';
 import FinalCta from '../../../components/funnels/FinalCta.astro';
-import { CASES, nextCase, type FunnelCase } from '../../../data/funnels/cases';
+import { ALL_CASES, nextCase, relatedCases, type FunnelCase } from '../../../data/funnels/cases';
+import { getProject } from '../../../person/case-helpers';
+import type { ProjectId } from '../../../person/projects';
+import { projectShot } from '../../../person/shots';
 import { assertMeta } from '../../../data/funnels/seo';
 import { abs, caseLdGraph } from '../../../lib/funnels/jsonld';
 import { caseHref, link } from '../../../lib/funnels/paths';
-import { bookingUrl } from '../../../data/funnels/site';
+import { BRAND_COMPANY, bookingUrl } from '../../../data/funnels/site';
 
-export const getStaticPaths = (() => CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
+export const getStaticPaths = (() => ALL_CASES.map((c) => ({ params: { slug: c.id }, props: { study: c } }))) satisfies GetStaticPaths;
 
 interface Props {
   study: FunnelCase;
@@ -27,6 +30,13 @@ interface Props {
 const { study: c } = Astro.props;
 assertMeta(`case ${c.id}`, c.seo);
 const next = nextCase(c.id);
+/** Generated cases: the shared screenshot (redacted before it entered the repo), related reading. */
+const project = c.generated ? getProject(c.id as ProjectId) : undefined;
+const shot = project ? projectShot(project) : undefined;
+const related = c.generated ? relatedCases(c.id, next?.id) : [];
+/** Generated cases carry the box class so they get the tuned card-to-hero morph (base.css). */
+const vtStyle = (id: string, generated?: boolean) =>
+  `view-transition-name: case-${id}` + (generated ? '; view-transition-class: case-box' : '');
 ---
 
 <Layout
@@ -42,16 +52,31 @@ const next = nextCase(c.id);
       <a class="chero__back" href={`${link('/')}#card-${c.id}`}>
         <span class="chero__back-arrow" aria-hidden="true">←</span> All case studies
       </a>
-      <div class="chero__panel" style={`view-transition-name: case-${c.id}`}>
+      <div class="chero__panel" style={vtStyle(c.id, c.generated)}>
         <div class="chero__main">
           <div class="chero__top">
+            {c.confidential && (
+              <span class="sealed">
+                <span class="sealed__dot" aria-hidden="true" />
+                Confidential client
+              </span>
+            )}
             <span class="chero__kicker mono">{c.kicker}</span>
             {c.status && <span class="chip chip--live">{c.status}</span>}
           </div>
-          <h1 id="case-title" class="chero__name">{c.name}</h1>
+          <h1 id="case-title" class:list={['chero__name', { 'chero__name--long': c.generated }]}>{c.name}</h1>
           <p class="chero__title">{c.title}</p>
           <p class="lede chero__text">{c.text}</p>
           {c.pending && <span class="todo">{c.pending}</span>}
+          {
+            c.link && (
+              <a class="btn btn--ghost btn--side" href={c.link.href} target="_blank" rel="noopener">
+                <span>Visit {c.link.label}</span>
+                <span class="btn__arrow" aria-hidden="true">↗</span>
+                <span class="visually-hidden">(opens in a new tab)</span>
+              </a>
+            )
+          }
         </div>
         <ul class="chero__facts" role="list" data-reveal-stagger>
           {
@@ -67,10 +92,11 @@ const next = nextCase(c.id);
     </div>
   </section>
 
-  {/* Lead Drift only: Leadrift, its internal tool. A sibling of the hero, outside the view-transition panel. */}
+  {/* Lead Drift only: Leadrift, its internal tool. A sibling of the hero, outside the view-transition panel.
+      Rendered only when the registry says the project has a screenshot (c.screenshot). */}
   {
-    c.id === 'lead-drift' && (
-      <section class="own" aria-label="Leadrift, the Lead Drift internal tool">
+    c.id === 'lead-drift' && c.screenshot && (
+      <section class="own" aria-label={`${c.screenshot.tool}, the ${c.name} internal tool`}>
         <div class="container">
           <figure class="own__bubble" data-reveal>
             <div class="own__shot">
@@ -83,14 +109,14 @@ const next = nextCase(c.id);
                 sizes="min(936px, calc(100vw - 4rem))"
                 width={1352}
                 height={888}
-                alt="Leadrift's sign-in page: the headline “Someone just posted a job. That’s your next client.”, a line on what the tool does for the Indepth Solution sales team, and a Help wanted panel of job posts."
+                alt={c.screenshot.alt}
                 loading="lazy"
                 decoding="async"
               />
             </div>
             <figcaption class="own__cap">
-              Leadrift, the internal tool Indepth Solution’s sales team works in: hiring ads and LinkedIn &amp; Facebook research
-              turned into conversations. Screenshot of its sign-in page.
+              {c.screenshot.tool}, the internal tool {BRAND_COMPANY}’s sales team works in: job posts and company research turned into
+              leads in one pipeline. Screenshot of its sign-in page.
             </figcaption>
           </figure>
         </div>
@@ -135,7 +161,14 @@ const next = nextCase(c.id);
         <h2 id="runs-title" class="cblock__h2">From first touch to the last step.</h2>
         {/* Pipeline: flow beside the example record, then the status. Others: flow beside the status. */}
         <div class="runs__visual">
+          {c.generated ? (
+            <div class="runs__thread">
+              <Flow steps={c.flow} label={`${c.name}, how it runs`} reveal />
+              <p class="runs__label">Illustrative diagram of the flow, not a screenshot.</p>
+            </div>
+          ) : (
           <Flow steps={c.flow} label={`${c.name}, how it runs`} reveal />
+          )}
           {c.id === 'lead-pipeline' && <AttributionRecord />}
           {
             c.id !== 'lead-pipeline' && (
@@ -144,6 +177,16 @@ const next = nextCase(c.id);
                   <p class="now__label mono">Where it is now</p>
                   <p class="now__text">{c.runsNow}</p>
                 </div>
+                {c.generated && c.stack && c.stack.length > 0 && (
+                  <div class="stack">
+                    <p class="stack__label mono">Built with</p>
+                    <ul class="stack__list" role="list">
+                      {c.stack.map((s) => (
+                        <li>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {c.more && (
                   <a class="btn btn--ghost btn--side runs__more" href={c.more.href} target="_blank" rel="noopener">
                     <span>{c.more.label}</span>
@@ -163,6 +206,28 @@ const next = nextCase(c.id);
             </div>
           )
         }
+        {
+          shot && (
+            <figure class="own__bubble shot">
+              <div class="own__shot">
+                <Picture
+                  src={shot.src}
+                  formats={['avif', 'webp']}
+                  fallbackFormat="png"
+                  quality={82}
+                  widths={[480, 768, 1080, 1400]}
+                  sizes="min(936px, calc(100vw - 4rem))"
+                  alt={shot.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption class="own__cap">
+                A real screenshot of the build{c.confidential ? ', with anything that names the client blurred' : ''}. Figures in it are not results.
+              </figcaption>
+            </figure>
+          )
+        }
       </div>
     </div>
   </section>
@@ -170,12 +235,37 @@ const next = nextCase(c.id);
   <section class="section cnext" aria-labelledby="next-title">
     <div class="container">
       <p class="eyebrow">Next case</p>
-      <a class="cnext__card" href={caseHref(next.id)} style={`view-transition-name: case-${next.id}`}>
+      {next ? (
+      <a class="cnext__card" href={caseHref(next.id)} style={vtStyle(next.id, next.generated)}>
         <span class="cnext__kicker mono">{next.kicker}</span>
         <span id="next-title" class="cnext__name">{next.name}</span>
         <span class="cnext__title">{next.title}</span>
         <span class="cnext__go" aria-hidden="true">→</span>
       </a>
+      ) : (
+        <a class="cnext__card" href={`${link('/')}#work`}>
+          <span class="cnext__kicker mono">All case studies</span>
+          <span id="next-title" class="cnext__name">Back to the work</span>
+          <span class="cnext__go" aria-hidden="true">→</span>
+        </a>
+      )}
+      {
+        related.length > 0 && (
+          <nav class="related" aria-label="Related case studies">
+            <p class="related__k mono">More case studies</p>
+            <ul class="related__list" role="list">
+              {related.map((r) => (
+                <li>
+                  <a class="related__link" href={caseHref(r.id)}>
+                    <span class="related__name">{r.name}</span>
+                    <span class="related__title">{r.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
       <p class="cnext__or">
         Want this for your pipeline? <a class="link" href={bookingUrl(`case-${c.id}`)}>Book a scoping call</a>.
       </p>
@@ -541,5 +631,132 @@ const next = nextCase(c.id);
   .cnext__or {
     margin-top: var(--space-5);
     color: var(--text-2);
+  }
+
+  /* ---------- generated cases (registry builds) ---------- */
+  .chero__name--long {
+    font-size: clamp(2.125rem, 1.3rem + 3.4vw, 4.75rem);
+    line-height: 0.98;
+    max-width: 18ch;
+  }
+  /* Confidential client: a sealed message bubble, ink on cream, with its tail. */
+  .sealed {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: var(--radius-m);
+    border-bottom-left-radius: var(--radius-tail);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .sealed__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+  }
+  .runs__thread {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .runs__label {
+    padding-inline: var(--space-3);
+    color: var(--text-3);
+    font-size: 0.8125rem;
+  }
+  .stack {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-l);
+    border-top-left-radius: var(--radius-tail);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .stack__label {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .stack__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+  }
+  .stack__list li {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--surface-1);
+    font-size: var(--fs-small);
+    font-weight: 600;
+  }
+  .shot {
+    margin-top: var(--space-5);
+  }
+  .related {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+  .related__k {
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .related__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+  @media (min-width: 720px) {
+    .related__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  /* Two reply bubbles: tails on alternate sides, like the hero thread. */
+  .related__link {
+    display: grid;
+    gap: 4px;
+    min-height: var(--tap);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-l);
+    border-bottom-left-radius: var(--radius-tail);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--text);
+    text-decoration: none;
+    transition:
+      transform 620ms var(--ease-out-expo),
+      box-shadow 620ms var(--ease-out-expo);
+  }
+  .related__list li:nth-child(even) .related__link {
+    border-bottom-left-radius: var(--radius-l);
+    border-bottom-right-radius: var(--radius-tail);
+  }
+  .related__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .related__title {
+    color: var(--text-2);
+    font-size: var(--fs-small);
+  }
+  .related__link:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) {
+    .related__link:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
   }
 </style>

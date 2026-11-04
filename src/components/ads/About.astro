@@ -4,14 +4,15 @@
  * facts from src/data/ads/profile.ts only.
  */
 import { Image } from 'astro:assets';
-import { ABOUT } from '../../data/ads/content';
-import { PROFILE, yearsBuilding } from '../../data/ads/profile';
+import { ABOUT, SHOW_NO_PARTNER_NOTE } from '../../data/ads/content';
+import { PROFILE } from '../../data/ads/profile';
+import { yearsSuffix } from '../../person/person';
 import { PLATFORMS, STACK } from '../../data/ads/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
 ];
 ---
@@ -54,8 +55,8 @@ const facts = [
         <p class="mono about__stack-label">Platforms</p>
         <ul role="list">{PLATFORMS.map((s) => <li class="cond">{s}</li>)}</ul>
         <p class="mono about__stack-label">Works with</p>
-        <ul role="list">{STACK.map((s) => <li class="cond">{s}</li>)}</ul>
-        <p class="about__note text-3">No Google or Meta partner status, and no badges.</p>
+        {STACK.length > 0 ? <ul role="list">{STACK.map((s) => <li class="cond">{s}</li>)}</ul> : <p class="todo">TODO · Add the tools you work with (src/person/config.ts › stack)</p>}
+        {SHOW_NO_PARTNER_NOTE && <p class="about__note text-3">No Google or Meta partner status, and no badges.</p>}
       </div>
     </div>
   </div>

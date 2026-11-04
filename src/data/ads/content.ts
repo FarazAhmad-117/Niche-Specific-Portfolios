@@ -11,13 +11,17 @@
  *  - no testimonials
  * Case studies live in ./cases.ts, the signature's model in ./rules.ts.
  */
-import { MIN_SPEND_LINE, PLATFORMS } from './site';
+import { hasProject } from '../../person/case-helpers';
+import { BRAND_COMPANY, MAIN_SITE_URL, MIN_SPEND_LINE, PARTNER_STATUS, PERSON_NAME, PLATFORMS } from './site';
+import { FIRST_NAME, ROLE_IN_SENTENCE, andList, originStory, sentences } from '../../person/claims';
+/** The host the owner's own lead pipeline runs on (their main site). */
+const SITE_HOST = new URL(MAIN_SITE_URL).host;
 
 export const PRICE_LINE = 'Scoped on a call';
 export const CALL_PROMISE = "You'll leave knowing where the budget leaks, what to automate first, and what it involves";
 
 export const HERO = {
-  eyebrow: 'Paid ads automation · Faraz Ahmad',
+  eyebrow: `Paid ads automation · ${PERSON_NAME}`,
   /** decisions.md › ads › Hero headline. The last line is set in amber. */
   headline: ['Ads that watch', 'their own budget.'],
   lede: 'I build the rules, alerts, tracking and reports that sit on top of your ad accounts, so spend that would never get your approval is stopped by morning, not found at month end.',
@@ -284,11 +288,31 @@ export const PROCESS = [
 export const ABOUT = {
   title: 'An engineer on your ad accounts, not another media buyer.',
   paragraphs: [
-    'I’m Faraz, founder of Indepth Solution. I’m a full-stack engineer who found automation through GoHighLevel and never stopped connecting platforms so nobody has to copy numbers between them.',
+    // The second sentence is the owner's story (config.ts › originStories.ads), left out when unset.
+    sentences(`I’m ${FIRST_NAME}, ${ROLE_IN_SENTENCE} of ${BRAND_COMPANY}.`, originStory('ads')?.text),
     'On ad accounts that means I don’t run your campaigns. I build what watches them: rules against the platforms’ own APIs, server-side tracking, and reports that join spend to what your CRM says actually happened.',
-    'My own lead pipeline is where I practise it: every lead from farazahmad.dev is stored in MongoDB first, with its landing page, referrer and UTMs from the first visit, then sent to GoHighLevel through its API.',
+    // Names the owner's own pipeline: only when the person has the `lead-pipeline` project.
+    ...(hasProject('lead-pipeline')
+      ? [
+          `My own lead pipeline is where I practise it: every lead from ${SITE_HOST} is stored in MongoDB first, with its landing page, referrer and UTMs from the first visit, then sent to GoHighLevel through its API.`,
+        ]
+      : []),
   ],
 } as const;
+
+/**
+ * Answer to "Are you a Google or Meta partner?" from config.ts › credentials. Undefined (no FAQ
+ * entry) while either status is unknown; the current wording when neither is held.
+ */
+const held = PARTNER_STATUS.filter((p) => p.held === true).map((p) => p.platform);
+const notHeld = PARTNER_STATUS.filter((p) => p.held === false).map((p) => p.platform);
+const PARTNER_ANSWER: string | undefined = PARTNER_STATUS.some((p) => p.held === undefined)
+  ? undefined
+  : held.length === 0
+    ? 'No. I hold no partner status and show no badges. What I can show you is how the automation is built and what it logs.'
+    : `Yes for ${andList(held)}${notHeld.length ? `; no for ${andList(notHeld)}` : ''}. Beyond the status, what I can show you is how the automation is built and what it logs.`;
+/** The About note "No Google or Meta partner status, and no badges.": only when neither is held. */
+export const SHOW_NO_PARTNER_NOTE = PARTNER_STATUS.every((p) => p.held === false);
 
 export const FAQ = [
   {
@@ -315,10 +339,9 @@ export const FAQ = [
     q: 'Is there a minimum spend?',
     a: `Yes: ${MIN_SPEND_LINE}. Below that, rules see too little data to act on safely, and an audit is usually the better start.`,
   },
-  {
-    q: 'Are you a Google or Meta partner?',
-    a: 'No. I hold no partner status and show no badges. What I can show you is how the automation is built and what it logs.',
-  },
+  // config.ts › credentials (googleAdsPartner, metaPartner): left out, with its JSON-LD entry,
+  // while either is unknown.
+  ...(PARTNER_ANSWER ? [{ q: 'Are you a Google or Meta partner?', a: PARTNER_ANSWER }] : []),
   {
     q: 'What does it cost?',
     a: 'It depends on the platforms, the accounts and what we automate, so I scope it on a free 30-minute call. You know what is involved before anything is agreed.',

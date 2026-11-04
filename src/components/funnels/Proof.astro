@@ -1,12 +1,21 @@
 ---
 /**
  * Proof strip. Operational facts only (decisions: Lead Drift numbers not cleared yet),
- * each traceable to decisions.md or the owner's repo. No invented metrics.
+ * each traceable to decisions.md or the owner's repo. No invented metrics. Without the
+ * `lead-drift` project (Example mode) its two cells drop out and PROOF_TODO cells close the strip.
  */
-import { PROOF } from '../../data/funnels/content';
-import { yearsBuilding } from '../../data/funnels/profile';
+import { PROOF, PROOF_TODO } from '../../data/funnels/content';
+import { PROFILE } from '../../data/funnels/profile';
+import { yearsPlus } from '../../person/person';
 
-const facts = [...PROOF, { value: `${yearsBuilding()}+ years`, label: 'Building automations since 2022' }];
+// In the start year there is no "0+ years": the cell shows the year itself.
+const years = yearsPlus();
+const facts = [
+  ...PROOF,
+  years
+    ? { value: years, label: `Building automations since ${PROFILE.sinceYear}` }
+    : { value: String(PROFILE.sinceYear), label: 'The year I started building automations' },
+];
 ---
 
 <section class="proof" id="proof" aria-labelledby="proof-title">
@@ -18,6 +27,14 @@ const facts = [...PROOF, { value: `${yearsBuilding()}+ years`, label: 'Building 
           <li class="proof__item">
             <span class="proof__value">{f.value}</span>
             <span class="proof__label">{f.label}</span>
+          </li>
+        ))
+      }
+      {
+        PROOF_TODO.map((t) => (
+          <li class="proof__item">
+            <span class="proof__value">{t.title}</span>
+            <span class="todo">{t.chip}</span>
           </li>
         ))
       }

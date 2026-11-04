@@ -3,13 +3,38 @@
  * About: the real portrait and the facts a buyer checks (all from src/data/ai/profile.ts).
  * The portrait is black and white on solid black, so it sits in an ink frame in both themes,
  * with a mono caption plate under it like the label on an instrument.
+ *
+ * Project names come from the registry (src/person/projects.ts): the company's products are
+ * named only while present, and the "runs in production" sentence only while the project is
+ * there and confirmed live.
  */
 import { Image } from 'astro:assets';
 import Section from './Section.astro';
 import { MAIN_SITE_URL, PERSON_NAME } from '../../data/ai/site';
 import { PROFILE } from '../../data/ai/profile';
+import { COMPANY_PROJECT_NAMES, andList } from '../../data/ai/cases';
+import { getProject } from '../../person/case-helpers';
+import { FOUNDED_VERB, ROLE_IN_SENTENCE, andList as toolList, stackFor, withArticle } from '../../person/claims';
 
 const mainHost = new URL(MAIN_SITE_URL).host;
+/** "I founded X" only for a founder role (config.ts › companyRole); otherwise "I'm a CTO at X" with the role. */
+const companyClause = FOUNDED_VERB ? `I ${FOUNDED_VERB} ${PROFILE.company}` : `I'm ${withArticle(ROLE_IN_SENTENCE)} at ${PROFILE.company}`;
+const behind = COMPANY_PROJECT_NAMES.length ? `, the company behind ${andList(COMPANY_PROJECT_NAMES)}` : '';
+const liveProject = getProject('lead-drift');
+const live = liveProject?.live ? liveProject : undefined;
+/** The company that makes the live project (registry `madeBy`), as data/ai/cases.ts names it. */
+const liveMaker = live?.madeBy ?? PROFILE.company;
+/** The tools sentence, from src/person/config.ts › stack; undefined when none of these is listed. */
+const noCode = stackFor(['n8n', 'Make', 'Zapier', 'GoHighLevel']);
+const code = stackFor(['Python', 'Next.js', 'MongoDB']);
+const workLine =
+  noCode.length && code.length
+    ? `I work in ${toolList(noCode)}, and in custom code with ${toolList(code)} when no-code hits its limits.`
+    : noCode.length
+      ? `I work in ${toolList(noCode)}.`
+      : code.length
+        ? `I work in custom code with ${toolList(code)}.`
+        : undefined;
 const facts = [
   { k: 'Building since', v: String(PROFILE.sinceYear) },
   { k: 'Based in', v: PROFILE.location },
@@ -42,12 +67,23 @@ const facts = [
       <h2 id="about-title">You talk to the person building it.</h2>
       <div class="prose about__text">
         <p class="about__lead">
-          {`I'm ${PERSON_NAME}. I've been building AI and automation systems since ${PROFILE.sinceYear}, and I founded ${PROFILE.company}, the company behind Lead Drift and Yard Terminal.`}
+          {`I'm ${PERSON_NAME}. I've been building AI and automation systems since ${PROFILE.sinceYear}, and ${companyClause}${behind}.`}
         </p>
-        <p>
-          I work in n8n, Make, Zapier and GoHighLevel, and in custom code with Python, Next.js and MongoDB when no-code
-          hits its limits. Lead Drift, {PROFILE.company}'s own growth engine, is mine, and it runs in production.
-        </p>
+        {
+          live ? (
+            workLine ? (
+              <p>
+                {`${workLine} ${live.name}`}, {liveMaker}'s own growth engine, is mine, and it runs in production.
+              </p>
+            ) : (
+              <p>
+                {live.name}, {liveMaker}'s own growth engine, is mine, and it runs in production.
+              </p>
+            )
+          ) : (
+            workLine && <p>{workLine}</p>
+          )
+        }
         <p>From the first call to handover, you deal with me, not an account manager.</p>
       </div>
       <dl class="about__facts">

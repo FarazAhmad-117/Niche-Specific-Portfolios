@@ -1,10 +1,11 @@
 /**
- * The Lead Drift intake workflow (spec §5.4). ONE array drives the hero's
- * example run and the Lead Drift case diagram.
+ * The generic lead-intake workflow (spec §5.4) behind the hero's "Example run" console.
+ * Owner-neutral on purpose: it names no project, tool or client, and the hero labels it an
+ * example. (Each case's own flow lives in src/data/ai/cases.ts › diagram.)
  */
 
-/** TODO(owner): replace with the real, anonymized Lead Drift steps.
- *  While any step has placeholder:true the case page shows the "real steps" TODO chip. */
+/** TODO(owner): replace with the real, anonymized steps of one of your own builds.
+ *  `placeholder: true` marks a step that is still the generic example. */
 export const WORKFLOW_STEPS = [
   { id: 'trigger',  label: 'Trigger',  tool: null, placeholder: true,
     summary: 'A new lead arrives from a form or inbox.' },

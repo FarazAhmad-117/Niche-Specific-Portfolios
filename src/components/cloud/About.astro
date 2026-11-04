@@ -5,13 +5,14 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/cloud/content';
-import { PROFILE, yearsBuilding } from '../../data/cloud/profile';
+import { PROFILE } from '../../data/cloud/profile';
+import { yearsSuffix } from '../../person/person';
 import { SUPPORT_HOURS } from '../../data/cloud/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
-  { k: 'Support hours', v: `${SUPPORT_HOURS} (not on-call)` },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  ...(SUPPORT_HOURS ? [{ k: 'Support hours', v: `${SUPPORT_HOURS} (not on-call)` }] : []),
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
 ];
 ---

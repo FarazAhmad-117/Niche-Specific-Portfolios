@@ -3,16 +3,36 @@
  * Proof strip: the facts a visitor can check, read like the header of a spec sheet.
  * Every value is owner-stated or verified (src/data/ai/profile.ts, cases.ts). No samples,
  * no placeholders. The stack row comes from STACK (site.ts), never hardcoded.
+ *
+ * Example mode: the live cell names the person's running-in-production project only while the
+ * registry has it (and confirms it is live); otherwise the cell holds a dashed TODO chip, so the
+ * strip keeps its four cells. The company line names only the projects present.
  */
 import Section from './Section.astro';
 import StackMarks from './StackMarks.astro';
+import Todo from './Todo.astro';
 import { STACK } from '../../data/ai/site';
 import { PROFILE } from '../../data/ai/profile';
+import { COMPANY_PROJECT_NAMES, andList } from '../../data/ai/cases';
+import { getProject } from '../../person/case-helpers';
+
+const liveProject = getProject('lead-drift');
+const live = liveProject?.live ? liveProject : undefined;
+/** The company that makes the live project (registry `madeBy`), as data/ai/cases.ts names it. */
+const liveMaker = live?.madeBy ?? PROFILE.company;
+const companyLine = COMPANY_PROJECT_NAMES.length
+  ? `${PROFILE.companyRole}. The company behind ${andList(COMPANY_PROJECT_NAMES)}`
+  : PROFILE.companyRole;
+/** "PKT (UTC+5)" → value "UTC+5", label suffix "PKT". A zone without "(…)" is shown as is. */
+const zone = /^(\S+)\s*\(([^)]+)\)$/.exec(PROFILE.timeZone.trim());
+const zoneFact = zone
+  ? { value: zone[2] ?? PROFILE.timeZone, label: `${PROFILE.location} · ${zone[1]}` }
+  : { value: PROFILE.timeZone, label: PROFILE.location };
 
 const facts = [
   { value: String(PROFILE.sinceYear), label: 'The year I started building AI and automation systems' },
-  { value: PROFILE.company, label: `${PROFILE.companyRole}. The company behind Lead Drift and Yard Terminal` },
-  { value: 'UTC+5', label: `${PROFILE.location} · PKT` },
+  { value: PROFILE.company, label: companyLine },
+  zoneFact,
 ];
 ---
 
@@ -20,12 +40,23 @@ const facts = [
   <h2 id="proof-title" class="visually-hidden">At a glance</h2>
 
   <ul class="proof plain-list" data-reveal-stagger>
-    <li class="proof__cell proof__cell--live">
-      <p class="proof__value"><span class="pill">Running in production</span></p>
-      <p class="proof__label">
-        <strong>Lead Drift</strong>, Indepth Solution's own growth engine, built and run by me.
-      </p>
-    </li>
+    {
+      live ? (
+        <li class="proof__cell proof__cell--live">
+          <p class="proof__value"><span class="pill">Running in production</span></p>
+          <p class="proof__label">
+            <strong>{live.name}</strong>, {liveMaker}'s own growth engine, built and run by me.
+          </p>
+        </li>
+      ) : (
+        <li class="proof__cell proof__cell--live">
+          <p class="proof__value">
+            <Todo label="A system of yours that runs in production" id="proof.live" />
+          </p>
+          <p class="proof__label">Add it to src/person/projects.ts with live: true.</p>
+        </li>
+      )
+    }
     {
       facts.map((f) => (
         <li class="proof__cell">
@@ -38,7 +69,7 @@ const facts = [
 
   <div class="proof__stack">
     <p class="mono-label">Tools I build with</p>
-    <StackMarks tools={STACK} label="Tools I build with" />
+    {STACK.length > 0 ? <StackMarks tools={STACK} label="Tools I build with" /> : <Todo label="add the tools you build with (src/person/config.ts › stack)" />}
   </div>
 </Section>
 

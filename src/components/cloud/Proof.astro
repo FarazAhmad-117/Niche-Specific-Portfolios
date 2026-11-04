@@ -3,11 +3,12 @@
  * Proof strip (brief §4 item 2). The ops numbers are baseline TODOs until real measurements are
  * cleared; the one real figure is the main site's own test suite. Below it, "Clouds & tools":
  * only tools the research proves are used, then TODO slots (decisions: clouds/certs are OPEN, so
- * no AWS/GCP/Terraform marks and no certification claims).
+ * no AWS/GCP/Terraform marks and no certification claims). Tool lines that claim the owner's own
+ * stack show only while the projects they name exist (lib/cloud/tools.ts); TODO chips refill the row.
  */
 import Todo from './Todo.astro';
 import { PROOF } from '../../data/cloud/content';
-import { TOOLS_TODO, TOOLS_VERIFIED } from '../../data/cloud/site';
+import { SHOWN_TOOLS as TOOLS_VERIFIED, SHOWN_TOOLS_TODO as TOOLS_TODO } from '../../lib/cloud/tools';
 import { isTodo } from '../../data/cloud/todo';
 ---
 

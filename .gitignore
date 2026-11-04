@@ -9,11 +9,17 @@ node_modules/
 # logs
 npm-debug.log*
 
-# local env overrides (.env and .env.development ARE committed: no secrets)
+# local env overrides (.env.development, and an optional .env, ARE committed: no secrets)
 .env.local
 .env.*.local
 
-# personal Claude Code notes (not shared)
+# init:person backups of the previous identity (src/person/.backup/config.<timestamp>.ts)
+src/person/.backup/
+
+# scratch build output folders (e.g. `astro build --outDir _out-check`)
+_out-*/
+
+# personal local notes (not shared)
 CLAUDE.local.md
 
 # OS / editor

@@ -54,7 +54,7 @@ const trendArea = `${trendLine} L${TW} ${TH} L0 ${TH} Z`;
           <span class="btn__arrow" aria-hidden="true">→</span>
         </a>
       </div>
-      <p class="hero__note text-3">{HERO.note} <span class="hero__hours">Support {SUPPORT_HOURS}.</span></p>
+      <p class="hero__note text-3">{HERO.note} {SUPPORT_HOURS && <span class="hero__hours">Support {SUPPORT_HOURS}.</span>}</p>
     </div>
 
     <div class="hero__visual" aria-hidden="true" data-hero-visual data-pause-offscreen style={`--beat:${BEAT_MS}ms`}>

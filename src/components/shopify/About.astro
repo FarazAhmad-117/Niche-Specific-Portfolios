@@ -5,13 +5,18 @@
  */
 import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/shopify/content';
-import { PROFILE, yearsBuilding } from '../../data/shopify/profile';
+import { PROFILE } from '../../data/shopify/profile';
+import { yearsSuffix } from '../../person/person';
 import { STACK, YARD_TERMINAL_URL } from '../../data/shopify/site';
+import { getProject } from '../../person/case-helpers';
+
+// The product link shows only when the person has the project (and it has a public link).
+const yardLink = getProject('yard-terminal')?.link;
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
   { k: 'Time zone', v: PROFILE.timeZone },
-  { k: 'Building since', v: `${PROFILE.sinceYear} (${yearsBuilding()}+ years)` },
+  { k: 'Building since', v: `${PROFILE.sinceYear}${yearsSuffix()}` },
   { k: 'Company', v: `${PROFILE.companyRole}, ${PROFILE.company}` },
 ];
 ---
@@ -62,9 +67,13 @@ const facts = [
         </ul>
       </div>
       <p class="about__links">
-        <a class="link" href={YARD_TERMINAL_URL} target="_blank" rel="noopener">
-          yardterminal.com<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
-        </a>
+        {
+          yardLink && (
+            <a class="link" href={YARD_TERMINAL_URL} target="_blank" rel="noopener">
+              {yardLink.label}<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          )
+        }
         <a class="link" href={PROFILE.github} target="_blank" rel="noopener">
           GitHub<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
         </a>
