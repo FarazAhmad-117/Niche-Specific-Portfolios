@@ -308,7 +308,8 @@ Brief: `docs/brief/shopify.md` · draft brief · concept: Storefront
 
 ### Positioning & copy
 
-- **Hero headline** — decided: A faster Shopify store with fewer apps.
+- **Positioning** — decided 2026-11-05 (overrides the items below where they differ): launch · search · sales. A store live in very little time, products indexed and found on Google, ecommerce sales improvement. Speed is one tool, not the pitch. Yard Terminal removed from this niche.
+- **Hero headline** — decided 2026-11-05: A Shopify store, live in weeks, built to sell. (was: A faster Shopify store with fewer apps.)
 - **Primary CTA label** — decided: Book a scoping call
 - **Voice** — decided: Direct, technical but plain, first person
 
@@ -321,13 +322,13 @@ Brief: `docs/brief/shopify.md` · draft brief · concept: Storefront
 
 ### Offers & pricing
 
-- **Offers to show** — decided: Speed & app audit; Theme build / rebuild; Custom features; Integrations & sync; Care plan
+- **Offers to show** — decided 2026-11-05: Store launch; Get found on Google; Sales lift; Custom builds & integrations; Care plan (was: Speed & app audit; Theme build / rebuild; Custom features; Integrations & sync; Care plan)
 - **Price for each offer** — custom instructions only
   - Custom instructions: No need to pric anything at all we need to be taking the clints on the call
 
 ### Proof
 
-- **Case studies to feature** — decided: Yard Terminal (marketplace sync); Any store work (speed / conversion)
+- **Case studies to feature** — decided 2026-11-05: three labelled examples (launch, Google indexing, product page that sells) until real store work is cleared; real builds (Quarry, catalogue pipeline) in More builds. Yard Terminal not shown.
 - **Real numbers per case** — open (keep placeholder)
 - **Testimonials** — decided: None yet; omit the section
 
@@ -336,7 +337,7 @@ Brief: `docs/brief/shopify.md` · draft brief · concept: Storefront
 - **Are you a Shopify Partner?** — decided: No; no partner language
 - **Shopify Plus work** — decided: Yes, in scope
 - **Any storefront project (theme / speed)** — open (keep placeholder)
-- **Marketplace sync map section** — decided: Include (Yard Terminal)
+- **Marketplace sync map section** — decided 2026-11-05: removed (was: Include, Yard Terminal)
 
 ### Build
 

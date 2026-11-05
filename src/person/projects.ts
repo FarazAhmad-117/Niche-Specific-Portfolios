@@ -238,7 +238,8 @@ export const PROJECTS: Readonly<Partial<Record<ProjectId, Project>>> = {
     cardTitle: 'YardTerminal',
     kind: 'product',
     ownership: 'own',
-    niches: ['shopify', 'ai', 'apps', 'cloud'],
+    // Not on shopify (owner's call, 2026-11-05): a salvage-yard tool is the wrong example for store owners.
+    niches: ['ai', 'apps', 'cloud'],
     proof: 'strong',
     role: 'Design · Engineering · AI',
     client: 'Own product · auto salvage yards · a product of Indepth Solution',

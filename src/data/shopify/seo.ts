@@ -6,9 +6,9 @@ import { PERSON_NAME } from './site';
 import { withNameSuffix } from '../../lib/shared/seo-title';
 
 export const HOME_SEO = {
-  title: withNameSuffix('Shopify Developer: Speed, Themes, Sync', PERSON_NAME),
+  title: withNameSuffix('Shopify Developer: Launch, SEO, Sales', PERSON_NAME),
   description:
-    'A faster Shopify store with fewer apps: speed and app audits, theme builds, custom features and marketplace sync. Shopify Plus in scope.',
+    'Shopify stores launched in weeks, products found on Google, and pages that sell: store setup, migrations, indexing, sales fixes. Shopify Plus in scope.',
 } as const;
 
 export const TITLE_MAX = 60;

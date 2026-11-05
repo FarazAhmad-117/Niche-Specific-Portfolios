@@ -59,31 +59,38 @@
     },
     {
       "niche": "shopify",
-      "phrase": "A full-stack developer who builds the integration too.",
+      "phrase": "A full-stack developer who gets stores live and selling.",
       "kind": "positioning",
-      "reason": "About title: claims full-stack and integration work.",
+      "reason": "About title: claims full-stack work and launching stores.",
       "fix": "Keep if true; otherwise retitle in src/data/shopify/content.ts › ABOUT."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "live in weeks",
+      "kind": "claim",
+      "reason": "Hero headline and OG image: a launch-time promise (no fixed number; the date is agreed on the call).",
+      "fix": "Keep if it matches how long your launches take; otherwise change HERO.headline in src/data/shopify/content.ts and og.ts."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "I launch Shopify stores fast",
+      "kind": "claim",
+      "reason": "Hero lede: first-person claim about launch speed.",
+      "fix": "Keep if true; otherwise \"I launch Shopify stores\" in src/data/shopify/content.ts › HERO.lede."
+    },
+    {
+      "niche": "shopify",
+      "phrase": "Most stores I’m asked about are stuck at one of three points",
+      "kind": "claim",
+      "reason": "Experience claim in the Problem section (src/data/shopify/content.ts › PROBLEM).",
+      "fix": "Keep if true; otherwise \"Most stores get stuck at one of three points\"."
     },
     {
       "niche": "shopify",
       "phrase": "the problems I find most often",
       "kind": "claim",
-      "reason": "Experience claim on the illustrative Problem panel (components/shopify/Problem.astro).",
+      "reason": "Experience claim on the illustrative Problem panel (src/data/shopify/content.ts › PROBLEM.caption).",
       "fix": "Keep if it matches your audits; otherwise say \"common problems\"."
-    },
-    {
-      "niche": "shopify",
-      "phrase": "the kinds of app I find most",
-      "kind": "claim",
-      "reason": "Experience claim on the illustrative hero audit (components/shopify/Hero.astro).",
-      "fix": "Keep if it matches your audits; otherwise say \"common kinds of app\"."
-    },
-    {
-      "niche": "shopify",
-      "phrase": "the store I’m usually asked to speed up",
-      "kind": "claim",
-      "reason": "Experience claim in the case-studies lede (components/shopify/Cases.astro).",
-      "fix": "Keep if true; otherwise \"a typical slow store\"."
     },
     {
       "niche": "ghl",

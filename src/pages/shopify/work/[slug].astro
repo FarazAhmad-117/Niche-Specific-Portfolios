@@ -11,9 +11,6 @@ import Layout from '../../../layouts/shopify/Layout.astro';
 import FinalCta from '../../../components/shopify/FinalCta.astro';
 import { Image } from 'astro:assets';
 import { ALL_CASES, MORE_CASES, nextCase, type ShopifyCase } from '../../../data/shopify/cases';
-import { NODES } from '../../../data/shopify/sync';
-import { STEPS } from '../../../data/shopify/teardown';
-import { HERO_RECEIPT, VERDICT_LABEL } from '../../../data/shopify/content';
 import { assertMeta } from '../../../data/shopify/seo';
 import { abs, caseLdGraph } from '../../../lib/shopify/jsonld';
 import { caseHref, link } from '../../../lib/shopify/paths';
@@ -28,10 +25,8 @@ interface Props {
 const { study: c } = Astro.props;
 assertMeta(`case ${c.id}`, c.seo);
 const next = nextCase(c.id);
-const channels = (['shopify', 'ebay', 'counter'] as const).map((id) => ({ id, ...NODES[id] }));
 /** Other generated builds, for internal links (not this case, not the next one). */
 const more = MORE_CASES.filter((m) => m.id !== c.id && m.id !== next?.id);
-const fixes = STEPS.filter((s) => s.fix);
 ---
 
 <Layout
@@ -117,86 +112,46 @@ const fixes = STEPS.filter((s) => s.fix);
 
   <section class="section cblock cblock--tint" aria-labelledby="runs-title">
     <div class="container cblock__grid">
-      <p class="eyebrow">{c.example ? 'Before and after' : 'How it runs'}</p>
+      <p class="eyebrow">{c.example ? 'Start to end' : 'How it runs'}</p>
       <div class="runs">
-        <h2 id="runs-title" class="cblock__h2">{c.example ? 'Six apps, one verdict each.' : c.generated ? 'How it runs, step by step.' : 'One record, every channel.'}</h2>
+        <h2 id="runs-title" class="cblock__h2">{c.example ? 'The checklist, in order.' : 'How it runs, step by step.'}</h2>
         <div class="runs__visual">
-          {
-            c.example ? (
-              <>
-                <div class="receipt panel">
-                  <p class="panel__label mono">Example app audit · verdicts</p>
-                  <ul class="panel__list" role="list">
-                    {HERO_RECEIPT.map((r) => (
-                      <li class="leader">
-                        <span>
-                          <span class="panel__name">{r.app}</span>
-                          <span class="panel__info">{r.note}</span>
-                        </span>
-                        <span class={`verdict verdict--${r.verdict} mono`}>{VERDICT_LABEL[r.verdict]}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div class="receipt panel">
-                  <p class="panel__label mono">Example product page · fixes</p>
-                  <ol class="panel__list" role="list">
-                    {fixes.map((s, i) => (
-                      <li>
-                        <span class="panel__name">
-                          <span class="panel__n mono">{String(i + 1).padStart(2, '0')}</span> {s.title}
-                        </span>
-                        <span class="panel__info">{s.kind === 'conversion' ? 'Buying fix' : 'Speed fix'}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </>
-            ) : (
-              <>
-                <div class="receipt panel">
-                  <p class="panel__label mono">The flow</p>
-                  <ol class="panel__list" role="list">
-                    {c.flow.map((s, i) => (
-                      <li class="leader">
-                        <span class="panel__name">{s}</span>
-                        <span class="panel__n mono">{String(i + 1).padStart(2, '0')}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-                {c.generated ? (
-                <div class="receipt panel">
-                  <p class="panel__label mono">Built with</p>
-                  <ul class="panel__list" role="list">
-                    {(c.stack ?? []).map((s) => (
-                      <li class="leader">
-                        <span class="panel__name">{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p class="panel__foot text-3">The flow is drawn from what the build does. Not a screenshot.</p>
-                </div>
-                ) : (
-                <div class="receipt panel">
-                  <p class="panel__label mono">Channels</p>
-                  <ul class="panel__list" role="list">
-                    {channels.map((ch) => (
-                      <li class="leader">
-                        <span>
-                          <span class="panel__name">{ch.name}</span>
-                          <span class="panel__info">{ch.sub}</span>
-                        </span>
-                        <span class="verdict verdict--soon mono">{ch.status}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p class="panel__foot text-3">Amazon, Google Shopping and Facebook Marketplace are not built in {c.name}.</p>
-                </div>
-                )}
-              </>
-            )
-          }
+          <div class="receipt panel">
+            <p class="panel__label mono">{c.example ? 'Example · the order of work' : 'The flow'}</p>
+            <ol class="panel__list" role="list">
+              {c.flow.map((s, i) => (
+                <li class="leader">
+                  <span class="panel__name">{s}</span>
+                  <span class="panel__n mono">{String(i + 1).padStart(2, '0')}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          {c.generated ? (
+          <div class="receipt panel">
+            <p class="panel__label mono">Built with</p>
+            <ul class="panel__list" role="list">
+              {(c.stack ?? []).map((s) => (
+                <li class="leader">
+                  <span class="panel__name">{s}</span>
+                </li>
+              ))}
+            </ul>
+            <p class="panel__foot text-3">The flow is drawn from what the build does. Not a screenshot.</p>
+          </div>
+          ) : (
+          <div class="receipt panel">
+            <p class="panel__label mono">{c.example ? 'What it always includes' : 'Key facts'}</p>
+            <ul class="panel__list" role="list">
+              {c.facts.map((f) => (
+                <li>
+                  <span class="panel__name">{f}</span>
+                </li>
+              ))}
+            </ul>
+            {c.example && <p class="panel__foot text-3">An illustrative store: the method, not a client’s result.</p>}
+          </div>
+          )}
         </div>
         <div class="now inverse">
           <p class="now__label mono">{c.runsNow.label}</p>
@@ -470,32 +425,6 @@ const fixes = STEPS.filter((s) => s.fix);
   }
   .panel__foot {
     font-size: 0.8125rem;
-  }
-  .verdict {
-    flex: none;
-    padding: 3px 9px;
-    border-radius: 3px;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-  }
-  .verdict--keep,
-  .verdict--soon {
-    color: var(--text-2);
-    box-shadow: inset 0 0 0 1.5px var(--line-strong);
-  }
-  .verdict--replace,
-  .verdict--live {
-    background: var(--accent-fill);
-    color: var(--on-accent);
-  }
-  .verdict--remove {
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-  }
-  .verdict--defer {
-    background: var(--warn-bg);
-    color: var(--warn);
   }
   .now {
     display: grid;

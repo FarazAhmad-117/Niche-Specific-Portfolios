@@ -6,14 +6,11 @@
 
 import { nicheOrigin } from '../../niches';
 import { PERSON, bookingUrlFor } from '../../person/person';
-import { getProject } from '../../person/case-helpers';
 import { stackFor } from '../../person/claims';
 // Owner identity comes from src/person/config.ts; edit it there, not here.
 
 export const SITE_ORIGIN = nicheOrigin('shopify');
 export const MAIN_SITE_URL = PERSON.mainSiteUrl;
-/** The Yard Terminal project's public link (registry). Undefined when the person has no such project or link. */
-export const YARD_TERMINAL_URL: string | undefined = getProject('yard-terminal')?.link?.href;
 export const PERSON_NAME = PERSON.name;
 export const BRAND_COMPANY = PERSON.company;
 
@@ -48,7 +45,6 @@ export const SECTIONS = [
   { id: 'proof', label: 'Proof' },
   { id: 'problem', label: 'The problem' },
   { id: 'teardown', label: 'Store teardown' },
-  { id: 'sync', label: 'Sync map' },
   { id: 'work', label: 'Case studies' },
   { id: 'services', label: 'Services' },
   { id: 'included', label: 'In every build' },
@@ -61,7 +57,6 @@ export type SectionId = (typeof SECTIONS)[number]['id'];
 
 export const NAV_LINKS = [
   { label: 'Teardown', id: 'teardown' },
-  { label: 'Sync', id: 'sync' },
   { label: 'Case studies', id: 'work' },
   { label: 'Services', id: 'services' },
   { label: 'FAQ', id: 'faq' },

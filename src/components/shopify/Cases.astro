@@ -1,56 +1,40 @@
 ---
 /**
- * Case studies on the home page. The registry project leads (the one real case; a dashed
- * OWN_PROJECT_SLOT in Example mode). The example speed
- * teardown and a visible placeholder slot for real store work (speed / conversion, open in
- * decisions) sit beside it in one row, so the row is full and nothing pretends to be what it
- * isn't.
+ * Case studies on the home page: three labelled EXAMPLES, one per thing Shopify clients hire
+ * for. The launch leads as the wide card (with its flow as a receipt); the Google indexing audit
+ * and the product page teardown sit beside each other underneath, so every row is full. Each
+ * card says "Example" and carries its TODO chip until a real store replaces it.
  *
  * Page transition: each linked card carries view-transition-name `case-<id>`; the case page
  * hero box uses the same name, so on navigation the card morphs into the hero while the rest
  * of the page slides in behind it (base.css). Only the box morphs, never the title.
  */
-import { CASES, OWN_PROJECT_SLOT } from '../../data/shopify/cases';
-import { STEPS } from '../../data/shopify/teardown';
+import { CASES } from '../../data/shopify/cases';
 import { caseHref } from '../../lib/shopify/paths';
 
-// Picked by role, not position. The real case is absent in Example mode (no yard-terminal
-// project in src/person/projects.ts): its card becomes OWN_PROJECT_SLOT. The teardown is niche
-// content; if it were ever removed its card would become a second dashed slot.
-const main = CASES.find((c) => !c.example);
-const teardown = CASES.find((c) => c.example);
-// The fallback slots reuse the existing classes (a stylesheet change would alter the built CSS);
-// the gap under the main slot comes from an inline margin.
+const [main, ...pair] = CASES;
 const vt = (id: string) => `view-transition-name: case-${id}`;
-const fixes = STEPS.filter((s) => s.fix);
 ---
 
 <section class="section cases" id="work" aria-labelledby="work-title">
   <div class="container">
     <div class="head head--split">
       <p class="eyebrow">Case studies</p>
-      <h2 id="work-title">Proof I can show you today.</h2>
-      {
-        main ? (
+      <h2 id="work-title">How the work goes, start to finish.</h2>
       <p class="lede">
-        The marketplace sync my team builds as our own product, a teardown of the store I’m usually asked to speed up, and a
-        slot for client store work once it’s cleared to publish.
+        Three examples, one for each thing stores hire me for: a launch, products Google can find, and a product page that
+        sells. Illustrative stores, not clients’; real store work goes here once it’s cleared to publish.
       </p>
-        ) : (
-          <p class="lede">
-            A teardown of the store I’m usually asked to speed up, and slots for real work once it’s added and cleared to publish.
-          </p>
-        )
-      }
     </div>
 
     {/* Cards are never reveal-armed: a page transition may morph into one at load, and an
         armed card is invisible at that moment. */}
-    {main ? (
+    {main && (
     <article class="case case--main" id={`card-${main.id}`} style={vt(main.id)}>
       <div class="case__copy">
         <div class="case__top">
-          <span class="tag tag--accent">{main.kicker}</span>
+          {main.example && <span class="tag tag--example">Example</span>}
+          <span class:list={[main.example ? 'case__kicker mono' : 'tag tag--accent']}>{main.kicker}</span>
           {main.status && <span class="chip chip--live">{main.status}</span>}
         </div>
         <h3 class="case__name">
@@ -60,7 +44,7 @@ const fixes = STEPS.filter((s) => s.fix);
         <ul class="case__facts" role="list">
           {main.facts.map((f) => <li>{f}</li>)}
         </ul>
-        <span class="case__more" aria-hidden="true">Read the case study <span class="case__arrow">→</span></span>
+        <span class="case__more" aria-hidden="true">{main.example ? 'Read the walk-through' : 'Read the case study'} <span class="case__arrow">→</span></span>
         <div class="case__todos">
           {main.pending.map((p) => <span class="todo">{p}</span>)}
         </div>
@@ -81,59 +65,37 @@ const fixes = STEPS.filter((s) => s.fix);
         </div>
       </div>
     </article>
-    ) : (
-      <aside class="case case--slot" style="margin-bottom: var(--space-4)" aria-label="Own project placeholder">
-        <span class="case__kicker mono">{OWN_PROJECT_SLOT.kicker}</span>
-        <p class="slot__title">{OWN_PROJECT_SLOT.title}</p>
-        <p class="slot__text">{OWN_PROJECT_SLOT.text}</p>
-        <div class="case__todos">
-          {OWN_PROJECT_SLOT.chips.map((t) => <span class="todo">{t}</span>)}
-        </div>
-      </aside>
     )}
 
     <div class="cases__pair">
-      {teardown ? (
-      <article class="case case--small" id={`card-${teardown.id}`} style={vt(teardown.id)}>
+      {pair.map((c) => (
+      <article class="case case--small" id={`card-${c.id}`} style={vt(c.id)}>
         <div class="case__top">
-          <span class="tag tag--example">Example</span>
-          <span class="case__kicker mono">{teardown.kicker}</span>
+          {c.example && <span class="tag tag--example">Example</span>}
+          <span class="case__kicker mono">{c.kicker}</span>
         </div>
         <h3 class="case__name">
-          <a class="case__link" href={caseHref(teardown.id)}>{teardown.name}</a>
+          <a class="case__link" href={caseHref(c.id)}>{c.name}</a>
         </h3>
-        <p class="case__title">{teardown.title}</p>
+        <p class="case__title">{c.title}</p>
         <ul class="mini" role="list" aria-hidden="true">
           {
-            fixes.map((s, i) => (
+            c.flow.map((s, i) => (
               <li>
                 <span class="mini__n mono">{String(i + 1).padStart(2, '0')}</span>
-                {s.short}
+                {s}
               </li>
             ))
           }
         </ul>
         <span class="case__more" aria-hidden="true">
-          Read the teardown <span class="case__arrow">→</span>
+          Read the walk-through <span class="case__arrow">→</span>
         </span>
+        <div class="case__todos">
+          {c.pending.map((p) => <span class="todo">{p}</span>)}
+        </div>
       </article>
-      ) : (
-        <aside class="case case--slot" aria-label="Teardown placeholder">
-          <span class="case__kicker mono">Example teardown · illustrative</span>
-          <p class="slot__title">A labelled example teardown.</p>
-          <span class="todo">TODO · Add an illustrative teardown to src/data/shopify/cases.ts</span>
-        </aside>
-      )}
-
-      <aside class="case case--slot" aria-label="Store case study placeholder">
-        <span class="case__kicker mono">Store work · speed or conversion</span>
-        <p class="slot__title">A real store, before and after.</p>
-        <p class="slot__text">
-          This slot stays empty until a client clears their store and numbers for publishing. No made-up results in the
-          meantime.
-        </p>
-        <span class="todo">TODO · Store case: Lighthouse and load time before / after, conversion change</span>
-      </aside>
+      ))}
     </div>
     <div class="shelf cases__shelf" aria-hidden="true"></div>
   </div>

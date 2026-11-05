@@ -1,11 +1,20 @@
 ---
 /**
- * The problem. Left: the fear list from the brief. Right: an EXAMPLE store's apps as boxes on
- * a tidy admin "Apps installed" panel; four of them carry a warning badge that says why they slow the
- * store down. Labelled as an example.
-
+ * The problem. Left: the fear list. Right: an EXAMPLE store's check as tiles on a tidy admin
+ * panel; four of them carry a warning badge that says what is holding the store back (not live,
+ * not found, not selling). Labelled as an example.
  */
-import { PROBLEM } from '../../data/shopify/content';
+import { FIX_LABEL, PROBLEM } from '../../data/shopify/content';
+
+/** One small line icon per tile (24px grid, stroked in the tile's status colour). */
+const ICONS: Record<(typeof PROBLEM.shelf)[number]['icon'], string> = {
+  box: 'M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8',
+  card: 'M3 6.5h18v11H3zM3 10h18M7 14.5h4',
+  search: 'M10.5 4.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM15 15l5 5',
+  page: 'M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6',
+  coin: 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17zM14.5 9.5c-.5-1-1.4-1.5-2.5-1.5-1.4 0-2.5.8-2.5 2s1.1 1.6 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1.1 0-2-.5-2.5-1.5M12 6.5v1.5M12 16v1.5',
+  cart: 'M3.5 4.5h2.5l2.2 10h9.3l2-7H7M10 19a1 1 0 1 1 0 .01M17 19a1 1 0 1 1 0 .01',
+};
 ---
 
 <section class="section problem" id="problem" aria-labelledby="problem-title">
@@ -23,21 +32,30 @@ import { PROBLEM } from '../../data/shopify/content';
     <figure class="stock" aria-labelledby="stock-cap" data-pause-offscreen>
       <div class="stock__top">
         <span class="tag tag--example">Example store</span>
-        <span class="stock__title mono">Apps installed</span>
+        <span class="stock__title mono">{PROBLEM.panelTitle}</span>
       </div>
       <ul class="stock__boxes" role="list" data-reveal-stagger>
         {
           PROBLEM.shelf.map((b, i) => (
             <li class:list={['box', { 'box--warn': b.tag }]} style={`--i:${i}`}>
-              <span class="box__lid" aria-hidden="true" />
-              <span class="box__name">{b.name}</span>
-              {b.tag ? (
-                <span class="box__hang">
-                  <span class="box__string" aria-hidden="true" />
-                  <span class="tag tag--warn box__tag">{b.tag}</span>
+              <span class="box__head">
+                <span class="box__lid" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18"><path d={ICONS[b.icon]} /></svg>
                 </span>
-              ) : (
-                <span class="box__ok mono">Earns its place</span>
+                <span class:list={['box__status mono', { 'box__status--warn': b.tag }]}>
+                  {b.tag ? PROBLEM.needsLabel : PROBLEM.okLabel}
+                </span>
+              </span>
+              <span class="box__name">{b.name}</span>
+              {b.tag && (
+                <>
+                  <span class="box__issue">{b.tag}</span>
+                  {b.fix && (
+                    <a class="box__fix" href={`#offer-${b.fix}`}>
+                      Fix: {FIX_LABEL[b.fix]} <span aria-hidden="true">→</span>
+                    </a>
+                  )}
+                </>
               )}
             </li>
           ))
@@ -45,7 +63,7 @@ import { PROBLEM } from '../../data/shopify/content';
       </ul>
       <div class="shelf" aria-hidden="true"></div>
       <figcaption id="stock-cap" class="stock__cap text-3">
-        An example store’s apps, not a client’s. The tags are the problems I find most often.
+        {PROBLEM.caption}
       </figcaption>
     </figure>
   </div>
@@ -151,41 +169,80 @@ import { PROBLEM } from '../../data/shopify/content';
     background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--line);
   }
+  .box--warn {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn-dot) 45%, var(--line));
+  }
+  .box__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
   .box__lid {
+    display: grid;
+    place-items: center;
     width: 32px;
     height: 32px;
     border-radius: var(--radius-s);
-    background: var(--surface-1);
-    box-shadow: inset 0 0 0 1px var(--line);
+    background: var(--accent-soft);
+    color: var(--accent-text);
   }
   .box--warn .box__lid {
     background: var(--warn-bg);
-    box-shadow: none;
+    color: var(--warn);
+  }
+  .box__lid path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Status: a small dot and a word, so the tile reads before the details do. */
+  .box__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+  .box__status::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .box__status--warn {
+    color: var(--warn);
+  }
+  .box__status--warn::before {
+    background: var(--warn-dot);
   }
   .box__name {
     font-weight: 600;
     font-size: 1rem;
     line-height: 1.2;
   }
-  .box__ok {
-    color: var(--text-3);
-    font-family: var(--font-body);
+  .box__issue {
+    color: var(--text-2);
     font-size: 0.8125rem;
-    letter-spacing: 0;
+    line-height: 1.35;
   }
-  .box__hang {
-    display: grid;
-    justify-items: start;
+  .box__fix {
+    align-self: end;
+    margin-top: auto;
+    padding-top: var(--space-1);
+    color: var(--accent-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
   }
-  .box__string {
-    display: none;
-  }
-  .box__tag {
-    max-width: 100%;
-    white-space: normal;
-    font-size: 0.75rem;
-    line-height: 1.3;
-    padding-block: 3px;
+  @media (hover: hover) {
+    .box__fix:hover {
+      text-decoration: underline;
+    }
   }
   .stock__cap {
     margin-top: var(--space-4);

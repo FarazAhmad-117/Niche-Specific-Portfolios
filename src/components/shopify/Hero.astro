@@ -1,13 +1,13 @@
 ---
 /**
- * Hero. Left: who this is and what it does, in one look. Right: an EXAMPLE app audit as a tidy
- * admin panel (an "Apps" table with a status badge per row), with a second panel behind it for
- * depth. Every row is a common kind of Shopify app; the badge is the method (keep, replace,
- * remove, defer), not a client result, and the caption says so.
+ * Hero. Left: who this is and what it does, in one look. Right: an EXAMPLE launch checklist as a
+ * tidy admin panel (a task table with a status badge per row), with a second panel behind it for
+ * depth. Every row is a real part of launching a Shopify store; the badge is the method, not a
+ * client result, and the caption says so.
  *
  * Motion (all optional, all off under reduced motion):
  *  - each headline line slides up out of its own line box, 90ms apart, out-quint; a clay rule
- *    draws under "fewer apps." (in-out-quart)
+ *    draws under "built to sell." (in-out-quart)
  *  - the panel changes once per beat (2.8s): one row is read (a highlight slides to it,
  *    in-out-quart), then its badge lands on the spring. After the last row the summary shows,
  *    holds, and the panel quietly resets.
@@ -18,7 +18,6 @@ import { bookingUrl } from '../../data/shopify/site';
 
 const lines = HERO.headline;
 const n = HERO_RECEIPT.length;
-const everyPage = HERO_RECEIPT.filter((r) => r.verdict === 'keep').length;
 const accentAt = lines[2]!.indexOf(HERO.accentFrom);
 ---
 
@@ -40,7 +39,7 @@ const accentAt = lines[2]!.indexOf(HERO.accentFrom);
         <a class="btn" href={bookingUrl('hero')}>
           <span>{HERO.primary}</span>
         </a>
-        <a class="btn btn--ghost" href="#offer-audit">
+        <a class="btn btn--ghost" href="#offer-launch">
           <span>{HERO.secondary}</span>
           <span class="btn__arrow" aria-hidden="true">↓</span>
         </a>
@@ -56,15 +55,15 @@ const accentAt = lines[2]!.indexOf(HERO.accentFrom);
             <span class="rc__icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" width="16" height="16"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"></rect><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"></rect><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"></rect><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"></rect></svg>
             </span>
-            <span class="rc__store">Apps</span>
+            <span class="rc__store">Launch checklist</span>
             <span class="tag tag--example rc__kind">Example store</span>
-            <button class="rc__pp" type="button" data-rc-pp aria-label="Pause the audit animation" aria-pressed="false" hidden>
+            <button class="rc__pp" type="button" data-rc-pp aria-label="Pause the checklist animation" aria-pressed="false" hidden>
               <svg class="rc__pp-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
               <svg class="rc__pp-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>
             </button>
           </div>
           <div class="rc__cols" aria-hidden="true">
-            <span>App</span><span>Verdict</span>
+            <span>Task</span><span>Status</span>
           </div>
           <ol class="rc__rows" role="list">
             {
@@ -80,17 +79,17 @@ const accentAt = lines[2]!.indexOf(HERO.accentFrom);
             }
           </ol>
           <div class="rc__total">
-            <span>Apps loading on every page</span>
+            <span>Ready to launch</span>
             <span class="rc__total-val num">
-              <span class="rc__from">{n}</span>
+              <span class="rc__from">0/{n}</span>
               <span class="rc__arrow" aria-hidden="true">→</span>
-              <span class="rc__to">{everyPage}</span>
+              <span class="rc__to">{n}/{n}</span>
             </span>
           </div>
         </div>
       </div>
       <figcaption id="rc-cap" class="rc__cap text-3">
-        An example audit, not a client store: the kinds of app I find most, and what I do with each.
+        An example launch, not a client store: what gets checked off before a store goes live.
       </figcaption>
     </figure>
   </div>
@@ -366,21 +365,18 @@ const accentAt = lines[2]!.indexOf(HERO.accentFrom);
     opacity: 1;
     transform: none;
   }
-  .rc__stamp--keep {
-    background: var(--surface-1);
-    color: var(--text-2);
-  }
-  .rc__stamp--replace {
+  .rc__stamp--done,
+  .rc__stamp--passed {
     background: var(--accent-soft);
     color: var(--accent-text);
   }
-  .rc__stamp--remove {
+  .rc__stamp--submitted {
+    background: var(--surface-1);
+    color: var(--text-2);
+  }
+  .rc__stamp--connected {
     background: var(--btn-bg);
     color: var(--btn-fg);
-  }
-  .rc__stamp--defer {
-    background: var(--warn-bg);
-    color: var(--warn);
   }
   .rc__total {
     display: flex;
@@ -481,7 +477,7 @@ const accentAt = lines[2]!.indexOf(HERO.accentFrom);
         pp.setAttribute('aria-pressed', String(userPaused));
         if (userPaused) {
           pause();
-          // Paused means finished: every verdict stamped, nothing half-printed.
+          // Paused means finished: every task stamped, nothing half-printed.
           beat = n;
           show(n);
         } else play();
