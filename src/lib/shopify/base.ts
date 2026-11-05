@@ -1,6 +1,6 @@
 /**
  * Small always-on behaviours for the shopify niche: section reveals, pausing off-screen CSS loops,
- * and settling direct #hash landings. Nav, theme, hero, teardown and sync scripts live with their
+ * and settling direct #hash landings. Nav, theme, hero and teardown scripts live with their
  * components.
  */
 

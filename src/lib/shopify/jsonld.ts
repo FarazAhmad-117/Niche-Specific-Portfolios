@@ -27,7 +27,7 @@ export function personLd(): Ld {
     email: CONTACT_EMAIL,
     address: { '@type': 'PostalAddress', addressLocality: PROFILE.city, addressCountry: PROFILE.countryCode },
     worksFor: { '@type': 'Organization', name: PROFILE.company },
-    knowsAbout: ['Shopify', 'Shopify Plus', ...STACK, 'Core Web Vitals', 'Marketplace inventory sync'],
+    knowsAbout: ['Shopify', 'Shopify Plus', ...STACK, 'Shopify store setup', 'Shopify SEO', 'Google Merchant Center', 'Ecommerce conversion optimisation'],
   };
 }
 
@@ -39,15 +39,15 @@ export function professionalServiceLd(): Ld {
     name: `${PERSON_NAME}: Shopify development`,
     url: SITE_ORIGIN + '/',
     description:
-      'Shopify speed and app audits, theme builds and rebuilds, custom features, and integrations that keep inventory and orders in sync. Shopify Plus in scope.',
+      'Shopify store launches and migrations, Google indexing and Merchant Center, sales and order value fixes, custom builds and integrations. Shopify Plus in scope.',
     founder: { '@id': PERSON_ID },
     email: CONTACT_EMAIL,
     // ProfessionalService is a LocalBusiness: it takes an address, not provider/serviceType
     // (those live on the Service nodes below, which point back here).
     address: { '@type': 'PostalAddress', addressLocality: PROFILE.city, addressCountry: PROFILE.countryCode },
     audience: [
-      { '@type': 'BusinessAudience', audienceType: 'Brands selling on Shopify' },
-      { '@type': 'BusinessAudience', audienceType: 'Multi-channel sellers syncing Shopify with marketplaces' },
+      { '@type': 'BusinessAudience', audienceType: 'Brands launching a Shopify store' },
+      { '@type': 'BusinessAudience', audienceType: 'Ecommerce brands selling on Shopify' },
     ],
     makesOffer: OFFERS.map((o) => ({ '@type': 'Offer', itemOffered: { '@id': `${SITE_ORIGIN}/#service-${o.id}` } })),
   };

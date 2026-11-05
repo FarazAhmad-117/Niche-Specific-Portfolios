@@ -1,10 +1,11 @@
 ---
 /**
- * ★ Signature: the Store teardown (brief §4 item 4), as an in-place player, not a scroll-jack.
- * An EXAMPLE product page (store, product and scripts are illustrative and labelled) with a
- * numbered hotspot on each problem. Six steps walk from "as found" through five fixes; each
- * fix applies on the page and an illustrative speed meter climbs (a position on Slow → Fast,
- * never a score or a load time). The last fix is a buying fix, so the meter holds still.
+ * ★ Signature: the Store teardown, as an in-place player, not a scroll-jack.
+ * An EXAMPLE product page (store, product and signals are illustrative and labelled) with a
+ * numbered hotspot on each problem. Six steps walk from "as found" through five fixes: one
+ * search fix (what Google can read, shown in the "What Google sees" strip) and four sales fixes
+ * on the page. Each applies on the page and an illustrative "Ready to sell" meter climbs (a
+ * position on Not yet → Ready, never a score, a conversion rate or a ranking).
  *
  * Playback: starts when a third of the player is on screen. The current story segment's fill
  * is a CSS animation and its `animationend` advances the story, so pausing (button, off
@@ -20,7 +21,7 @@
  * is a plain list, and the controls are hidden. The product page is a visual duplicate
  * (aria-hidden); the steps list and a visually hidden description are the accessible content.
  */
-import { SCRIPTS, STEPS, STORE, type FixId } from '../../data/shopify/teardown';
+import { SIGNALS, STEPS, STORE, type FixId } from '../../data/shopify/teardown';
 
 const n = STEPS.length;
 const STEP_MS = 4800;
@@ -31,13 +32,15 @@ const totalFixes = allFixes.length;
 const stepOf = (fix: FixId) => STEPS.findIndex((s) => s.fix === fix);
 /** Hotspots carry the visible step number (01-based, the same as the list and the counter). */
 const hsNum = (fix: FixId) => String(stepOf(fix) + 1);
-const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix' } as const;
+const kindLabel = { start: 'Before', search: 'Search fix', conversion: 'Sales fix' } as const;
+/** The first signal a fix changes carries that fix's hotspot. */
+const firstSignal = SIGNALS.findIndex((s) => s.fix === 'schema');
 ---
 
 <section class="section tds" id="teardown" aria-labelledby="teardown-title">
   <div class="container head head--split">
     <p class="eyebrow">Store teardown</p>
-    <h2 id="teardown-title">Watch a slow product page get fast.</h2>
+    <h2 id="teardown-title">Watch a product page get ready to sell.</h2>
     <p class="lede">
       An example store, one fix at a time.
       <span data-td-js-only hidden
@@ -58,12 +61,12 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
       <!-- The meter: one compact card, a bar with a pin (it sticks under the nav below 1100px). -->
       <div class="meter" aria-hidden="true">
         <div class="meter__bar">
-          <span class="meter__bar-end mono">Slow</span>
+          <span class="meter__bar-end mono">Not yet</span>
           <span class="meter__bar-track"><span class="meter__bar-fill"></span><span class="meter__bar-pin"></span></span>
-          <span class="meter__bar-end mono">Fast</span>
+          <span class="meter__bar-end mono">Ready</span>
         </div>
         <div class="meter__read">
-          <span class="meter__title">Speed</span>
+          <span class="meter__title">Ready to sell</span>
           <span class="meter__fixes mono"
             >Fixes applied <span class="num" data-td-fixes>{totalFixes}</span>/{totalFixes}</span
           >
@@ -84,11 +87,12 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
               <span class="tag tag--example pp__ex">Example</span>
             </div>
             <div class="pp__page" data-td-page>
-              <div class="pp__announce" data-anchor="section">
-                <span class="pp__announce-text">Spring sale ends Sunday</span>
-                <span class="pp__badge pp__badge--app">App · countdown.js</span>
+              <div class="pp__announce" data-anchor="ship">
+                <span class="pp__announce-text pp__announce-text--before">Welcome to our store</span>
+                <span class="pp__announce-text pp__announce-text--after">Free shipping over $50</span>
+                <span class="pp__badge pp__badge--app">Says nothing</span>
                 <span class="pp__badge pp__badge--ok">Theme section</span>
-                <span class="hs" data-hs={stepOf('section')}>{hsNum('section')}</span>
+                <span class="hs" data-hs={stepOf('ship')}>{hsNum('ship')}</span>
               </div>
               <div class="pp__header">
                 <span class="pp__logo">{STORE.name}</span>
@@ -109,14 +113,12 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
                         <circle cx="56" cy="44" r="0.9"></circle><circle cx="38" cy="70" r="1"></circle>
                       </g>
                     </svg>
-                    <span class="pp__load" aria-hidden="true"></span>
-                    <span class="pp__badge pp__badge--app pp__photo-badge">Full-size upload</span>
-                    <span class="pp__badge pp__badge--ok pp__photo-badge">Sized · loads first</span>
+                    <span class="pp__badge pp__badge--app pp__photo-badge">One blurry photo</span>
+                    <span class="pp__badge pp__badge--ok pp__photo-badge">Sharp · 4 angles</span>
                     <span class="hs" data-hs={stepOf('img')}>{hsNum('img')}</span>
                   </div>
                   <div class="pp__thumbs">
                     <span></span><span></span><span></span><span></span>
-                    <span class="pp__lazy mono">lazy</span>
                   </div>
                 </div>
                 <div class="pp__info">
@@ -130,28 +132,27 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
                     Add to cart
                     <span class="hs" data-hs={stepOf('sticky')}>{hsNum('sticky')}</span>
                   </span>
+                  <span class="pp__trust" data-anchor="trust">
+                    <span class="pp__trust-q">Delivery? Returns?</span>
+                    <span class="pp__trust-ok">Ships tomorrow · Free 30-day returns</span>
+                    <span class="hs" data-hs={stepOf('trust')}>{hsNum('trust')}</span>
+                  </span>
                 </div>
               </div>
-              <span class="pp__chat" data-anchor="chat">
-                <span class="pp__chat-dot"></span>
-                <span class="pp__chat-label mono">chat.js</span>
-                <span class="pp__chat-label pp__chat-label--ok mono">on tap</span>
-                <span class="hs" data-hs={stepOf('chat')}>{hsNum('chat')}</span>
-              </span>
               <div class="pp__sticky">
                 <span class="pp__sticky-name">{STORE.product}</span>
                 <span class="pp__sticky-btn">Add to cart</span>
               </div>
             </div>
             <div class="pp__scripts">
-              <span class="pp__scripts-label mono">Loaded on this page</span>
+              <span class="pp__scripts-label mono">What Google sees</span>
               <span class="pp__chips">
                 {
-                  SCRIPTS.map((s) => (
+                  SIGNALS.map((s, i) => (
                     <span class:list={['chipjs mono', { 'chipjs--fix': s.fix }]} data-fix={s.fix ?? undefined}>
                       <span class="chipjs__name">{s.name}</span>
                       {s.after && <span class="chipjs__after">{s.after}</span>}
-                      {s.fix === 'dead' && <span class="hs" data-hs={stepOf('dead')}>{hsNum('dead')}</span>}
+                      {i === firstSignal && <span class="hs" data-hs={stepOf('schema')}>{hsNum('schema')}</span>}
                     </span>
                   ))
                 }
@@ -159,8 +160,8 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
             </div>
           </div>
           <figcaption id="pp-cap" class="visually-hidden">
-            An example product page from an illustrative store, {STORE.name}, selling a {STORE.product.toLowerCase()}. It loads
-            {SCRIPTS.map((s) => s.name).join(', ')}. The steps below apply one fix each.
+            An example product page from an illustrative store, {STORE.name}, selling a {STORE.product.toLowerCase()}. Below it, what
+            Google can read from the page: {SIGNALS.map((s) => s.name).join(', ')}. The steps below apply one fix each.
           </figcaption>
         </figure>
       </div>
@@ -216,8 +217,8 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
         </div>
         <p class="visually-hidden" aria-live="polite" data-td-live></p>
         <p class="td__note text-3">
-          Illustrative store, not a client’s. The meter shows direction, not a score: real audits measure before and after the same
-          way.
+          Illustrative store, not a client’s. The meter shows direction, not a score: real reviews measure sales and search
+          before and after the same way.
         </p>
       </div>
     </div>
@@ -445,7 +446,7 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
   }
   .pp__page {
     position: relative;
-    /* Room for the chat bubble under the columns, so it never sits on Add to cart. */
+    /* Room for the sticky Add to cart bar under the columns, so it never covers the delivery line. */
     padding-bottom: max(40px, calc(var(--u) * 6));
     background: var(--surface-2);
     overflow: hidden;
@@ -487,6 +488,34 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
   .pp__announce .pp__badge--ok {
     background: var(--accent-fill);
     color: var(--on-accent);
+  }
+  .pp__announce-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pp__announce-text--before {
+    opacity: 0.7;
+  }
+  .pp__announce-text--after {
+    display: none;
+  }
+  /* Phones: the bar's text is the point of the fix; the badge would squeeze it to an ellipsis. */
+  @media (max-width: 479px) {
+    .pp__announce .pp__badge {
+      display: none !important;
+    }
+  }
+  /* The signals strip: the hotspot sits on the first fixed chip's own edge, not on its neighbour. */
+  .chipjs .hs {
+    top: 50%;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    font-size: 0.625rem;
+    box-shadow: 0 0 0 2px var(--surface-2);
   }
   .pp__header {
     display: flex;
@@ -567,29 +596,6 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
     fill: #f4e2d0;
     opacity: 0.85;
   }
-  /* Before: a slow bar crawling across the top of the photo, like a heavy image arriving. */
-  .pp__load {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--warn-dot) 0 30%, transparent 30%);
-    background-size: 300% 100%;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .pp__load {
-      animation: crawl 3.2s linear infinite;
-    }
-  }
-  @keyframes crawl {
-    from {
-      background-position: 100% 0;
-    }
-    to {
-      background-position: -50% 0;
-    }
-  }
   .pp__photo-badge {
     position: absolute;
     left: 6px;
@@ -601,23 +607,13 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: calc(var(--u) * 1.2);
   }
-  .pp__thumbs > span:not(.pp__lazy) {
+  /* Before: the extra angles are missing (faint placeholders); the photo fix fills them in. */
+  .pp__thumbs > span {
     aspect-ratio: 1.4;
     border-radius: 4px;
     background: linear-gradient(160deg, #eadfd3, #d8c6b4);
-    opacity: 0.85;
-  }
-  .pp__lazy {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    display: none;
-    padding: 0 6px;
-    border-radius: var(--radius-s);
-    background: var(--surface-2);
-    color: var(--text-2);
-    font-size: 0.6875rem;
-    transform: translateY(-50%);
+    opacity: 0.2;
+    transition: opacity 700ms var(--ease-out-quint);
   }
   .pp__info {
     display: grid;
@@ -688,47 +684,43 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
     font-weight: 600;
   }
 
-  /* Chat bubble, bottom right of the page. */
-  .pp__chat {
-    position: absolute;
-    right: calc(var(--u) * 3);
-    bottom: 8px;
-    z-index: 2;
-    display: inline-flex;
+  /* Delivery and returns under Add to cart: an unanswered question before, the promise after. */
+  .pp__trust {
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 6px;
-    border-radius: var(--radius-pill);
-    background: var(--surface-2);
-    box-shadow:
-      inset 0 0 0 1px var(--line-strong),
-      var(--shadow-soft);
+    min-height: 24px;
+    padding: 3px 30px 3px 8px;
+    border-radius: var(--radius-s);
     font-size: 0.6875rem;
-    transition: transform 700ms var(--ease-out-quint);
+    line-height: 1.3;
   }
-  .pp__chat-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--warn-dot);
-    border-right-color: transparent;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .pp__chat-dot {
-      animation: spin 1.1s linear infinite;
-    }
-  }
-  @keyframes spin {
-    to {
-      rotate: 1turn;
-    }
-  }
-  .pp__chat-label {
+  .pp__trust-q {
     color: var(--warn);
+    font-family: var(--font-mono);
   }
-  .pp__chat-label--ok {
+  .pp__trust-ok {
     display: none;
     color: var(--text-2);
+    font-weight: 500;
+  }
+  .pp__trust-ok::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    vertical-align: 1px;
+  }
+  .pp__trust {
+    box-shadow: inset 0 0 0 1px var(--warn-dot);
+  }
+  .pp__trust .hs {
+    top: 50%;
+    right: -6px;
+    margin-top: -14px;
   }
 
   /* Sticky add to cart: hidden below the page until its fix applies. */
@@ -820,60 +812,53 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
   }
 
   /* ---------- fixes applied (data-fixes on the player) ---------- */
+  /* schema: Google can read the product (the strip under the page). */
+  .td[data-fixes~='schema'] .chipjs[data-fix='schema'] {
+    background: var(--accent-soft);
+    box-shadow: none;
+  }
+  .td[data-fixes~='schema'] .chipjs[data-fix='schema'] .chipjs__name {
+    color: var(--text);
+  }
+  .td[data-fixes~='schema'] .chipjs[data-fix='schema'] .chipjs__name::before {
+    background: var(--accent);
+  }
+  .td[data-fixes~='schema'] .chipjs[data-fix='schema'] .chipjs__after {
+    display: inline;
+  }
+  /* img: a sharp photo and the missing angles. */
   .td[data-fixes~='img'] .pp__mug {
     filter: none;
     opacity: 1;
   }
-  .td[data-fixes~='img'] .pp__load {
-    display: none;
+  .td[data-fixes~='img'] .pp__thumbs > span {
+    opacity: 0.85;
   }
   .td[data-fixes~='img'] [data-anchor='img'] .pp__badge--app,
-  .td[data-fixes~='section'] [data-anchor='section'] .pp__badge--app {
+  .td[data-fixes~='ship'] [data-anchor='ship'] .pp__badge--app,
+  .td[data-fixes~='ship'] .pp__announce-text--before,
+  .td[data-fixes~='trust'] .pp__trust-q {
     display: none;
   }
   .td[data-fixes~='img'] [data-anchor='img'] .pp__badge--ok,
-  .td[data-fixes~='section'] [data-anchor='section'] .pp__badge--ok {
+  .td[data-fixes~='ship'] [data-anchor='ship'] .pp__badge--ok {
     display: inline-flex;
   }
-  .td[data-fixes~='img'] .pp__lazy {
-    display: block;
-  }
-  .td[data-fixes~='chat'] .pp__chat-dot {
-    animation: none;
-    border-color: var(--accent);
-    background: var(--accent);
-  }
-  .td[data-fixes~='chat'] .pp__chat-label {
-    display: none;
-  }
-  .td[data-fixes~='chat'] .pp__chat-label--ok {
+  /* ship: the top bar gives a reason to add one more. */
+  .td[data-fixes~='ship'] .pp__announce-text--after {
     display: inline;
   }
+  /* trust: delivery and returns next to Add to cart. */
+  .td[data-fixes~='trust'] .pp__trust {
+    box-shadow: none;
+    background: var(--surface-1);
+  }
+  .td[data-fixes~='trust'] .pp__trust-ok {
+    display: inline;
+  }
+  /* sticky: Add to cart in reach on phones. */
   .td[data-fixes~='sticky'] .pp__sticky {
     transform: none;
-  }
-  .td[data-fixes~='sticky'] .pp__chat {
-    transform: translateY(-44px);
-  }
-  .td[data-fixes~='dead'] .chipjs[data-fix='dead'],
-  .td[data-fixes~='section'] .chipjs[data-fix='section'],
-  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] {
-    background: transparent;
-  }
-  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__name,
-  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__name {
-    color: var(--text-3);
-    text-decoration: line-through 1.5px;
-  }
-  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__name::before,
-  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__name::before,
-  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] .chipjs__name::before {
-    background: var(--accent);
-  }
-  .td[data-fixes~='dead'] .chipjs[data-fix='dead'] .chipjs__after,
-  .td[data-fixes~='section'] .chipjs[data-fix='section'] .chipjs__after,
-  .td[data-fixes~='chat'] .chipjs[data-fix='chat'] .chipjs__after {
-    display: inline;
   }
   .td.is-instant *,
   .td.is-instant {
@@ -911,10 +896,6 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
     right: 8px;
     margin-top: -14px;
     box-shadow: 0 0 0 2px var(--btn-bg);
-  }
-  .pp__chat .hs {
-    top: -14px;
-    right: -8px;
   }
   .pp__atc .hs {
     top: 50%;
@@ -1027,7 +1008,8 @@ const kindLabel = { start: 'Before', speed: 'Speed fix', conversion: 'Buying fix
     color: var(--text-3);
     white-space: nowrap;
   }
-  .st__kind--conversion {
+  .st__kind--conversion,
+  .st__kind--search {
     color: var(--accent-text);
   }
   .st__text {

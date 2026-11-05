@@ -7,11 +7,7 @@ import { Image } from 'astro:assets';
 import { ABOUT } from '../../data/shopify/content';
 import { PROFILE } from '../../data/shopify/profile';
 import { yearsSuffix } from '../../person/person';
-import { STACK, YARD_TERMINAL_URL } from '../../data/shopify/site';
-import { getProject } from '../../person/case-helpers';
-
-// The product link shows only when the person has the project (and it has a public link).
-const yardLink = getProject('yard-terminal')?.link;
+import { STACK } from '../../data/shopify/site';
 
 const facts = [
   { k: 'Based in', v: PROFILE.location },
@@ -42,7 +38,7 @@ const facts = [
       </div>
       <span class="about__hang" aria-hidden="true">
         <span class="about__string"></span>
-        <span class="tag tag--accent">Builds the integration too</span>
+        <span class="tag tag--accent">Live, found, selling</span>
       </span>
     </figure>
 
@@ -67,13 +63,6 @@ const facts = [
         </ul>
       </div>
       <p class="about__links">
-        {
-          yardLink && (
-            <a class="link" href={YARD_TERMINAL_URL} target="_blank" rel="noopener">
-              {yardLink.label}<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
-            </a>
-          )
-        }
         <a class="link" href={PROFILE.github} target="_blank" rel="noopener">
           GitHub<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span>
         </a>

@@ -1,40 +1,33 @@
 /**
  * Case studies for the shopify niche: the home cards and the /work/<slug>/ pages.
  *
- * Sources (nothing else):
- *  - docs/research/ai-web.md (Yard Terminal's own public site): one record per part with a
- *    quantity of one; BUILT to list on eBay Motors and a Shopify storefront and to connect to the
- *    yard's OWN eBay and Shopify accounts (code scan: eBay runs in its sandbox today, the Shopify
- *    channel does not run yet); the other listing is ended when it sells, each ended
- *    listing verified against its channel and failed writes retried; a counter (POS) sale ends
- *    the listings too; fitment from the donor VIN; AI drafts, a person approves; pre-launch,
- *    opening to founding yards; no published customer count
- *  - src/data/ai/cases.ts (the same facts, already reviewed for the ai niche)
- * NOT built in Yard Terminal, so never stated: Amazon, Google Shopping, Facebook Marketplace. Real numbers per case are open: one dashed TODO chip per number.
+ * The three hand-written cases are EXAMPLES (owner's call, 2026-11-05: Yard Terminal is no
+ * longer shown on this niche). Each is labelled as illustrative everywhere it appears and
+ * describes a method, never a result. They follow what Shopify clients hire for:
+ *  - `launch-sprint`: a new store, live soon (setup, bulk import, payments, test orders)
+ *  - `search-ready`: products Google can find (Search Console, canonicals, schema, Merchant Center)
+ *  - `sales-teardown`: a product page that sells (the signature section's fixes, ./teardown.ts)
+ * Each carries one dashed TODO chip until a real, publishable store replaces it.
  *
- * `speed-teardown` is an EXAMPLE (decisions: storefront work is open). It is labelled as
- * illustrative everywhere it appears and describes method, never results.
- *
- * Project-owned values (name, status, link, module titles) come from the shared registry
- * (src/person/projects.ts); everything else below is this niche's angle, verbatim. When the
- * person has no `yard-terminal` project the case is omitted (Example mode): the home page shows
- * OWN_PROJECT_SLOT in its place, and no page, OG image or sitemap entry is generated for it.
+ * Real builds come from the shared registry (src/person/projects.ts): every project listed for
+ * 'shopify' becomes a generated case (MORE_CASES) in the home "More builds" shelf.
  */
 import type { ImageMetadata } from 'astro';
 import type { Project, ProjectId } from '../../person/projects';
-import { autoCases, exampleCase, fromProject, modules, present, type ResolvedAngle } from '../../person/case-helpers';
+import { autoCases, exampleCase, type ResolvedAngle } from '../../person/case-helpers';
 import { projectShot } from '../../person/shots';
 import { SEO_DESCRIPTION_MAX, SEO_TITLE_MAX, fitDescription, withNameSuffix } from '../../lib/shared/seo-title';
 import { PERSON_NAME } from './site';
+import { STEPS } from './teardown';
 
-/** The registry projects this niche shows, in card order. */
-export const NICHE_PROJECTS = ['yard-terminal'] as const satisfies readonly ProjectId[];
+/** The registry projects this niche shows through a hand-written angle: none (all generated). */
+export const NICHE_PROJECTS = [] as const satisfies readonly ProjectId[];
 
 /**
  * Every slug this niche can have (the type); CASE_SLUGS lists the ones present. Generated cases
  * (MORE_CASES, below) use their project id.
  */
-export type CaseSlug = 'yard-terminal' | 'speed-teardown' | ProjectId;
+export type CaseSlug = 'launch-sprint' | 'search-ready' | 'sales-teardown' | ProjectId;
 
 export interface ShopifyCase {
   readonly id: CaseSlug;
@@ -57,8 +50,7 @@ export interface ShopifyCase {
   readonly pending: readonly string[];
   readonly link?: { readonly label: string; readonly href: string };
   readonly seo: { readonly title: string; readonly description: string };
-  /** Caveats from the registry (
-otes), shown on the case page. */
+  /** Caveats from the registry (notes), shown on the case page. */
   readonly notes?: readonly string[];
   /** True for a case generated from the registry (MORE_CASES): registry facts only. */
   readonly generated?: boolean;
@@ -70,133 +62,173 @@ otes), shown on the case page. */
   readonly screenshot?: { readonly src: ImageMetadata; readonly alt: string };
 }
 
-/** Yard Terminal from the registry, with the shopify angle (marketplace sync). */
-const yardTerminal = fromProject(
-  'yard-terminal',
-  (p): ShopifyCase => ({
-    id: 'yard-terminal',
-    name: p.name,
-    kicker: 'Marketplace sync · main case',
-    title: 'One record per part, built to list on Shopify and eBay Motors and end everywhere when it sells.',
-    text: `${p.name} is listing software for auto salvage yards, built by my team at ${p.madeBy ?? 'my company'}. Every part is one record with a quantity of one. It is built to list on the yard’s own Shopify storefront and on eBay Motors, and when it sells on one, to end the other listing. Today the eBay channel runs in eBay’s sandbox and the Shopify channel is not live yet.`,
-    status: p.status ?? null,
-    example: false,
-    flow: ['VIN decoded once', 'One record per part', 'AI draft, human approval', 'Shopify listing (not live yet)', 'eBay Motors listing (sandbox)', 'Sold once, ended everywhere'],
-    facts: [
-      'Built to connect to the yard’s own Shopify and eBay accounts',
-      'One record owns the count; channels only hold listings',
-      'Designed so a sale at the counter ends the online listings too',
-      'Built to check each ended listing and retry a failed write',
-    ],
-    problem: {
-      title: 'One part, two shop windows, sold twice',
-      text: 'A salvage yard sells one-off parts on more than one channel. Listing each part by hand in each place is slow, and a part sold on eBay Motors can still be for sale on the Shopify store until someone remembers to take it down.',
-    },
-    // The canonical module titles; shopify words every module's text its own way (and the VIN
-    // module's title too), so those are overrides. The last item is shopify-only.
-    built: [
-      ...modules(p, [
-        {
-          id: 'record',
-          text: 'Every part is a single record with a quantity of one. The record owns the count; Shopify and eBay Motors only hold listings of it.',
-        },
-        {
-          id: 'vin',
-          title: 'Fitment from the donor VIN',
-          text: 'A VIN is decoded once and every part from that vehicle inherits its year, make, model and engine, so nobody types fitment twice.',
-        },
-        {
-          id: 'approve',
-          text: 'An AI agent drafts each listing. Nothing publishes until a person approves it; there is no auto-publish mode.',
-        },
-        {
-          id: 'delist',
-          text: 'Built so that when a part sells on one channel, or at the counter, its other listings are ended when the sale is recorded, not at the next scheduled run. Each ended listing is checked against its channel, and a failed write is retried until the end is confirmed.',
-        },
-      ]),
-      {
-        title: 'Their accounts, not mine',
-        text: `${p.name} is built to connect to each yard’s own Shopify and eBay accounts and never list under its own. The store stays the yard’s.`,
-      },
-    ],
-    runsNow: {
-      label: 'Where it is now',
-      text: `Pre-launch: opening to founding yards, with a waitlist and demo booking on ${p.link?.label ?? 'its own site'}. There is no published customer count yet, so there are no results on this page either.`,
-    },
-    pending: [
-      'TODO · Parts / SKUs synced',
-      'TODO · Measured sync time',
-      'TODO · Overselling incidents, before and after',
-      'TODO · Screenshots of the Shopify channel',
-      ...(p.status ? [] : ['TODO · Status: live? customers?']),
-    ],
-    ...(p.link ? { link: p.link } : {}),
-    ...(p.notes?.length ? { notes: p.notes } : {}),
-    seo: {
-      title: withNameSuffix(fitDescription(SEO_TITLE_MAX, `${p.name}: Shopify and eBay Motors Sync`, `${p.name}: Case Study`), PERSON_NAME),
-      description: fitDescription(
-        SEO_DESCRIPTION_MAX,
-        `Case study: ${p.name} keeps one record per part, is built to list it on a Shopify storefront and eBay Motors, and ends the other listing when it sells.`,
-        `Case study: ${p.name} keeps one record per part and is built to list it on a Shopify storefront and eBay Motors.`,
-      ),
-    },
-  }),
-);
-
-/** Niche-only illustrative case: no project behind it, always labelled Example. */
-const teardown = exampleCase<ShopifyCase>({
-  id: 'speed-teardown',
-  name: 'Anatomy of a slow product page',
-  kicker: 'Example teardown · illustrative',
-  title: 'What a speed and app audit finds, and how the fixes go in.',
-  text: 'An illustrative product page built from the problems that come up most on Shopify stores: oversized photos, code left behind by uninstalled apps, an app doing a theme’s job, a chat widget loading for everyone. Not a client store; a walk-through of how I audit and fix one.',
+/** Example: a new store launched against a fixed date. */
+const launch = exampleCase<ShopifyCase>({
+  id: 'launch-sprint',
+  name: 'From zero to a live store',
+  kicker: 'Example launch · illustrative',
+  title: 'A new brand’s Shopify store, planned back from its launch date.',
+  text: 'An illustrative launch for a small brand with a few hundred products in a spreadsheet and a launch date already announced. Not a client store; a walk-through of how I run a launch so the date holds and the store is found and selling from its first day.',
   status: null,
   example: true,
-  flow: ['Measure what loads', 'A verdict per app', 'Fix on a staging theme', 'Check on real phones', 'Publish and hand over'],
+  flow: [
+    'Launch date set on the call',
+    'Theme picked and branded',
+    'Products imported in bulk',
+    'Payments, shipping, taxes',
+    'Search Console and Merchant Center',
+    'Test orders, then live',
+  ],
   facts: [
-    'Every app and script on the page listed, with a verdict',
-    'Fixes made on an unpublished copy of the theme',
-    'Nothing removed until we agree the list',
+    'The launch date is agreed first; the plan works back from it',
+    'Products imported in bulk, never typed in one by one',
+    'Google set up before launch, not months after',
   ],
   problem: {
-    title: 'Nobody knows what the page is loading',
-    text: 'Every app adds a little: a script, a stylesheet, a widget. Some were uninstalled and left their code in the theme. Each one is small; together they decide how long a shopper waits before they can tap Add to cart.',
+    title: 'The date is set. The store isn’t.',
+    text: 'The brand has products, photos and a launch date. What it doesn’t have is a store: a theme to choose, hundreds of products to enter, shipping rates, taxes, payments and legal pages, and nobody sure what has to happen in which order.',
   },
   built: [
     {
-      title: 'Measure what loads',
-      text: 'The real product, collection and home pages measured on a phone profile, with every request listed, before anything changes.',
+      title: 'A plan that works back from the date',
+      text: 'On the scoping call we fix the launch date and list what has to be true on launch day. Everything is scheduled back from it, and what can wait until after launch is written down too, so it doesn’t creep in.',
     },
     {
-      title: 'A verdict for every app',
-      text: 'Each app and script gets one: keep it, replace it with theme code, load it only when needed, or remove what an uninstalled app left behind.',
+      title: 'A proven theme, set up well',
+      text: 'An Online Store 2.0 theme, branded and set up with sections your team edits. Custom sections only where the brand needs them, and never on the launch’s critical path.',
     },
     {
-      title: 'Fix on a staging theme',
-      text: 'Images sized and lazy-loaded, leftover code removed, small app jobs moved into sections, widgets deferred. All on an unpublished copy of the theme.',
+      title: 'Products in bulk',
+      text: 'The spreadsheet is cleaned and mapped once: variants, options, photos, collections and metafields, then imported in bulk. Descriptions can be drafted with AI and checked by your team.',
     },
     {
-      title: 'Check it on real phones',
-      text: 'The preview checked on phones and measured the same way as before, so the comparison is fair.',
+      title: 'Store settings done properly',
+      text: 'Shop Pay and express checkout, shipping zones and rates, taxes, the domain, customer emails, and the policy pages Shopify asks for.',
     },
     {
-      title: 'Publish and hand over',
-      text: 'Published when you approve, the old theme kept for a one-click rollback, and a recorded walkthrough of what changed.',
+      title: 'Found from the first day',
+      text: 'The sitemap submitted to Google Search Console, search titles and descriptions from product data, and products sent to Google Merchant Center so they can show in Shopping.',
+    },
+    {
+      title: 'Test, then launch',
+      text: 'Test orders paid, fulfilled and refunded, and every customer email checked on a phone. Then the password comes off at a quiet hour, with me on hand.',
     },
   ],
   runsNow: {
     label: 'What you get at the end',
-    text: 'A list of every app and script with a verdict, a ranked fix list, the fixes made on a staging theme, and before and after measurements taken the same way.',
+    text: 'A live store on your own Shopify account, your catalogue imported, Google set up, a list of what comes after launch, and a recorded walkthrough of how to run it.',
   },
-  pending: ['TODO · Replace with a real store teardown, with before and after numbers'],
+  pending: ['TODO · Replace with a real launch: store type, timeline, what shipped'],
   seo: {
-    title: withNameSuffix('Shopify Speed Audit: Example Teardown', PERSON_NAME),
+    title: withNameSuffix('Shopify Store Launch: Example Plan', PERSON_NAME),
     description:
-      'An illustrative Shopify product page teardown: oversized photos, leftover app code, an app doing a theme’s job, and how a speed and app audit fixes them.',
+      'An illustrative Shopify launch: a plan worked back from the date, products imported in bulk, payments and shipping set up, Google ready, test orders.',
   },
 });
 
-export const CASES: readonly ShopifyCase[] = present([yardTerminal, teardown]);
+/** Example: a live store whose products Google mostly hasn't indexed. */
+const search = exampleCase<ShopifyCase>({
+  id: 'search-ready',
+  name: 'Products Google can find',
+  kicker: 'Example audit · illustrative',
+  title: 'Why a live store shows only part of its catalogue on Google, and the fixes.',
+  text: 'An illustrative store with a few hundred products, where Search Console lists most product pages as not indexed. Not a client store; a walk-through of how I find the causes and fix them.',
+  status: null,
+  example: true,
+  flow: [
+    'Read the indexing report',
+    'One URL per product',
+    'One valid product schema',
+    'Titles from product data',
+    'Merchant Center feed',
+    'Re-submit and watch',
+  ],
+  facts: [
+    'Search Console’s own reasons, worked through one by one',
+    'Duplicate URLs folded into one page per product',
+    'One product schema, with price and stock that match the page',
+  ],
+  problem: {
+    title: 'Live, but not on Google',
+    text: 'The store has been live for months. Search Console lists most product pages as discovered or crawled but not indexed, two apps each add their own product schema, and every product reached through a collection has a second URL. Shoppers searching for the exact product find someone else’s.',
+  },
+  built: [
+    {
+      title: 'Read Google’s own reasons',
+      text: 'The Pages report in Search Console says why each page is not indexed. The reasons are grouped and fixed in order of how many products each one holds back.',
+    },
+    {
+      title: 'One URL per product',
+      text: 'Product links inside collections point at the product’s own URL, so Google sees one page per product, not two. The collection-path URLs keep working and point Google at that main page.',
+    },
+    {
+      title: 'One clean product schema',
+      text: 'The theme outputs a single Product block with price, stock and reviews that match the page, and the app-added duplicates are switched off. Checked with Google’s Rich Results Test.',
+    },
+    {
+      title: 'Search titles from product data',
+      text: 'Titles and descriptions for search built from each product’s own fields and metafields, so hundreds of pages are not left on the default.',
+    },
+    {
+      title: 'A clean Shopping feed',
+      text: 'Products sent to Google Merchant Center through Shopify’s Google channel, with the feed errors cleared, so they can appear in Shopping results and free listings.',
+    },
+    {
+      title: 'Re-submit and watch',
+      text: 'The sitemap re-submitted, key pages requested for indexing, and the report read again over the following weeks. Rankings are never promised; being findable is.',
+    },
+  ],
+  runsNow: {
+    label: 'What you get at the end',
+    text: 'Every not-indexed reason with its fix, the fixes made on a staging theme, a clean Merchant Center feed, and the Search Console report read again the same way afterwards.',
+  },
+  pending: ['TODO · Replace with a real store: indexed product pages before and after'],
+  seo: {
+    title: withNameSuffix('Shopify Google Indexing: Example Audit', PERSON_NAME),
+    description:
+      'An illustrative Shopify indexing audit: Search Console reasons, duplicate collection URLs, one product schema, titles from data and a Merchant Center feed.',
+  },
+});
+
+/** Example: the signature section's product page, as a case. */
+const sales = exampleCase<ShopifyCase>({
+  id: 'sales-teardown',
+  name: 'A product page that sells',
+  kicker: 'Example teardown · illustrative',
+  title: 'What a sales review finds on a product page, and how the fixes go in.',
+  text: 'The example product page from the home page teardown: hard for Google to read, one blurry photo, no reason to add a second item, and delivery and returns nowhere to be found. Not a client store; a walk-through of how I review and fix one.',
+  status: null,
+  example: true,
+  flow: STEPS.filter((s) => s.fix).map((s) => s.short),
+  facts: [
+    'Tracking set up first, so every change can be measured',
+    'Fixes made on an unpublished copy of the theme',
+    'Theme sections instead of another monthly app',
+  ],
+  problem: {
+    title: 'Visitors arrive, browse and leave',
+    text: 'The ads and the emails bring people to the product page. Then they hit a blurry photo, no word on delivery or returns, and an Add to cart button they have to scroll back up to find. Each one is small; together they decide whether someone buys.',
+  },
+  built: [
+    {
+      title: 'Measure first',
+      text: 'Add-to-cart, checkout and purchase events checked in analytics, so the before and after are measured the same way. Without that, nobody can say what a change did.',
+    },
+    ...STEPS.filter((s) => s.fix).map((s) => ({ title: s.title, text: s.text })),
+  ],
+  runsNow: {
+    label: 'What you get at the end',
+    text: 'A ranked list of what stops people buying, the fixes made on a staging theme, tracking you can trust, and the same numbers read before and after.',
+  },
+  pending: ['TODO · Replace with a real store: conversion and order value before and after'],
+  seo: {
+    title: withNameSuffix('Shopify Product Page Review: Example', PERSON_NAME),
+    description:
+      'An illustrative Shopify product page review: product schema, photos, a free-shipping bar, delivery and returns up front, and sticky add to cart on phones.',
+  },
+});
+
+export const CASES: readonly ShopifyCase[] = [launch, search, sales];
 
 /**
  * The one adapter: a registry project listed for 'shopify' with no hand-written angle here →
@@ -241,17 +273,6 @@ export const MORE_CASES: readonly ShopifyCase[] = autoCases('shopify', CASES.fil
 /** Every case with a page: hand-written first, then generated. */
 export const ALL_CASES: readonly ShopifyCase[] = [...CASES, ...MORE_CASES];
 export const CASE_SLUGS: readonly CaseSlug[] = ALL_CASES.map((c) => c.id);
-
-/**
- * Example mode: the home page's main card when the person has no `yard-terminal` project. A
- * dashed placeholder, never someone else's project.
- */
-export const OWN_PROJECT_SLOT = {
-  kicker: 'Own project · integration or sync',
-  title: 'A Shopify integration or store you built.',
-  text: 'This slot stays empty until a real project is added to src/person/projects.ts. Nothing is shown in its place.',
-  chips: ['TODO · Add your own project to src/person/projects.ts', 'TODO · What it connects to Shopify, and its status'],
-} as const;
 
 export const getCase = (slug: string): ShopifyCase | undefined => ALL_CASES.find((c) => c.id === slug);
 
