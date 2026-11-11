@@ -280,7 +280,7 @@
  *  - spring       something "arriving" (a badge landing, the meter needle settling): a real
  *                 damped spring (zeta 0.62, ~8% overshoot) sampled into linear(); browsers
  *                 without linear() get a back-out bezier
- *  - sine         ambient loops (sync packets), never jerky at the turn
+ *  - sine         ambient loops, never jerky at the turn
  */
 :root {
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);

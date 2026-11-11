@@ -569,34 +569,40 @@ main:focus {
   /* A case card ↔ its page hero. The box moves and resizes on in-out-quart; the snapshots
      are never stretched to the box (object-fit: none, pinned top-left), so text stays crisp;
      the old one fades out early and the new one in late, so they never double into a ghost. */
-  ::view-transition-group(case-yard-terminal),
-  ::view-transition-group(case-speed-teardown) {
+  ::view-transition-group(case-launch-sprint),
+  ::view-transition-group(case-search-ready),
+  ::view-transition-group(case-sales-teardown) {
     animation-duration: 900ms;
     animation-timing-function: var(--ease-in-out-quart);
     z-index: 2;
   }
-  ::view-transition-image-pair(case-yard-terminal),
-  ::view-transition-image-pair(case-speed-teardown) {
+  ::view-transition-image-pair(case-launch-sprint),
+  ::view-transition-image-pair(case-search-ready),
+  ::view-transition-image-pair(case-sales-teardown) {
     isolation: auto;
     overflow: clip;
     border-radius: var(--radius-xl);
   }
-  ::view-transition-old(case-yard-terminal),
-  ::view-transition-old(case-speed-teardown),
-  ::view-transition-new(case-yard-terminal),
-  ::view-transition-new(case-speed-teardown) {
+  ::view-transition-old(case-launch-sprint),
+  ::view-transition-old(case-search-ready),
+  ::view-transition-old(case-sales-teardown),
+  ::view-transition-new(case-launch-sprint),
+  ::view-transition-new(case-search-ready),
+  ::view-transition-new(case-sales-teardown) {
     width: 100%;
     height: 100%;
     object-fit: none;
     object-position: left top;
     mix-blend-mode: normal;
   }
-  ::view-transition-old(case-yard-terminal),
-  ::view-transition-old(case-speed-teardown) {
+  ::view-transition-old(case-launch-sprint),
+  ::view-transition-old(case-search-ready),
+  ::view-transition-old(case-sales-teardown) {
     animation: vt-fade-out 340ms var(--ease-out-quint) both;
   }
-  ::view-transition-new(case-yard-terminal),
-  ::view-transition-new(case-speed-teardown) {
+  ::view-transition-new(case-launch-sprint),
+  ::view-transition-new(case-search-ready),
+  ::view-transition-new(case-sales-teardown) {
     animation: vt-fade-in 520ms var(--ease-out-quint) 320ms both;
   }
 }

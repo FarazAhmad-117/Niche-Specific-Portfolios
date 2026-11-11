@@ -3,7 +3,7 @@
  * resvg rasterises it to a 1200×630 PNG. Runs only at build.
  *
  * Honesty rule: social networks cache OG images, so this never prints a number we do not
- * have. The home image shows an EXAMPLE app audit (labelled), a case shows its steps, never a
+ * have. The home image shows an EXAMPLE launch checklist (labelled), a case shows its steps, never a
  * result.
  */
 import { readFileSync } from 'node:fs';
@@ -73,10 +73,10 @@ const mono = (size: number, color: string, extra: Style = {}): Style => ({
 });
 
 const VERDICT_STYLE = {
-  keep: { background: C.paper2, color: C.ink2 },
-  replace: { background: C.claySoft, color: C.clayText },
-  remove: { background: C.ink, color: C.card },
-  defer: { background: C.warnBg, color: C.warn },
+  done: { background: C.claySoft, color: C.clayText },
+  passed: { background: C.claySoft, color: C.clayText },
+  submitted: { background: C.paper2, color: C.ink2 },
+  connected: { background: C.ink, color: C.card },
 } as const;
 
 /** An admin panel: a title row, then rows separated by hairlines with a right-hand value. */
@@ -149,7 +149,7 @@ const footer = (): El => {
 
 function homeTree(): El {
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    topBar('SPEED · THEMES · SYNC'),
+    topBar('LAUNCH · SEARCH · SALES'),
     h(
       {
         position: 'absolute',
@@ -164,11 +164,11 @@ function homeTree(): El {
         letterSpacing: '-0.04em',
         color: C.ink,
       },
-      [h({}, 'A faster'), h({}, 'Shopify store'), h({}, 'with'), h({ color: C.clayText }, 'fewer apps.')],
+      [h({}, 'A Shopify'), h({}, 'store, live'), h({}, 'in weeks,'), h({ color: C.clayText }, 'built to sell.')],
     ),
     h({ position: 'absolute', right: M - 10, top: 128 }, [
       receipt(
-        'Apps · example audit',
+        'Launch · example store',
         HERO_RECEIPT.map((r) => ({ label: r.app, right: verdictTag(r.verdict) })),
         450,
         52,
@@ -182,7 +182,7 @@ function homeTree(): El {
 function caseTree(c: ShopifyCase): El {
   const rows = c.flow.map((s, i) => ({ label: s, right: String(i + 1).padStart(2, '0') }));
   return h({ width: W, height: H, background: C.paper, position: 'relative' }, [
-    topBar(c.example ? 'EXAMPLE TEARDOWN · ILLUSTRATIVE' : c.confidential ? 'CLIENT BUILD · CASE STUDY' : 'CASE STUDY', c.example ? C.ink2 : C.clayText),
+    topBar(c.example ? 'EXAMPLE · ILLUSTRATIVE' : c.confidential ? 'CLIENT BUILD · CASE STUDY' : 'CASE STUDY', c.example ? C.ink2 : C.clayText),
     h({ position: 'absolute', left: M, top: 160, width: 560, flexDirection: 'column', gap: 26 }, [
       h(
         {

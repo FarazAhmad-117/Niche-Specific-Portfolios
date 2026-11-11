@@ -4,7 +4,6 @@ import Hero from '../../components/shopify/Hero.astro';
 import Proof from '../../components/shopify/Proof.astro';
 import Problem from '../../components/shopify/Problem.astro';
 import Teardown from '../../components/shopify/Teardown.astro';
-import SyncMap from '../../components/shopify/SyncMap.astro';
 import Cases from '../../components/shopify/Cases.astro';
 import MoreBuilds from '../../components/shopify/MoreBuilds.astro';
 import Offers from '../../components/shopify/Offers.astro';
@@ -15,14 +14,13 @@ import Faq from '../../components/shopify/Faq.astro';
 import FinalCta from '../../components/shopify/FinalCta.astro';
 import { HOME_SEO, assertMeta } from '../../data/shopify/seo';
 import { abs, homeLd } from '../../lib/shopify/jsonld';
-import { SHOW_SYNC_MAP } from '../../lib/shopify/sections';
 
 assertMeta('home', HOME_SEO);
 
 /*
- * Reading order (brief §4): what this is → facts → the overloaded store → watch a page get
- * fast (signature) → the sync map → proof → how to buy → what's always included → how it
- * runs → who builds it → questions → contact.
+ * Reading order: what this is (live, found, selling) → facts → the stuck store → watch a
+ * product page get ready to sell (signature) → example cases → real builds → how to buy →
+ * what's always included → how it runs → who builds it → questions → contact.
  */
 ---
 
@@ -39,8 +37,6 @@ assertMeta('home', HOME_SEO);
   <Proof />
   <Problem />
   <Teardown />
-  {/* The sync map is drawn from the yard-terminal project: omitted without it (Example mode). */}
-  {SHOW_SYNC_MAP && <SyncMap />}
   <Cases />
   <MoreBuilds />
   <Offers />
